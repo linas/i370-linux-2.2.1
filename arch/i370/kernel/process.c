@@ -148,16 +148,6 @@ int check_stack(struct task_struct *tsk)
 		ret |= 2;
 	}
 	
-	/* check if stored kstp is bad */
-	if ( (tsk->tss.kstp > stack_top) || (tsk->tss.kstp < stack_bot) )
-	{
-		printk("stack top pointer out of bounds: %s/%d\n"
-		       "    stack_bot %08lx kstp %08lx stack_top %08lx\n",
-		       tsk->comm,tsk->pid,
-		       stack_bot, tsk->tss.kstp, stack_top);
-		ret |= 4;
-	}
-	
 	/* check if stack ptr RIGHT NOW is bad */
 	if ( (tsk == current) && ((_get_SP() > stack_top ) || (_get_SP() < stack_bot)) )
 	{
@@ -165,27 +155,27 @@ int check_stack(struct task_struct *tsk)
 		       "    stack_bot %08lx sp %08lx stack_top %08lx\n",
 		       current->comm,current->pid,
 		       stack_bot, _get_SP(), stack_top);
-		ret |= 8;
+		ret |= 4;
 	}
 
-	/* check if stack ptr RIGHT NOW is bad */
+	/* check if top-of-stack ptr RIGHT NOW is bad */
 	if ( (tsk == current) && ((_get_STP() > stack_top ) || (_get_STP() < stack_bot)) )
 	{
 		printk("current stack top ptr out of bounds: %s/%d\n"
-		       "    stack_bot %08lx stp %08lx stack_top %08lx\n",
+		       "    stack_bot %08lx r11 %08lx stack_top %08lx\n",
 		       current->comm,current->pid,
 		       stack_bot, _get_STP(), stack_top);
-		ret |= 0x10;
+		ret |= 0x8;
 	}
 
 	/* check amount of free stack */
-	if ( 3000 > (stack_top - tsk->tss.kstp) )
+	if ( 3000 > (stack_top - tsk->tss.ksp) )
 	{
 		printk("low on stack space: %s/%d\n"
 		       "    stack_bot %08lx ksp %08lx stack_top %08lx\n",
 		       tsk->comm,tsk->pid,
-		       stack_bot, tsk->tss.kstp, stack_top);
-		ret |= 0x20;
+		       stack_bot, tsk->tss.ksp, stack_top);
+		ret |= 0x10;
 	}
 	
 	if (ret)
@@ -321,8 +311,6 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 
 	/* switch kernel stack pointers */
 	old_tss->ksp = _get_SP();
-	old_tss->kstp = _get_STP();
-	_set_STP (new_tss->kstp);
 	_set_SP (new_tss->ksp);
 
 	/* purge TLB (XXX is this really needed here ???) */
@@ -412,9 +400,10 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 	printk("i370_copy_thread, usp=0x%lx\n", usp);
 
-	/* Copy the kernel stack, and fix up the entries in it.
+	/* Copy the kernel stack, and thunk the stack pointers in it.
 	 * Don't copy the current frame: we want the new stack
 	 * to unwinds is if it were do_fork(), and not to do_fork().
+	 * The value of the thunk is 'delta'.
 	 */
 	srctop = kernel_stack_top (current);
 	dsttop = kernel_stack_top (p);
@@ -428,7 +417,6 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 	/* switch_to() grabs the current ksp out of tss.ksp */
 	p->tss.ksp = ((unsigned long) this_frame) - delta;
-	p->tss.kstp = ((unsigned long) this_frame_top) - delta;
 
 #ifdef CHECK_STACK
         check_stack(current);
@@ -449,7 +437,13 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	} while (srcsp);
 	lastdst -> caller_sp = 0;
 
-	/* Interrupt regs are stored on stack as well */
+	/* Interrupt regs are stored on stack as well.  Note that when
+	 * we used SVC to get to here, r13 and r11 were stored by the SVC 
+	 * handler and well be restored when the SVC returns.  We have to find
+	 * these values and thunk them as well.  Note that the code below
+	 * will correctly handle nested interrupts, although in theory we
+	 * should never have more than two (?) interrupts on the kernel stack. 
+	 */
 	srcregs = current->tss.regs;
 	dstregs = &(p->tss.regs);
 
@@ -468,11 +462,14 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	do {
 		*dstregs = (i370_interrupt_state_t *) 
 			(((unsigned long) srcregs) - delta);
+		(*dstregs)->irregs.r13 = srcregs->irregs.r13 - delta; 
+		(*dstregs)->irregs.r11 = srcregs->irregs.r11 - delta; 
 		(*dstregs)->oldregs =  (i370_interrupt_state_t *)
 			(((unsigned long) (srcregs->oldregs)));     
 		srcregs = srcregs->oldregs;
 		dstregs = &((*dstregs)->oldregs);
 	} while (srcregs);
+	*dstregs = (i370_interrupt_state_t *) 0;
 
 	/* Now copy the 'far side' of the stack, the part that lies
 	 * on the other side of the SVC that got us here.  There are

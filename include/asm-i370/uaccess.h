@@ -247,10 +247,13 @@ extern inline unsigned long
 __clear_user(void *addr, unsigned long size)
 {
 	/* set a block of bytes to zero */
+	memset (addr, 0, size);
+/*
 	*((int *)addr) = 0;
 	size --;
-	asm volatile ("MVC	1(%1,%0),0(%0)" : 
-			"=r" (addr) : "r" (size) : "memory");
+	asm volatile ("MVC	1(4095,%0),0(%0)" : 
+			"=r" (addr) : : "memory");
+*/
 	return 0;
 }
 

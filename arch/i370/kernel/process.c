@@ -211,13 +211,15 @@ void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 // ... modify the segment table CR1 and mabye CR3 key  ...
 // ... Purge TLB ...
 //
-// NB switch_to() actually returns as copy_thread() to do_fork(),
-// even though it was called in schedule().  This is because when 
+// NB the first time through, switch_to() actually returns as if
+// it were do_fork() to anyone who had called do_fork(), (even
+// though switch_to() was called in schedule()).  This is because when 
 // the stack unwinds during the subr return, it unwinds into a copy 
-// of it's parent's stack.  And the last thing the parent had done 
-// was a fork, ergo, that's were we return to.
+// of it's parent's stack (minux one stackframe).  And the last thing 
+// the parent had done was a fork, ergo, that's were we return to.
 // 
-// A non-zero // return value indicates an error.
+// A non-zero return value indicates an error.
+
 int
 switch_to(struct task_struct *prev, struct task_struct *new)
 {
@@ -281,21 +283,27 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 void exit_thread(void)
 {
+	printk ("exit_thread(): not implemented \n");
+	i370_halt();
 }
 
 void flush_thread(void)
 {
+	printk ("flush_thread(): not implemented \n");
+	i370_halt();
 }
 
 void
 release_thread(struct task_struct *t)
 {
+	printk ("release_thread(): not implemented \n");
+	i370_halt();
 }
 
 void 
 i370_sys_exit (void) 
 {
-	printk ("i370_sys_exi(): not implemented \n");
+	printk ("i370_sys_exit(): not implemented \n");
 	i370_halt();
 }
 
@@ -345,11 +353,16 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	dstksp = ((dstksp+7) >> 3) << 3;
 	srcsp = (i370_elf_stack_t *) srcksp;
 	dstsp = (i370_elf_stack_t *) dstksp;
+
+        /* unwind one frame; don't copy this frame */
 	this_frame = (i370_elf_stack_t *) _get_SP();
+        this_frame = this_frame->caller_sp;
+
 	delta = srcksp - dstksp;
 
 	/* XXX not clear to me how much of the parent stack needs to
-         * be copied to the child ... 
+         * be copied to the child ... certainly, don't copy the 
+         * last frame, if we expect do_fork() to work right.
          */
 	memcpy (dstsp, srcsp, this_frame->stack_top - srcksp);
 	do {
@@ -381,14 +394,6 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	 * and a pointer to the overflow routine. */
 	p->tss.tca[3] = ((unsigned long) p) + 8192;
 	p->tss.tca[29] = (unsigned long) tcaStackOverflow; 
-
-	/* Fork was done from an SVC;  the child gets a return value 
-         * of zero; while the parent gets the childs pid ...
-         * Where going to note which of these we are by sticking
-         * the pid into irregs.r15 ... ... not used ???
-	 */
-	p->tss.regs -> irregs.r15 = 0;
-	current->tss.regs -> irregs.r15 = p->pid;
 
 #ifdef __SMP__
         if ( (p->pid != 0) || !(clone_flags & CLONE_PID) )
@@ -456,11 +461,7 @@ i370_sys_clone (unsigned long clone_flags)
         unlock_kernel();
 
 	printk ("i370_sys_clone(): after do_fork, res=%d\n", res);
-/* XXX why are we cli'ing here ??? */
-// cli();
 
-/* XXX should we be returning res here, or should we be returning
- * regs->irregs.r15 ?? */
         return res;
 }
 

@@ -136,22 +136,13 @@ extern inline void * phys_to_virt(unsigned long address)
 
 #endif /* __KERNEL__ */
 
-/*
- * Enforce In-order Execution of I/O:
- * Acts as a barrier to ensure all previous I/O accesses have
- * completed before any further ones are issued.
- */
-extern inline void eieio(void)
-{
-	__asm__ __volatile__ ("eieio" : : : "memory");
-}
 
 /* Enforce in-order execution of data I/O. 
- * No distinction between read/write on I370; use eieio for all three.
+ * No barriers needed for i370.
  */
-#define iobarrier_rw() eieio()
-#define iobarrier_r()  eieio()
-#define iobarrier_w()  eieio()
+#define iobarrier_rw() 
+#define iobarrier_r() 
+#define iobarrier_w() 
 
 /*
  * 8, 16 and 32 bit, big and little endian I/O operations, with barrier.
@@ -160,13 +151,15 @@ extern inline int in_8(volatile unsigned char *addr)
 {
 	int ret;
 
-	__asm__ __volatile__("lbz%U1%X1 %0,%1; eieio" : "=r" (ret) : "m" (*addr));
+	/* this will not do a single-byte memory access but I don't think
+	 * that matters ... ?! */
+	__asm__ __volatile__("la %0,0; ic %0,%1" : "=r" (ret) : "m" (*addr));
 	return ret;
 }
 
 extern inline void out_8(volatile unsigned char *addr, int val)
 {
-	__asm__ __volatile__("stb%U0%X0 %1,%0; eieio" : "=m" (*addr) : "r" (val));
+	__asm__ __volatile__("stc %1,%0" : "=m" (*addr) : "r" (val));
 }
 
 extern inline int in_le16(volatile unsigned short *addr)

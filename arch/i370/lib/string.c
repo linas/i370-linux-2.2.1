@@ -1,7 +1,7 @@
 
 
 int strlen (const char *head) {
-   char * tail = str;
+   char * tail = head;
    while (*tail) tail ++;
    return (tail - head);
 }

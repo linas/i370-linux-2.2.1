@@ -24,12 +24,13 @@ __initfunc(void time_init(void))
 	 * system TOD clock is not in the stopped state, and if it is, 
 	 * set it running again... 
 	 */
-	/* grab the system time of day clock, add 50 milliseconds,
+	/* grab the system time of day clock, add 200 milliseconds,
 	 * and store that in the clock comparator.  That should start 
-	 * the interupts going. 
+	 * the interupts going.  We pick a large value just in case
+	 * VM decides to play games with us.
 	 */
 	tod = _stck();
-	tod += 5 * (1000000/HZ) << 12;
+	tod += 20 * (1000000/HZ) << 12;
 	_sckc (tod);
 
 	/* wait for an interrupt */

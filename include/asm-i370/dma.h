@@ -35,28 +35,6 @@
 
 #if defined(CONFIG_MACH_SPECIFIC)
 
-#if defined(CONFIG_PREP)
-#define DMA_MODE_READ 0x44
-#define DMA_MODE_WRITE 0x48
-#define ISA_DMA_THRESHOLD 0x00ffffff
-#endif /* CONFIG_PREP */
-
-#if defined(CONFIG_CHRP)
-#define DMA_MODE_READ 0x44
-#define DMA_MODE_WRITE 0x48
-#define ISA_DMA_THRESHOLD ~0L
-#endif /* CONFIG_CHRP */
-
-#ifdef CONFIG_PMAC
-#define DMA_MODE_READ 1
-#define DMA_MODE_WRITE 2
-#define ISA_DMA_THRESHOLD ~0L
-#endif /* CONFIG_PMAC */
-
-#ifdef CONFIG_APUS
-/* This is bogus and should go away. */
-#define ISA_DMA_THRESHOLD (0x00ffffff)
-#endif
 
 #else
 /* in arch/ppc/kernel/setup.c -- Cort */
@@ -121,21 +99,6 @@ extern unsigned long ISA_DMA_THRESHOLD;
  * and up to 128K bytes may be transferred on channels 5-7 in one operation. 
  *
  */
-
-/* used in nasty hack for sound - see prep_setup_arch() -- Cort */
-extern long ppc_cs4232_dma, ppc_cs4232_dma2;
-#ifdef CONFIG_CS4232
-#define SND_DMA1 ppc_cs4232_dma
-#define SND_DMA2 ppc_cs4232_dma2
-#else
-#ifdef CONFIG_MSS
-#define SND_DMA1 CONFIG_MSS_DMA
-#define SND_DMA2 CONFIG_MSS_DMA2
-#else
-#define SND_DMA1 -1
-#define SND_DMA2 -1
-#endif
-#endif
 
 /* 8237 DMA controllers */
 #define IO_DMA1_BASE	0x00	/* 8 bit slave DMA, channels 0..3 */
@@ -292,27 +255,6 @@ static __inline__ void set_dma_page(unsigned int dmanr, int pagenr)
 			dma_outb(pagenr, DMA_LO_PAGE_3);
 			dma_outb(pagenr>>8, DMA_HI_PAGE_3); 
 			break;
-	        case 5:
-		        if (SND_DMA1 == 5 || SND_DMA2 == 5)
-				dma_outb(pagenr, DMA_LO_PAGE_5);
-			else
-				dma_outb(pagenr & 0xfe, DMA_LO_PAGE_5);
-                        dma_outb(pagenr>>8, DMA_HI_PAGE_5);
-			break;
-		case 6:
-		        if (SND_DMA1 == 6 || SND_DMA2 == 6)
-				dma_outb(pagenr, DMA_LO_PAGE_6);
-			else
-				dma_outb(pagenr & 0xfe, DMA_LO_PAGE_6);
-			dma_outb(pagenr>>8, DMA_HI_PAGE_6);
-			break;
-		case 7:
-			if (SND_DMA1 == 7 || SND_DMA2 == 7)
-				dma_outb(pagenr, DMA_LO_PAGE_7);
-			else
-				dma_outb(pagenr & 0xfe, DMA_LO_PAGE_7);
-			dma_outb(pagenr>>8, DMA_HI_PAGE_7);
-		  break;
 	}
 }
 
@@ -325,15 +267,6 @@ static __inline__ void set_dma_addr(unsigned int dmanr, unsigned int phys)
 	if (dmanr <= 3)  {
 	    dma_outb( phys & 0xff, ((dmanr&3)<<1) + IO_DMA1_BASE );
             dma_outb( (phys>>8) & 0xff, ((dmanr&3)<<1) + IO_DMA1_BASE );
-	}  else  {
-	  if (dmanr == SND_DMA1 || dmanr == SND_DMA2) {
-	    dma_outb( phys  & 0xff, ((dmanr&3)<<2) + IO_DMA2_BASE );
-	    dma_outb( (phys>>8)  & 0xff, ((dmanr&3)<<2) + IO_DMA2_BASE );
-	    dma_outb( (dmanr&3), DMA2_EXT_REG);
-	  } else {
-	    dma_outb( (phys>>1) & 0xff, ((dmanr&3)<<2) + IO_DMA2_BASE );
-	    dma_outb( (phys>>9) & 0xff, ((dmanr&3)<<2) + IO_DMA2_BASE );
-	  }
 	}
 	set_dma_page(dmanr, phys>>16);
 }
@@ -353,14 +286,6 @@ static __inline__ void set_dma_count(unsigned int dmanr, unsigned int count)
 	if (dmanr <= 3)  {
 	    dma_outb( count & 0xff, ((dmanr&3)<<1) + 1 + IO_DMA1_BASE );
 	    dma_outb( (count>>8) & 0xff, ((dmanr&3)<<1) + 1 + IO_DMA1_BASE );
-        } else {
-	  if (dmanr == SND_DMA1 || dmanr == SND_DMA2) {
-	    dma_outb( count & 0xff, ((dmanr&3)<<2) + 2 + IO_DMA2_BASE );
-	    dma_outb( (count>>8) & 0xff, ((dmanr&3)<<2) + 2 + IO_DMA2_BASE );
-	  } else {
-	    dma_outb( (count>>1) & 0xff, ((dmanr&3)<<2) + 2 + IO_DMA2_BASE );
-	    dma_outb( (count>>9) & 0xff, ((dmanr&3)<<2) + 2 + IO_DMA2_BASE );
-	  }
         }
 }
 
@@ -384,7 +309,7 @@ static __inline__ int get_dma_residue(unsigned int dmanr)
 	count = 1 + dma_inb(io_port);
 	count += dma_inb(io_port) << 8;
 	
-	return (dmanr <= 3 || dmanr == SND_DMA1 || dmanr == SND_DMA2)
+	return (dmanr <= 3 )
 	  ? count : (count<<1);
 }
 
@@ -392,10 +317,6 @@ static __inline__ int get_dma_residue(unsigned int dmanr)
 extern int request_dma(unsigned int dmanr, const char * device_id);	/* reserve a DMA channel */
 extern void free_dma(unsigned int dmanr);	/* release it again */
 
-#ifdef CONFIG_PCI_QUIRKS
-extern int isa_dma_bridge_buggy;
-#else
 #define isa_dma_bridge_buggy    (0)
-#endif
 
 #endif /* _ASM_DMA_H */

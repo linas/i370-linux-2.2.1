@@ -12,6 +12,8 @@
 
 #include <asm/asm.h>
 #include <asm/atomic.h>
+#include <asm/mmu.h>
+#include <asm/mmu_context.h>
 #include <asm/pgtable.h>
 
 atomic_t next_mmu_context; 
@@ -106,10 +108,11 @@ void si_meminfo(struct sysinfo *val)
 void
 mmu_context_overflow(void)
 {
-//        struct task_struct *tsk;
+        struct task_struct *tsk;
 
         printk("mmu_context_overflow\n");
-#if 0
+
+#ifdef JUNK
         read_lock(&tasklist_lock);
         for_each_task(tsk) {
                 if (tsk->mm)
@@ -227,8 +230,30 @@ void __bad_pte(pmd_t *pmd)
 
 pte_t *get_pte_slow(pmd_t *pmd, unsigned long offset)
 {
-   printk ("get_pte_slow \n");
-return 0x0;
+   pte_t *pte;
+
+   printk ("enter get_pte_slow \n");
+   if (pmd_none(*pmd)) {
+      pte = (pte_t *) get_zero_page_fast();
+      if (NULL == pte) {
+         pte = (pte_t *) __get_free_page(GFP_KERNEL);
+         if (pte) {
+            clear_page((unsigned long)pte);
+         }
+      }
+      if (pte) {
+         pmd_val(*pmd) = (unsigned long)pte;
+         return pte + offset;
+      }
+      pmd_val(*pmd) = (unsigned long)BAD_PAGETABLE;
+      return NULL;
+   }
+
+   if (pmd_bad(*pmd)) {
+      __bad_pte(pmd);
+      return NULL;
+   }
+   return (pte_t *) pmd_page(*pmd) + offset;
 }
 
 /*

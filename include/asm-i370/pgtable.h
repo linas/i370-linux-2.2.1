@@ -77,7 +77,7 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 #define USER_PTRS_PER_PGD	(TASK_SIZE / PGDIR_SIZE)
 
 /* Just any arbitrary offset to the start of the vmalloc VM area: the
- * current 64MB value just means that there will be a 64MB "hole" after the
+ * current 1GB value just means that there will be a 1GB "hole" after the
  * physical memory until the kernel virtual memory starts.  That means that
  * any out-of-bounds memory accesses will hopefully be caught.
  * The vmalloc() routines leaves a hole of 4kB between each vmalloced
@@ -89,10 +89,10 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
  * to allocate areas that don't exist! This value of 64M will only cause
  * problems when we have >128M -- Cort
  */
-#define VMALLOC_OFFSET	(0x4000000) /* 64M */
+#define VMALLOC_OFFSET	(0x40000000) /* 1GB */
 #define VMALLOC_START ((((long)high_memory + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1)))
 #define VMALLOC_VMADDR(x) ((unsigned long)(x))
-#define VMALLOC_END	0xf0000000
+#define VMALLOC_END	0x7f000000
 
 /*
  * Bits in a linux-style PTE.  These match the bits in the
@@ -104,7 +104,7 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 #define _PAGE_GUARDED	0x008
 #define _PAGE_COHERENT	0x010	/* M: enforce memory coherence (SMP systems) */
 #define _PAGE_NO_CACHE	0x020	/* I: cache inhibit */
-#define _PAGE_WRITETHRU	0x040	/* W: cache write-through */
+// #define _PAGE_WRITETHRU	0x040	/* W: cache write-through */
 #define _PAGE_DIRTY	0x080	/* C: page changed */
 #define _PAGE_ACCESSED	0x100	/* R: page referenced */
 #define _PAGE_HWWRITE	0x200	/* software: _PAGE_RW & _PAGE_DIRTY */
@@ -316,7 +316,8 @@ extern inline pte_t * pte_offset(pmd_t * dir, unsigned long address)
 
 
 /*
- * This is handled very differently on the I370 since out page tables
+ * XXX ??? 
+ * This is handled very differently since out page tables
  * are all 0's and I want to be able to use these zero'd pages elsewhere
  * as well - it gives us quite a speedup.
  *
@@ -341,7 +342,7 @@ extern struct pgtable_cache_struct {
 } quicklists;
 
 #ifdef __SMP__
-/*#warning Tell Cort to do the pgt cache for SMP*/
+#warning do the pgt cache for SMP
 #define pgd_quicklist (quicklists.pgd_cache)
 #define pmd_quicklist ((unsigned long *)0)
 #define pte_quicklist (quicklists.pte_cache)
@@ -546,13 +547,6 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm,unsigned long va)
  * data/instruction access exception handlers.
  */
 #define update_mmu_cache(vma, addr, pte)	do { } while (0)
-
-/*
- * When flushing the tlb entry for a page, we also need to flush the
- * hash table entry.  flush_hash_page is assembler (for speed) in head.S.
- */
-extern void flush_hash_segments(unsigned low_vsid, unsigned high_vsid);
-extern void flush_hash_page(unsigned context, unsigned long va);
 
 
 #define SWP_TYPE(entry) (((entry) >> 1) & 0x7f)

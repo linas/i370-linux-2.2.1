@@ -1,4 +1,8 @@
 
+/*
+ * XXX this is mostly all wrong for the 370
+ */
+
 #include <linux/sched.h>
 #include <asm/elf.h>
 #include <asm/pgtable.h>
@@ -52,14 +56,24 @@ print_backtrace(unsigned long *sp)
         printk("\n");
 }
 
+/*
+ * Set up a thread for executing a new program
+ */
+void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
+{
+	printk ("start thread\n");
+}
+
+// switch_to does the task switching.  
+// It needs to save registers and the psw,
+// unload the tasks segment table CR1 and mabye CR3 key ?? 
+// and then do the opposite fore the new process ...
 void
 switch_to(struct task_struct *prev, struct task_struct *new)
 {
-   printk("swith_to\n");
+	printk("swith_to\n");
 }
 
-void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
-{}
 
 void exit_thread(void)
 {

@@ -62,9 +62,19 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
  * entries per page directory level: our page-table tree is two-level, so
  * we don't really have any PMD directory.
  */
-#define PTRS_PER_PTE	1024
+#define PTRS_PER_PTE	256
 #define PTRS_PER_PMD	1
 #define PTRS_PER_PGD	2048
+
+/* Because each i370 page table has only 256 entries, we can in fact
+ * fit four page tables onto one page. (256*4 *4bytes per entry = 4096 bytes) */
+#define PT_PER_PAGE	4
+
+/* segment table entry page table origin mask */
+#define SEG_PTO_MASK	0x7fffffc0
+
+/* page frame real address mask */
+#define PFRA_MASK	0x7ffff000
 
 /* USER_PTRS_PER_PGD should equal 2048 to address 2GB */
 #define USER_PTRS_PER_PGD	(TASK_SIZE / PGDIR_SIZE)
@@ -162,16 +172,15 @@ extern unsigned long empty_zero_page[1024];
 #define PTR_MASK	(~(sizeof(void*)-1))
 
 /* sizeof(void*) == 1<<SIZEOF_PTR_LOG2 */
-/* 64-bit machines, beware!  XXX hack alert */
 #define SIZEOF_PTR_LOG2	2
 
 /* to set the page-dir */
-/* tsk is a task_struct and pgdir is a pgd_t */
+/* tsk is a task_struct and pgdir is a pgd_t* */
 #define SET_PAGE_DIR(tsk,pgdir)  { 				\
 	(tsk)->tss.pg_tables = (unsigned long *)(pgdir);	\
 	(tsk)->tss.regs->cr1.raw = 0;				\
 	(tsk)->tss.regs->cr1.bits.psto = ((unsigned long) pgdir) >>12;		\
-	(tsk)->tss.regs->cr1.bits.pstl = 63;			\
+	(tsk)->tss.regs->cr1.bits.pstl = 127;			\
 }
      
 #ifndef __ASSEMBLY__
@@ -267,32 +276,35 @@ extern inline pte_t
 static inline pte_t mk_pte_phys(unsigned long page, pgprot_t pgprot)
 { pte_t pte; 
 printk ("mk_pte_phys %lx %lx\n",page,pgprot_val(pgprot));
-pte_val(pte) = (page) | pgprot_val(pgprot); return pte; }
+pte_val(pte) = (page & PFRA_MASK) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t mk_pte(unsigned long page, pgprot_t pgprot)
 { pte_t pte; 
 printk ("mk_pte %lx %lx\n",page, pgprot_val(pgprot));
-pte_val(pte) = __pa(page) | pgprot_val(pgprot); return pte; }
+pte_val(pte) = (page & PFRA_MASK) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 { pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot); 
 printk ("pte_modify %lx %lx\n", pte_val(pte),pgprot_val(newprot));
 return pte; }
 
+/* pte_page returns only the addrss part of the entry; mask out misc bits */
 extern inline unsigned long pte_page(pte_t pte)
-{ return (unsigned long) (pte_val(pte) & PAGE_MASK); }
+{ return (unsigned long) (pte_val(pte) & PFRA_MASK); }
 
+/* pmd_page returns only the address part of the entry; mask out misc bits */
 extern inline unsigned long pmd_page(pmd_t pmd)
-{ return pmd_val(pmd); }
+{ return pmd_val(pmd) & SEG_PTO_MASK; }
 
 
-/* to find an entry in a kernel page-table-directory */
+/* to find an entry in a kernel segment-table-directory */
 #define pgd_offset_k(address) pgd_offset(&init_mm, address)
 
-/* to find an entry in a page-table-directory */
+/* to find an entry in a segment-table-directory */
 extern inline pgd_t * pgd_offset(struct mm_struct * mm, unsigned long address)
 {
-	return mm->pgd + (address >> PGDIR_SHIFT);
+	/* addend should be between 0 and 2048 */
+	return mm->pgd + ((address & ADDR_MASK) >> PGDIR_SHIFT);
 }
 
 /* Find an entry in the second-level page table.. */
@@ -304,23 +316,29 @@ extern inline pmd_t * pmd_offset(pgd_t * dir, unsigned long address)
 /* Find an entry in the third-level page table.. */ 
 extern inline pte_t * pte_offset(pmd_t * dir, unsigned long address)
 {
-	return (pte_t *) pmd_page(*dir) + ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1));
+	pte_t * ppp = (pte_t *) pmd_page(*dir);
+	/* addend should be between 0 and 256 */
+	ppp += (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
+	return ppp;
 }
 
 extern __inline__ pgd_t *i370_pgd_alloc(void)
 {
-	pgd_t *ret, *init;
+	pgd_t *ret;
 
 	/* grab two pages, for 2048 entires mapping 2GB */
 	ret = (pgd_t *)__get_free_pages(GFP_KERNEL,1);
 	if (ret) {
-		init = pgd_offset(&init_mm, 0);
-		memset (ret, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));
-#if 0
-// huh ???? 
-		memcpy (ret + USER_PTRS_PER_PGD, init + USER_PTRS_PER_PGD,
-			(PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
-#endif
+		/* zero out the entire pgd, not just the 'user' part of it */
+		/* memset (ret, 0, USER_PTRS_PER_PGD * sizeof(pgd_t)); */
+		/* memset won't work, we need to set the invalid bit */
+		int i;
+		pmd_t *pme = (pmd_t *) ret;
+		for (i=0; i<USER_PTRS_PER_PGD; i++) {
+			pmd_clear (pme);
+			pme ++;
+		}
+		
 	}
 	return ret;
 }
@@ -353,19 +371,19 @@ extern void __bad_pte(pmd_t *pmd);
 #define pgd_alloc()             i370_pgd_alloc()
 #define pgd_free(pgd)           i370_pgd_free(pgd)
 
-extern pte_t *i370_get_pte(pmd_t *pmd, unsigned long address_preadjusted);
+extern pte_t *i370_get_pte(pmd_t *pmd, unsigned long pt_entry_index);
 
 extern inline pte_t * i370_pte_alloc(pmd_t * pmd, unsigned long address)
 {
-	address = (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
+	unsigned long entry_idx = (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
 	if (pmd_none(*pmd)) {
-		return i370_get_pte(pmd, address);
+		return i370_get_pte(pmd, entry_idx);
 	}
 	if (pmd_bad(*pmd)) {
 		__bad_pte(pmd);
 		return NULL;
 	}
-	return (pte_t *) pmd_page(*pmd) + address;
+	return ((pte_t *)pmd_page(*pmd)) + entry_idx;
 }
 
 /*
@@ -384,12 +402,17 @@ extern inline pmd_t * i370_pmd_alloc(pgd_t * pgd, unsigned long address)
 
 extern int do_check_pgt_cache(int, int);
 
+/* XXX ??? what is this supposed to do ??? */
+/* I think this is used only by vmalloc, and is used to make
+ * sure that all kernel processes see the virtual page mapping.
+ * right now we don't support vmalloc, for the moment.
+ */
 extern inline void set_pgdir(unsigned long address, pgd_t entry)
 {
+	printk ("i370_set_pgdir(): unimplemented\n");
+	i370_halt();
+#if 0
 	struct task_struct * p;
-#ifdef __SMP__
-	int i;
-#endif	
         
 	read_lock(&tasklist_lock);
 	for_each_task(p) {
@@ -398,26 +421,30 @@ extern inline void set_pgdir(unsigned long address, pgd_t entry)
 		*pgd_offset(p->mm,address) = entry;
 	}
 	read_unlock(&tasklist_lock);
+#endif 
 }
 
 /* the pgdir consists of *TWO* pages (address 2GB of storage) */
 extern pgd_t swapper_pg_dir[2048];
 
-extern __inline__ pte_t *find_pte(struct mm_struct *mm,unsigned long va)
+extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
 {
 	pgd_t *dir;
 	pmd_t *pmd;
 	pte_t *pte = NULL;
 
 	va &= PAGE_MASK;
+printk ("find_pte for va=0x%lx\n", va);
 	
 	dir = pgd_offset( mm, va );
 	if (dir)
 	{
+printk ("find_pte got pgd for va=0x%lx\n", va);
 		pmd = pmd_offset(dir, va);
 		if (pmd && pmd_present(*pmd))
 		{
 			pte = pte_offset(pmd, va);
+printk ("find_pte got pmd for va=%x pte=0x%lx\n", va, pte);
 		}
 	}
 	return pte;
@@ -442,7 +469,11 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm,unsigned long va)
 
 /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
 #define PageSkip(page)		(0)
+
+#if 0
+/* XXX junk delete me */
 #define kern_addr_valid(addr)	(1)
+#endif
 
 #endif __ASSEMBLY__
 #endif /* _I370_PGTABLE_H */

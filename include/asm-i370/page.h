@@ -8,6 +8,9 @@
 #define PAGE_SIZE	(1UL << PAGE_SHIFT)
 #define PAGE_MASK	(~(PAGE_SIZE-1))
 
+/* during address calcs, the 31st bit might be set... use this to clear it */
+#define ADDR_MASK	0x7fffffff
+
 /* for now, we will run in real mode, 
  * so all real address == virtual addres
  */

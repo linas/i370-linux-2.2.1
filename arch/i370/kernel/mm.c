@@ -88,18 +88,6 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
      PAGE_OFFSET, end_mem);
 }
 
-/*
- * paging_init() sets up the page tables
- */
-__initfunc(unsigned long paging_init(unsigned long start_mem, 
-                                     unsigned long end_mem))
-{
-   _sske (start_mem, 0x00);  // just for grins
-   printk ("paging init\n");
-   return start_mem;
-}
-
-
 __initfunc(void free_initmem(void))
 {
   printk ("do da free_initmem ding \n");
@@ -155,7 +143,7 @@ mmu_context_overflow(void)
  * mapping RAM starting at PAGE_OFFSET, since they never change).
  */
 void
-local_flush_tlb_all(void)
+i370_flush_tlb_all(void)
 {
  //        asm volatile ("tlbia" : : );
 }
@@ -168,7 +156,7 @@ local_flush_tlb_all(void)
  * that might be in the hash table.
  */
 void
-local_flush_tlb_mm(struct mm_struct *mm)
+i370_flush_tlb_mm(struct mm_struct *mm)
 {
 /*
         mm->context = NO_CONTEXT;
@@ -178,7 +166,7 @@ local_flush_tlb_mm(struct mm_struct *mm)
 }
 
 void
-local_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
+i370_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
 {
 #if 0
         if (vmaddr < TASK_SIZE)
@@ -196,7 +184,7 @@ local_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
  * -- Cort
  */
 void
-local_flush_tlb_range(struct mm_struct *mm, unsigned long start, unsigned
+i370_flush_tlb_range(struct mm_struct *mm, unsigned long start, unsigned
 long end)
 {
 #if 0
@@ -257,6 +245,7 @@ return 0x0;
  * data and COW.
  */
 unsigned long empty_bad_page_table;
+unsigned long empty_bad_page;
 
 pte_t * __bad_pagetable(void)
 {
@@ -264,7 +253,6 @@ pte_t * __bad_pagetable(void)
    return (pte_t *) empty_bad_page_table;
 }
 
-unsigned long empty_bad_page;
 
 pte_t __bad_page(void)
 {
@@ -272,6 +260,29 @@ pte_t __bad_page(void)
    return pte_mkdirty(mk_pte(empty_bad_page, PAGE_SHARED));
 }
 
+
+/*
+ * paging_init() sets up the page tables
+ */
+__initfunc(unsigned long paging_init(unsigned long start_mem, 
+                                     unsigned long end_mem))
+{
+   printk ("paging init\n");
+   _sske (start_mem, 0x00);  // just for grins
+
+   /*
+    * Grab some memory for bad_page and bad_pagetable to use.
+    */
+   empty_bad_page = PAGE_ALIGN(start_mem);
+   empty_bad_page_table = empty_bad_page + PAGE_SIZE;
+   start_mem = empty_bad_page + 2 * PAGE_SIZE;
+
+   /* free_area_init is in linux/mm/page_malloc.c and it 
+    * sets up its arch-independent page tables*/
+   start_mem = free_area_init(start_mem, end_mem);
+
+   return start_mem;
+}
 
 void set_context(int context) {}  
 

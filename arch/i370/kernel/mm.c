@@ -26,6 +26,12 @@ extern char __init_data_begin[], __init_data_end[];
 extern char _text[], _etext[];  
 
 
+/* mem_init() will put the kernel text pages into a different
+ * storage key than the data pages, effectively rendering them read-only.
+ * It then changes the key under which the kernel executes.  Remaining 
+ * area is marked as available for allocatin by the Linux kernel.
+ */
+
 __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 {
    unsigned long addr;
@@ -374,15 +380,18 @@ put_user_data(long data, void *addr, long len)
 	/* find the page table entry for the addr */
 /* XXX note we need to figure out some way of walking the 
  * the pte in some SMP-safe fashion, which find_pte isn't ...
+ * maybe mark the page w/ compare & swap?
  */
 	va = (unsigned long) addr;
 	pte = find_pte (current->mm, va);
 	printk ("put_user_data: *(%x) = %x\n", pte, pte_val(*pte));
 
-/* XXX figure out how to map an umapped page */
 	if (pte_none(*pte)) {
 		printk ("put_user_data: unmaped page \n");
-	   	i370_halt();
+		i370_halt();
+		/* XXX set this up correctly ... */
+		/* handle_mm_fault (current, ... ,1); */
+		/* make_pages_present ...*/
 	}
 
 	/* put together the real address */

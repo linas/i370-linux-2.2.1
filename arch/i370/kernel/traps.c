@@ -30,7 +30,6 @@
 #include <asm/unitblk.h>
 
 
-extern void sys_call_table(void);
 #ifdef CONFIG_XMON
 extern void xmon(struct pt_regs *regs);
 extern int xmon_bpt(struct pt_regs *regs);
@@ -57,41 +56,8 @@ int (*debugger_dabr_match)(struct pt_regs *regs);
 void (*debugger_fault_handler)(struct pt_regs *regs);
 #endif
 #endif
-#ifdef LATER
+
 void ret_from_syscall(void);
-#endif
-
-void instruction_dump (unsigned short *pc)
-{
-   int i;
-
-   printk("Instruction DUMP:");
-   for(i = -12; i < 6; i++)
-      printk("%c%04x%c", i?' ':'<', pc[i], i?' ':'>' );
-   printk("\n");
-}
-
-
-/*
- * Trap & Exception support
- */
-
-void
-_exception(int signr, struct pt_regs *regs)
-{
-	if (!user_mode(regs))
-	{
-		show_regs(regs);
-		print_backtrace (regs->irregs.r13);
-#if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
-		debugger(regs);
-#endif
-		instruction_dump((unsigned short *)instruction_pointer(regs));
-		printk ("Exception in kernel \n");
-		i370_halt();
-	}
-	force_sig(signr, current);
-}
 
 /*----------------------------------------------------------------*/
 /* Machine Check Handling                                         */
@@ -286,17 +252,15 @@ static ei_handler ei_table[] = {
 void
 ExternalException (i370_interrupt_state_t *saved_regs)
 {
-	unsigned short code,
-                i_ei;
+	unsigned short code, i_ei;
 
-	/*----------------------------------------------------------*/
 	/* get the interruption code */
-	/*----------------------------------------------------------*/
 	code = *((unsigned long *) PFX_EXT_CODE);
 	for (i_ei = 0; ei_table[i_ei].ei_code != 0; i_ei++) {
 		if (code == ei_table[i_ei].ei_code) break;
 	}
 	ei_table[i_ei].ei_flih(saved_regs, code);
+
 }
  
 static void
@@ -338,10 +302,15 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 	
 	/* let Linux do its timer thing */
 	do_timer (saved_regs);
+
+	/* timer interrupts are a great time to reschedule */
+	ret_from_syscall();
 }
 
 /* ================================================================ */
 /* do SLIH intrerrupt handling (the bottom half) */
+
+extern void do_signal(void);
 
 void 
 ret_from_syscall (void) 
@@ -363,8 +332,10 @@ ret_from_syscall (void)
 
 		/* bitwise and */
 		if (bh_mask & bh_active) {
+printk ("gonna do bottom half\n");
 			do_bottom_half ();  // handle_bottom_half()
 			do_it_again = 1;
+printk ("did bottom half\n");
 		}
 		/* Are we returning to the user? */
 		if (user_mode(current->tss.regs)) {
@@ -400,7 +371,6 @@ StackOverflow(struct pt_regs *regs)
 #endif
 	show_regs(regs);
 	print_backtrace (regs->irregs.r13);
-	// instruction_dump((unsigned long *)regs->psw.addr);
 	i370_halt();
 }
 

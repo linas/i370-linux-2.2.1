@@ -1,0 +1,49 @@
+
+How to IPL & Debug
+------------------
+
+Uploading
+---------
+When uploading LINUX390.LOADER be sure to specify 'binary mode' during 
+ftp.  It will upload to a single record of 400 bytes; however, you want 
+5 records of 80 bytes (of fixed length).  You can do this with XEDIT,
+type 'next' to position the cursor, and 'split 81 161 241 321' to
+split the line.  Finally, make it a fixed reclen with:
+'copy / ( recfm F lrecl 80'
+
+Booting
+-------
+Currently, the boot process works as follows:
+A rexx script LINUXTXT.REXX will accept a kernel you've uploaded,
+read its ELF header, and punch out a card deck containing that
+kernel.  You need to preface this deck with the binary
+LINUX390.LOADER, put the whole thing on a device and IPL.
+
+Most convenient is to IPL from your reader spool.  The exec
+LINUXIPL.EXEC will punch out the kernel to the RDR spool.
+
+To boot, type 'CP IPL 00C CLEAR' and you should be on your way.
+
+Note that '00C' is the virtual device usually associated with 
+the reader sppol, you will want to verify that this is the case
+for your account with 'Q ALL'.
+
+Debugging
+---------
+You will want to debug in CP.  So, during boot, you will want to
+'CP IPL 00C CLEAR STOP'.  Then set any tracepoints you want, and 'B'.
+
+Some handy commands:
+TRACE ALL        trace all instructions
+TRACE CLEAR      clear all tracepoints
+Query TRACE      show trace status
+DISPLAY G0-16    show general registers 0-16
+DISPLAY X0-16    show control registers 0-16
+DISPLAY PSW      you guessed it ...
+DISPLAY SCHIB    display subchannel info block ...
+STORE G5 ...     load a value into GPR 5
+STORE PSW ...    load a new PSW ...
+Begin            run the thing
+
+
+

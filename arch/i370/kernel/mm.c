@@ -397,6 +397,8 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 			pte = find_pte (current->mm, va);
 			if (pte_none(*pte)) {
 				printk ("Error: copy_to_user: unmaped page \n");
+				/* I think we're suipposed to return 'len'
+				 * (the number unread bytes) at this point */
 				i370_halt();
 			} else {
 				unsigned long off = va & ~PAGE_MASK;
@@ -412,7 +414,7 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 			}
 		}
 	}
-	return 1;
+	return 0;
 }
 
 int
@@ -446,7 +448,7 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 			}
 		}
 	}
-	return 1;
+	return 0;
 }
 
 int __strncpy_from_user(char *dst, const char *src, long count)

@@ -451,7 +451,7 @@ __initfunc(void i370_trap_init (int key))
 
 	// restart quick hack
 	psw.flags = 0x000a0000;
-	psw.addr = 0x0000ffff;
+	psw.addr = 0x0000fffc;
 	*((psw_t *) IPL_PSW_NEW) = psw;
 
 	// install the ProgramCheck handler

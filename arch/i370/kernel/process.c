@@ -288,6 +288,7 @@ switch_to(struct task_struct *prev, struct task_struct *next)
                next->processor);
 	printk ("current sp=0x%lx next sp=0x%lx\n", _get_SP(), next->tss.ksp);
 #endif
+	if (!next->tss.regs) printk ("Warning: zero regs for next pid=%d\n", next->pid);
 #ifdef __SMP__
         prev->last_processor = prev->processor;
 	/* XXX copy  current=new to the pfx page of the correct processor. */
@@ -506,6 +507,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		lastdst -> caller_sp = 0;
 	}
 
+	printk ("i370_copy_thread: finished %s pid=%d regs=%p\n", 
+		p->comm, p->pid, p->tss.regs);
 #ifdef __SMP__
         if ( (p->pid != 0) || !(clone_flags & CLONE_PID) )
                 p->tss.smp_fork_ret = 1;

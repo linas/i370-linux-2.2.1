@@ -1,7 +1,7 @@
 #include <linux/config.h>
-
 /* 
- * XXX most things here are probably wrong ...
+ * Page Table mamangement stuff for the ESA/390.  
+ * XXX under constructions, some things here might be very wrong ...
  */
 
 #ifndef _I370_PGTABLE_H
@@ -64,7 +64,9 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
  */
 #define PTRS_PER_PTE	1024
 #define PTRS_PER_PMD	1
-#define PTRS_PER_PGD	1024
+#define PTRS_PER_PGD	2048
+
+/* USER_PTRS_PER_PGD should equal 2048 to address 2GB */
 #define USER_PTRS_PER_PGD	(TASK_SIZE / PGDIR_SIZE)
 
 /* VMALLOC_OFFSET is an (arbitrary) offset to the start of the vmalloc 
@@ -89,27 +91,28 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
  * PTE, the other bits are software-only thingies that inhabit 
  * low byte of the pte and hopefull won't hurt anybody.
  */
-#define _PAGE_INVALID	0x400	/* pte contains a translation */
-#define _PAGE_RW	0x200	/* write access allowed */
+#define _PAGE_INVALID	0x400	/* hardware pte: I bit is set */
+#define _PAGE_RO	0x200	/* hardware pte: P bit (write protect) */
+
+/* hardware segment table entry */
+#define _SEG_INVALID    0x20	/* segment invalid bit */
+#define _SEG_COMMON     0x10	/* segment common bit */
+
 #define _PAGE_DIRTY	0x002	/* storage key C: page changed */
 #define _PAGE_ACCESSED	0x004	/* storage key R: page referenced */
+
 #define _PAGE_USER	0x001	/* software: user-mode */
-#define _PAGE_HWWRITE	0x008	/* software: _PAGE_RW & _PAGE_DIRTY */
 #define _PAGE_SHARED	0x010
 
 #define _PAGE_CHG_MASK	(PAGE_MASK | _PAGE_ACCESSED | _PAGE_DIRTY)
 
-#define _PAGE_BASE	 _PAGE_ACCESSED
-#define _PAGE_WRENABLE	_PAGE_RW | _PAGE_DIRTY | _PAGE_HWWRITE
+#define PAGE_NONE	__pgprot( _PAGE_INVALID)
 
-#define PAGE_NONE	__pgprot(_PAGE_INVALID | _PAGE_ACCESSED)
-
-#define PAGE_SHARED	__pgprot(_PAGE_BASE | _PAGE_RW | _PAGE_USER | \
-				 _PAGE_SHARED)
-#define PAGE_COPY	__pgprot(_PAGE_BASE | _PAGE_USER)
-#define PAGE_READONLY	__pgprot(_PAGE_BASE | _PAGE_USER)
-#define PAGE_KERNEL	__pgprot(_PAGE_BASE | _PAGE_WRENABLE | _PAGE_SHARED)
-#define PAGE_KERNEL_CI	__pgprot(_PAGE_BASE | _PAGE_WRENABLE | _PAGE_SHARED )
+#define PAGE_SHARED	__pgprot( _PAGE_USER | _PAGE_SHARED)
+#define PAGE_COPY	__pgprot( _PAGE_USER)
+#define PAGE_READONLY	__pgprot( _PAGE_USER | _PAGE_RO)
+#define PAGE_KERNEL	__pgprot( _PAGE_SHARED)
+#define PAGE_KERNEL_CI	__pgprot( _PAGE_SHARED )
 
 /*
  * We consider execute permission the same as read.
@@ -163,7 +166,7 @@ extern unsigned long empty_zero_page[1024];
 #define SIZEOF_PTR_LOG2	2
 
 /* to set the page-dir */
-/* tsk is a task_struct and pgdir is a pte_t */
+/* tsk is a task_struct and pgdir is a pgd_t */
 #define SET_PAGE_DIR(tsk,pgdir)  { 				\
 	(tsk)->tss.pg_tables = (unsigned long *)(pgdir);	\
 	(tsk)->tss.regs->cr1.raw = 0;				\
@@ -172,14 +175,27 @@ extern unsigned long empty_zero_page[1024];
 }
      
 #ifndef __ASSEMBLY__
-extern inline int pte_none(pte_t pte)		{ return !pte_val(pte); }
-extern inline int pte_present(pte_t pte)	{ return !(pte_val(pte) & _PAGE_INVALID); }
-extern inline void pte_clear(pte_t *ptep)	{ pte_val(*ptep) = 0; }
 
-extern inline int pmd_none(pmd_t pmd)		{ return !pmd_val(pmd); }
-extern inline int pmd_bad(pmd_t pmd)		{ return (pmd_val(pmd) & ~PAGE_MASK) != 0; }
-extern inline int pmd_present(pmd_t pmd)	{ return (pmd_val(pmd) & PAGE_MASK) != 0; }
-extern inline void pmd_clear(pmd_t * pmdp)	{ pmd_val(*pmdp) = 0; }
+/* Unused pte's must have the invalid bit set ...  */
+extern inline int 
+	pte_none(pte_t pte)	{ return (pte_val(pte) & _PAGE_INVALID); }
+extern inline int 
+	pte_present(pte_t pte)	{ return !((pte_val(pte) & _PAGE_INVALID)); }
+extern inline void 
+	pte_clear(pte_t *ptep)	{ pte_val(*ptep) = _PAGE_INVALID | _PAGE_RO; }
+
+
+/* unused segment table entries must have the invalid bit set.
+ * XXX what's pmd_bad supposed to mean ????
+ */
+extern inline int 
+	pmd_none(pmd_t pmd)	{ return pmd_val(pmd) & _SEG_INVALID; }
+extern inline int 
+	pmd_bad(pmd_t pmd)	{ return 0; }
+extern inline int 
+	pmd_present(pmd_t pmd)	{ return (pmd_val(pmd) & _SEG_INVALID) != 0; }
+extern inline void 
+	pmd_clear(pmd_t * pmdp)	{ pmd_val(*pmdp) = _SEG_INVALID; }
 
 
 /*
@@ -197,49 +213,49 @@ extern inline void pgd_clear(pgd_t * pgdp)	{ }
  * Undefined behaviour if not..
  */
 extern inline int pte_read(pte_t pte)		{ return pte_val(pte) & _PAGE_USER; }
-extern inline int pte_write(pte_t pte)		{ return pte_val(pte) & _PAGE_RW; }
+extern inline int pte_write(pte_t pte)		{ return !(pte_val(pte) & _PAGE_RO); }
 extern inline int pte_exec(pte_t pte)		{ return pte_val(pte) & _PAGE_USER; }
+
+/* XXX we should get ref & change bits out of storage key */
 extern inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
-extern inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
+extern inline int pte_young(pte_t pte)		{ return !(pte_val(pte) & _PAGE_ACCESSED); }
 
 extern inline void pte_uncache(pte_t pte)       { }
 extern inline void pte_cache(pte_t pte)         { }
 
-extern inline pte_t pte_rdprotect(pte_t pte) {
-	pte_val(pte) &= ~_PAGE_USER; return pte; }
-extern inline pte_t pte_exprotect(pte_t pte) {
-	pte_val(pte) &= ~_PAGE_USER; return pte; }
-extern inline pte_t pte_wrprotect(pte_t pte) {
-	pte_val(pte) &= ~(_PAGE_RW | _PAGE_HWWRITE); return pte; }
-extern inline pte_t pte_mkclean(pte_t pte) {
-	pte_val(pte) &= ~(_PAGE_DIRTY | _PAGE_HWWRITE); return pte; }
-extern inline pte_t pte_mkold(pte_t pte) {
-	pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
+extern inline pte_t 
+	pte_rdprotect(pte_t pte) { pte_val(pte) &= ~_PAGE_USER; return pte; }
+extern inline pte_t 
+	pte_mkread(pte_t pte) 	{ pte_val(pte) |= _PAGE_USER; return pte; }
 
-extern inline pte_t pte_mkread(pte_t pte) {
-	pte_val(pte) |= _PAGE_USER; return pte; }
-extern inline pte_t pte_mkexec(pte_t pte) {
-	pte_val(pte) |= _PAGE_USER; return pte; }
-extern inline pte_t pte_mkwrite(pte_t pte)
-{
-	pte_val(pte) |= _PAGE_RW;
-	if (pte_val(pte) & _PAGE_DIRTY)
-		pte_val(pte) |= _PAGE_HWWRITE;
-	return pte;
-}
-extern inline pte_t pte_mkdirty(pte_t pte)
-{
-	pte_val(pte) |= _PAGE_DIRTY;
-	if (pte_val(pte) & _PAGE_RW)
-		pte_val(pte) |= _PAGE_HWWRITE;
-	return pte;
-}
-extern inline pte_t pte_mkyoung(pte_t pte) {
-	pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+extern inline pte_t 
+	pte_exprotect(pte_t pte) { pte_val(pte) &= ~_PAGE_USER; return pte; }
+extern inline pte_t 
+	pte_mkexec(pte_t pte) 	{ pte_val(pte) |= _PAGE_USER; return pte; }
+
+extern inline pte_t 
+	pte_wrprotect(pte_t pte) { pte_val(pte) |= _PAGE_RO ; return pte; }
+extern inline pte_t 
+	pte_mkwrite(pte_t pte) 	{ pte_val(pte) &= ~_PAGE_RO; return pte; }
+
+extern inline pte_t 
+	pte_mkclean(pte_t pte) 	{ pte_val(pte) &= ~(_PAGE_DIRTY ); return pte; }
+extern inline pte_t 
+	pte_mkdirty(pte_t pte) 	{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
+
+extern inline pte_t 
+	pte_mkold(pte_t pte)  	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
+extern inline pte_t 
+	pte_mkyoung(pte_t pte) 	{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
+
+
 
 /* Certain architectures need to do special things when pte's
  * within a page table are directly modified.  Thus, the following
- * hook is made available.
+ * hook is made available. 
+ * For the ESA/390, I think we're supposed to set/reset the
+ * reference & change bits in the key storage at this time ...
+ * XXX right ?? implement this ... 
  */
 #define set_pte(pteptr, pteval)	((*(pteptr)) = (pteval))
 
@@ -264,7 +280,7 @@ printk ("pte_modify %lx %lx\n", pte_val(pte),pgprot_val(newprot));
 return pte; }
 
 extern inline unsigned long pte_page(pte_t pte)
-{ return (unsigned long) __va(pte_val(pte) & PAGE_MASK); }
+{ return (unsigned long) (pte_val(pte) & PAGE_MASK); }
 
 extern inline unsigned long pmd_page(pmd_t pmd)
 { return pmd_val(pmd); }
@@ -295,19 +311,24 @@ extern __inline__ pgd_t *i370_pgd_alloc(void)
 {
 	pgd_t *ret, *init;
 
-	ret = (pgd_t *)__get_free_page(GFP_KERNEL);
+	/* grab two pages, for 2048 entires mapping 2GB */
+	ret = (pgd_t *)__get_free_pages(GFP_KERNEL,1);
 	if (ret) {
 		init = pgd_offset(&init_mm, 0);
 		memset (ret, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));
+#if 0
+// huh ???? 
 		memcpy (ret + USER_PTRS_PER_PGD, init + USER_PTRS_PER_PGD,
 			(PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
+#endif
 	}
 	return ret;
 }
 
 extern __inline__ void i370_pgd_free(pgd_t *pgd)
 {
-	free_page((unsigned long)pgd);
+	/* free two pages of the pgd */
+	free_pages((unsigned long)pgd,1);
 }
 
 
@@ -319,8 +340,15 @@ extern __inline__ void i370_pte_free(pte_t *pte)
 extern void __bad_pte(pmd_t *pmd);
 
 #define pte_alloc(pmd,addr)     i370_pte_alloc(pmd,addr)
-#define pte_free_kernel(pte)    i370_pte_free(pte)
 #define pte_free(pte)           i370_pte_free(pte)
+
+#define pte_alloc_kernel	i370_pte_alloc
+#define pte_free_kernel(pte)    i370_pte_free(pte)
+
+#define pmd_free		i370_pmd_free
+#define pmd_alloc		i370_pmd_alloc
+#define pmd_free_kernel		i370_pmd_free
+#define pmd_alloc_kernel	i370_pmd_alloc
 
 #define pgd_alloc()             i370_pgd_alloc()
 #define pgd_free(pgd)           i370_pgd_free(pgd)
@@ -344,18 +372,15 @@ extern inline pte_t * i370_pte_alloc(pmd_t * pmd, unsigned long address)
  * allocating and freeing a pmd is trivial: the 1-entry pmd is
  * inside the pgd, so has no extra memory associated with it.
  */
-extern inline void pmd_free(pmd_t * pmd)
+extern inline void i370_pmd_free(pmd_t * pmd)
 {
 }
 
-extern inline pmd_t * pmd_alloc(pgd_t * pgd, unsigned long address)
+extern inline pmd_t * i370_pmd_alloc(pgd_t * pgd, unsigned long address)
 {
 	return (pmd_t *) pgd;
 }
 
-#define pmd_free_kernel		pmd_free
-#define pmd_alloc_kernel	pmd_alloc
-#define pte_alloc_kernel	pte_alloc
 
 extern int do_check_pgt_cache(int, int);
 
@@ -375,34 +400,31 @@ extern inline void set_pgdir(unsigned long address, pgd_t entry)
 	read_unlock(&tasklist_lock);
 }
 
-extern pgd_t swapper_pg_dir[1024];
+/* the pgdir consists of *TWO* pages (address 2GB of storage) */
+extern pgd_t swapper_pg_dir[2048];
 
 extern __inline__ pte_t *find_pte(struct mm_struct *mm,unsigned long va)
 {
 	pgd_t *dir;
 	pmd_t *pmd;
-	pte_t *pte;
+	pte_t *pte = NULL;
 
 	va &= PAGE_MASK;
 	
 	dir = pgd_offset( mm, va );
 	if (dir)
 	{
-		pmd = pmd_offset(dir, va & PAGE_MASK);
+		pmd = pmd_offset(dir, va);
 		if (pmd && pmd_present(*pmd))
 		{
 			pte = pte_offset(pmd, va);
-			if (pte && pte_present(*pte))
-			{			
-				pte_uncache(*pte);
-				flush_tlb_page(find_vma(mm,va),va);
-			}
 		}
 	}
 	return pte;
 }
 
 /*
+ * XXX is this correct ???
  * Page tables may have changed.  We don't need to do anything here
  * as entries are faulted into the hash table by the low-level
  * data/instruction access exception handlers.
@@ -410,6 +432,7 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm,unsigned long va)
 #define update_mmu_cache(vma, addr, pte)	do { } while (0)
 
 
+/* XXX what's this ??? */
 #define SWP_TYPE(entry) (((entry) >> 1) & 0x7f)
 #define SWP_OFFSET(entry) ((entry) >> 8)
 #define SWP_ENTRY(type,offset) (((type) << 1) | ((offset) << 8))

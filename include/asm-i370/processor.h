@@ -5,13 +5,14 @@
 
 #include <asm/ptrace.h>
 
-/* Fixed Storage Locations
+/* Prefix Page Fixed Storage Locations
  * Locations of various process status words (PSW's)
  * in low real-mode memory.
  */
 #define IPL_PSW_NEW	0x0	/* Restart new PSW */
 #define IPL_PSW_OLD	0x8	/* Restart old PSW */
-#define IPL_CCW		0x10
+#define IPL_CCW1	0x8
+#define IPL_CCW2	0x10
 #define	EXTERN_PSW_OLD	0x18	/* External exception old PSW */
 #define SVC_PSW_OLD	0x20	/* Service Call old PSW */
 #define PROG_PSW_OLD	0x28	/* Program exception old PSW */
@@ -23,9 +24,20 @@
 #define MACH_PSW_NEW	0x70	/* Machine Check new PSW */
 #define IO_PSW_NEW	0x78	/* IO Exception new PSW */
 
-#define EXT_INT_CODE	0x86	/* External Interruption Code location */
-#define SVC_INT_CODE	0x88	/* Supervisor Call Code location */
+#define PFX_EXT_SIG	0x80	/* External Interruption Service Signa */
+#define PFX_EXT_CODE	0x84	/* External Interruption Code location */
+#define PFX_SVC_CODE	0x88	/* Supervisor Call Code location */
+#define PFX_PRG_CODE	0x8c	/* Program Interrrupt Code location */
+#define PFX_PRG_TRANS	0x90	/* Program Interrrupt Translation Exception Code */
+#define PFX_MCH_CODE	0xe8	/* Machine Check Interrrupt Code location */
+#define PFX_MCH_CODE_LO	0xe8	/* Machine Check Interrrupt Code low word */
+#define PFX_MCH_CODE_HI	0xec	/* Machine Check Interrrupt Code high word */
 
+#define PFX_SUBSYS_ID	0xb8	/* Subsystem id word (subchannel) */
+#define PFX_IO_PARM	0xb8	/* IO interruption paramter */
+
+/* the rest of this scratch area is defined in head.S but should be
+ * probably be moved here */
 #define INTERRUPT_BASE	0xf00	/* scratch area */
 
 /* External Interruption Codes */
@@ -71,14 +83,15 @@ void start_thread(struct pt_regs *regs, unsigned long psw, unsigned long sp);
 void release_thread(struct task_struct *);
 
 /*
- *  ??? 
+ * TASK_SIZE is the size of the effective address space for one task,
+ * which is 2GB for the 31-bit 390/ESA arch. 
  */
 #define TASK_SIZE	(0x80000000UL)
 
 /* This decides where the kernel will search for a free chunk of vm
  * space during mmap's.
  */
-#define TASK_UNMAPPED_BASE	(TASK_SIZE)
+#define TASK_UNMAPPED_BASE	(TASK_SIZE / 3)
 
 typedef struct {
 	unsigned long seg;

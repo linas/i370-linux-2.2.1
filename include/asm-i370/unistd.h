@@ -203,8 +203,8 @@
  * should significantly ease the burden of memory management
  * in the SVC handler, as well as be a big performance winner 
  * over passing the args on the user stack.  Passing args 
- * in registers is hardly the usual calling convention, and so
- * we'll have to deal with this in a special way inside the handler.
+ * in registers is not the usual (current) ESA/390 calling convention, 
+ * and so we'll have to deal with this in a special way inside the handler.
  * But that shouldn't be a big deal.  --linas
  */
 

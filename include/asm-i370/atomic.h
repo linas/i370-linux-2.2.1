@@ -21,6 +21,7 @@ typedef struct { int counter; } atomic_t;
 #define atomic_read(v)		((v)->counter)
 #define atomic_set(v,i)		((v)->counter = (i))
 
+
 /*
  * Atomic [test&set] exchange
  *
@@ -197,6 +198,33 @@ extern __inline__ void atomic_clear_mask (unsigned long mask, unsigned long *add
 	: "+r" (oldval), "+r" (newval), "+m" (*addr)
 	: "r" (mask)
 	: "memory");
+}
+
+/* implement traditional compare and swap api ... 
+ * compare contents of "oldval" to contents of "memloc",
+ * if equal, place "newval" at "memloc" and return zero,
+ * else place contents of "memloc" in "oldval" and return non-zero.
+*/
+extern __inline__
+unsigned long compare_and_swap (void *memloc, 
+                                unsigned long *old, 
+                                unsigned long newval)
+{
+	unsigned long *memptr = (unsigned long *) memloc;
+	unsigned long rc = 0;
+
+	__asm__ __volatile__("
+	CS	%0,%1,%2;
+	BZ	1f;
+	LA	%3,1(,0);
+	ST	%0,%4;
+1:	;	"
+
+	: "+r" (*old), "+r" (newval), "+m" (*memptr), "+r" (rc), "=m" (*old)
+	: 
+	: "memory");
+
+	return rc;
 }
 
 #endif /* _ASM_I370_ATOMIC_H_ */

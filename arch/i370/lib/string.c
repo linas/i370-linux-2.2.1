@@ -103,9 +103,16 @@ __copy_tofrom_user (char * to, char * from, int len)
 }
 int __strncpy_from_user(char *dst, const char *src, long count)
 { 
+
+int	lclcount;
+
 	/* XXX bogus  only works for KENREL_DS */
+	
+	lclcount = strlen(src);
+
 	strncpy (dst,src,count);
-	return 0;
+	
+	return lclcount;
 }
 
  unsigned long __clear_user(void *addr, unsigned long size)
@@ -120,3 +127,11 @@ long strlen_user(const char *str)
 	/* XXX bogus  only works for KENREL_DS */
 	return strlen (str);
 }
+
+void put_user_data(long data, void *addr, long len)
+{
+
+       // pte= find_pte(current->mm,addr);
+       //  printk("put user pte = %x\n",pte);
+
+}                                                                                    

@@ -10,13 +10,14 @@
 .S.o:
 	$(CC) $(CFLAGS) -D__ASSEMBLY__ -c $< -o $*.o
 
-O_TARGET := kernel.o
-OX_OBJS := i370_ksyms.o setup.o
+O_TARGET := io.o
+# OX_OBJS := i370_ksyms.o setup.o
 
 
-O_OBJS := traps.o idle.o time.o io.o mm.o process.o bitops.o
+O_OBJS :=  device.o con3270.o scrn3270.o
 
-all: 
+# all: 
+
 
 
 include $(TOPDIR)/Rules.make

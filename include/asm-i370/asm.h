@@ -1,7 +1,7 @@
 
 /*
  * wrappers for misc assembly
- * Linas Vepstas February 1998
+ * Linas Vepstas February 1999
  * Copyright (C) Linas Vepstas 1999
  */
 
@@ -166,4 +166,20 @@ _lctl(12)
 _lctl(13)
 _lctl(14)
 _lctl(15)
+
+/* -------------------------------------------------------- */
+/* Store Processor Address */
+extern inline unsigned long _stap (void)
+{
+   unsigned short cpuid;
+   asm volatile ("STAP	%0" : "=m" (cpuid) );
+   return ((unsigned long) cpuid);
+}
+
+/* -------------------------------------------------------- */
+/* Purge TLB */
+extern inline void _ptlb (void)
+{
+   asm volatile ("PTLB" : : : "memory");
+}
 

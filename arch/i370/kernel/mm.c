@@ -163,9 +163,7 @@ mmu_context_overflow(void)
  *  - flush_tlb_page(vma, vmaddr) flushes one page
  *  - flush_tlb_range(mm, start, end) flushes a range of pages
  *
- * since the hardware hash table functions as an extension of the
- * tlb as far as the linux tables are concerned, flush it too.
- *    -- Cort
+ * XXX we are brute-forcing this, it should use IPTE when possible.
  */
 
 /*
@@ -175,7 +173,7 @@ mmu_context_overflow(void)
 void
 i370_flush_tlb_all(void)
 {
-   asm volatile ("PTLB" : : : "memory");
+	_ptlb();
 }
 
 
@@ -189,6 +187,7 @@ void
 i370_flush_tlb_mm(struct mm_struct *mm)
 {
 	printk ("i370_flush_tlb_mm\n");
+	_ptlb();
 /*
         mm->context = NO_CONTEXT;
         if (mm == current->mm)
@@ -200,40 +199,16 @@ void
 i370_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
 {
 	printk ("i370_flush_tlb_page\n");
-#if 0
-        if (vmaddr < TASK_SIZE)
-                flush_hash_page(vma->vm_mm->context, vmaddr);
-        else
-                flush_hash_page(0, vmaddr);
-#endif
+	/* should be doing a IPTE here ... */
+	_ptlb();
 }
 
-/*
- * for each page addr in the range, call MMU_invalidate_page()
- * if the range is very large and the hash table is small it might be
- * faster to do a search of the hash table and just invalidate pages
- * that are in the range but that's for study later.
- * -- Cort
- */
 void
 i370_flush_tlb_range(struct mm_struct *mm, unsigned long start, unsigned
 long end)
 {
 	printk ("i370_flush_tlb_range\n");
-#if 0
-        start &= PAGE_MASK;
-
-        if (end - start > 20 * PAGE_SIZE)
-        {
-                flush_tlb_mm(mm);
-                return;
-        }
-
-        for (; start < end && start < TASK_SIZE; start += PAGE_SIZE)
-        {
-                flush_hash_page(mm->context, start);
-        }
-#endif
+	_ptlb();
 }
 
 int do_check_pgt_cache(int low, int high)

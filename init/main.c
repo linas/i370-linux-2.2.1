@@ -22,6 +22,7 @@
 #include <linux/smp_lock.h>
 #include <linux/blk.h>
 #include <linux/hdreg.h>
+#include <linux/kernel.h>
 
 #include <asm/io.h>
 #include <asm/bugs.h>

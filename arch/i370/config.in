@@ -94,7 +94,7 @@ if [ "$CONFIG_VT" = "y" ]; then
   bool 'Support for console on virtual terminal' CONFIG_VT_CONSOLE
 fi
 
-# there are no serial ports, just stub this for now
+# support only the 3270, and that only as console
 bool 'Standard 3270 console support' CONFIG_3270_CONSOLE
 
 bool 'Unix98 PTY support' CONFIG_UNIX98_PTYS

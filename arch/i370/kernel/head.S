@@ -1,6 +1,15 @@
 /*
  * Implementation of startup code and FLIH entry/exit for ESA/390
  * Copyright (c) 1999 Linas Vepstas (linas@linas.org)
+ *
+ * Note: XXX hack alert: the current implementation of gcc/egcs
+ * defines a defacto ESA/390 ELF ABI that has numerous faults.
+ * (see the notes with the compiler for details).  The most serious
+ * of these is how it handles address literals (which show up in
+ * the text segment, instead of the data segment as they should)
+ * and the use of r12 (rtca).  Both of these should be fixed,
+ * however, if/when this is done, the code below will require
+ * major tearup.  Sorry, my fault, but so it goes. --linas
  */
 
 #include <asm/errno.h>
@@ -23,21 +32,22 @@
  * sp == r13 == stack pointer
  * rtca == r12 
  */
+
 /* start of text section */
         .text
         .globl  _stext
 _stext:
 	.globl	_start
 _start:
-	BASR	r15,0		// load r15 with PSW 
-	.using	.,r15		// use r15 as base register
-	L	sp,=A(init_ksp)	// load address of stack pointer into r13
-	L	sp,0(,sp)	// load address of stack into r13
-	LA	sp,7(,sp)	// doubleword align
+	BASR	r15,0			// load r15 with PSW 
+	.using	.,r15			// use r15 as base register
+	L	sp,=A(init_ksp)		// load address of stack pointer into r13
+	L	sp,0(,sp)		// load address of stack into r13
+	LA	sp,7(,sp)		// doubleword align
 	SRL	sp,3
 	SLL	sp,3
-	LA	r2,152(,sp)	// load r2 with top of stack
-	ST	r2,76(,sp)	// store top of stack at 76
+	LA	r2,152(,sp)		// load r2 with top of stack
+	ST	r2,76(,sp)		// store top of stack at 76
 	L	rtca,=A(init_tca)	// load address of pointer to tca.
 	L	rtca,0(,rtca)		// load address of tca
 	L	r1,=A(init_kstend)	// r1 == address of pointer end of stack
@@ -77,7 +87,6 @@ tcaStackOverflow:
 /* ================================================================ */
 /*
  * Exception vectors.
- * Usually works 
  */
 
 /*
@@ -245,7 +254,6 @@ tcaStackOverflow:
 	ST	r2,0(,r1);		/* update regs ptr in proc */	\
 	
 
-
 #define EXCEPTION_CALL_C(handler)  					\
 	L	r15,=A(handler);	/* load address of C routine */	\
 	LA	r2,SAVED_PSW(,sp);	/* ptr to saved psw, regs */	\
@@ -278,9 +286,38 @@ tcaStackOverflow:
 	EXCEPTION_UNCHAIN(sav)						\
 	EXCEPTION_RETURN(sav)
 
-/* Restart */
+/* areas used in the prefix page used for tracing */
+#define	PFX_TRACE	0xd00
+
+#define	IPL_SAVE	0xe00
+#define	MCH_SAVE	0xe20
+#define	SVC_SAVE	0xe40
+#define	PRG_SAVE	0xe60
+#define EXT_SAVE	0xe80
+#define IO_SAVE		0xea0
+
+#define	IPL_TRC_ID	0x100
+#define	MCH_TRC_ID	0x200
+#define	SVC_TRC_ID	0x300
+#define	PRG_TRC_ID	0x400
+#define EXT_TRC_ID	0x500
+#define IO_TRC_ID	0x600
+
+#define EXCEPTION_TRACE(trc_id,savearea,subid,irpt_code,old_psw)	\
+	STM	r15,r4,savearea(0);	/* save r15..r4 */		\
+	SLR	r0,r0;			/* Not Used */			\
+	LA	r1,trc_id(0);		/* Trace id */			\
+	ST	r1,PFX_TRACE(0);	/* Store in PFX */		\
+	L	r1,subid(0);		/* subchannel id */		\
+	L	r2,irpt_code(0);	/* Get Irpt code */		\
+	LM	r3,r4,old_psw(0);	/* Get Old PSW */		\
+	TRACE	r0,r4,PFX_TRACE(0);	/* Trace Wondrous event */	\
+	LM	r15,r4,savearea(0);	/* Reload Caller Regs */	
+
+/* Restart IPL (Initial Program Load) */
 	.globl Restart
 Restart:
+	EXCEPTION_TRACE (IPL_TRC_ID, IPL_SAVE, IPL_CCW1, IPLCCW2, IPL_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, IPL_PSW_OLD)
 	EXCEPTION_CALL_C (RestartException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
@@ -288,6 +325,7 @@ Restart:
 /* Machine Check */
 	.globl MachineCheck
 MachineCheck:
+	EXCEPTION_TRACE (MCH_TRC_ID, MCH_SAVE, PFX_MCH_CODE_LO, PFX_MCH_CODE_HI, MACH_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, MACH_PSW_OLD)
 	EXCEPTION_CALL_C (MachineCheckException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
@@ -296,7 +334,9 @@ MachineCheck:
 #define NR_syscalls	188
 	.global SupervisorCall
 SupervisorCall:
+	EXCEPTION_TRACE (SVC_TRC_ID, SVC_SAVE, 0, PFX_SVC_CODE, SVC_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE,  , SVC_PSW_OLD) 
+
 	SLR	r2,r2			/* put zero in r2 */
 	LH	r2,138(,0)		/* load interruption code from pfx */
 	LTR	r2,r2			/* is r2 zero ? */
@@ -307,7 +347,7 @@ SupervisorCall:
 	LA	r2,NR_syscalls(,0)	/* max of NR_syscalls */
 	CR	r1,r2			/* syscall must be less than NR */
 	BL	4f			/* valid syscall ? */
-	LA	r2,ENOSYSCALL(,0)	/* load r1 with errno */
+	LA	r2,ENOSYSCALL(,0)	/* load r2 with errno */
 	ST	r2,SAVED_R15(,sp)	/* return r15 to caller */
 	ST	r1,SAVED_R1(,sp)	/* return r1 to caller */
 	EXCEPTION_EPILOG (INTERRUPT_BASE)	/* return from interrupt */
@@ -323,6 +363,7 @@ SupervisorCall:
 	STNSM    INTERRUPT_BASE-16(0),0xfc;	/* disable interrupts */
 	EXCEPTION_UNCHAIN (INTERRUPT_BASE)	/* unstack pointer chain */
 	/* get old PSW, restore registers, return from interrupt */
+	/* Note r1, r15 are not restored, but are returned 'as-is' from syscall */
 	MVC	INTERRUPT_BASE(8,0),SAVED_PSW(sp) /* restore old psw frm stack */
 	LM	r11,r12,SAVED_R11(sp)	/* restore r11, r12 */	
 	L	r0,SAVED_R0(sp)		/* restore r0 */	
@@ -335,6 +376,7 @@ SupervisorCall:
 /* Program Interruption */
 	.global ProgramCheck
 ProgramCheck:
+	EXCEPTION_TRACE (PRG_TRC_ID, PRG_SAVE, PFX_PRG_TRANS, PFX_PRG_CODE, PROG_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, PROG_PSW_OLD)
 	EXCEPTION_CALL_C (ProgramCheckException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
@@ -342,6 +384,7 @@ ProgramCheck:
 /* External */
 	.global External
 External:
+	EXCEPTION_TRACE (EXT_TRC_ID, EXT_SAVE, PFX_EXT_SIG, PFX_EXT_CODE, EXTERN_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, EXTERN_PSW_OLD)
 	EXCEPTION_CALL_C (ExternalException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
@@ -349,6 +392,7 @@ External:
 /* Input Output */
 	.global InputOutput
 InputOutput:
+	EXCEPTION_TRACE (IO_TRC_ID, IO_SAVE, PFX_SUBSYS_ID, PFX_IO_PARM, IO_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, IO_PSW_OLD)
 	EXCEPTION_CALL_C (InputOutputException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)

@@ -14,6 +14,7 @@
  * platform.
  *
  * XXX most stuff in here needs to be validated for correctness
+ * much of it is bogus for the i370 port ...
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -43,7 +44,28 @@ void
 check_bugs(void)
 {
 }
-asmlinkage int i370_sys_execve (void) { asm volatile ("SVC 56");  return 1; }
+
+asmlinkage int i370_sys_execve(unsigned long a0, unsigned long a1,
+			       unsigned long a2,unsigned long a3,
+			       unsigned long a4, unsigned long a5,
+			       struct pt_regs *regs)
+{
+	int error;
+	char * filename;
+
+	lock_kernel();
+	filename = getname((char *) a0);
+	error = PTR_ERR(filename);
+	if (IS_ERR(filename)) {
+		printk("EXECVE Error: name = %s\n",a0);
+	} else {
+		error = do_execve(filename, (char **) a1, (char **) a2, regs);
+		putname(filename);
+	}
+	unlock_kernel();
+	return error;
+}
+
 asmlinkage int i370_sys_ptrace (void) { asm volatile ("SVC 56");  return 1; }
 asmlinkage int i370_sys_sigaction (void) { asm volatile ("SVC 56");  return 1; }
 asmlinkage int i370_sys_sigsuspend (void) { asm volatile ("SVC 56");  return 1; }

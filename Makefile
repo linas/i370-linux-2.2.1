@@ -101,6 +101,11 @@ endif
 
 RAMDISK = -DRAMDISK=512
 
+# quickie hacky to concatenate ramdisk ...
+rd:
+	dd if=vmlinux of=vm.rd bs=1024k count=2 conv=sync
+	dd if=smallrd of=vm.rd bs=1024k count=2 seek=2
+
 # Include the make variables (CC, etc...)
 #
 

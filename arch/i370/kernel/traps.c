@@ -23,6 +23,7 @@
 #include <asm/signal.h>
 #include <asm/system.h>
 
+extern void sys_call_table(void);
 #ifdef CONFIG_XMON
 extern void xmon(struct pt_regs *regs);
 extern int xmon_bpt(struct pt_regs *regs);
@@ -157,7 +158,7 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 	unsigned long long ticko;
 
 	/* get the interruption code */
-	code = *((unsigned short *) EXT_INT_CODE);
+	code = *((unsigned short *) PFX_EXT_CODE);
 
 	/* currently we only handle and expect clock interrupts */
 	if ( EI_CLOCK_COMP != code) {
@@ -169,7 +170,10 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 	/* clock ticks every 250 picoseconds (actually, every
 	 * microsecond/4K). We want an interrupt every HZ of 
 	 * a second */
-	ticko = _stckc ();
+	/* XXX it is more correct to use stckc but on a really slow 
+         * VM day VM can be so overburdened that we never catch up... */
+	/* ticko = _stckc (); */
+	ticko = _stck ();
 	ticko += (1000000/HZ) << 12;
 	_sckc (ticko);
 	
@@ -236,6 +240,7 @@ StackOverflow(struct pt_regs *regs)
 extern void SupervisorCall (void);
 extern void External (void);
 extern void InputOutput (void);
+extern void ProgramCheck (void);
 
 /*
  * we assume that we initialize traps while in real mode, i.e.
@@ -279,6 +284,16 @@ __initfunc(void trap_init(void))
 	psw.flags = PSW_VALID;        // disable all interupts
 	psw.addr = ((unsigned long) InputOutput) | (1<<31); 
 	*((psw_t *) IO_PSW_NEW) = psw;
+
+	// restart quick hack
+	psw.flags = 0x000a0000;
+	psw.addr = 0x0000ffff;
+	*((psw_t *) IPL_PSW_NEW) = psw;
+
+	// install the ProgramCheck handler
+	psw.flags = PSW_VALID;        // disable all interupts
+	psw.addr = ((unsigned long) ProgramCheck) | (1<<31); 
+	*((psw_t *) PROG_PSW_NEW) = psw;
 }
 
 /* ===================== END OF FILE =================================== */

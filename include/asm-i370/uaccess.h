@@ -12,6 +12,8 @@
 #define VERIFY_READ	0
 #define VERIFY_WRITE	1
 
+extern	void put_user_data(long data, void *addr, long len);
+
 /*
  * The fs value determines whether argument validity checking should be
  * performed or not.  If get_fs() == USER_DS, checking is performed, with
@@ -133,9 +135,9 @@ extern long __put_user_bad(void);
 do {								\
 	retval = 0;						\
 	switch (size) {						\
-	  case 1: __put_user_asm(x,ptr,retval,"stb"); break;	\
-	  case 2: __put_user_asm(x,ptr,retval,"sth"); break;	\
-	  case 4: __put_user_asm(x,ptr,retval,"stw"); break;	\
+	  case 1: put_user_data(x,ptr,1); break;		\
+	  case 2: put_user_data(x,ptr,2); break;		\
+	  case 4: put_user_data(x,ptr,4); break;		\
 	  default: __put_user_bad();				\
 	}							\
 } while (0)
@@ -144,28 +146,11 @@ struct __large_struct { unsigned long buf[100]; };
 #define __m(x) (*(struct __large_struct *)(x))
 
 /* XXX */
-#define __put_user_asm(x, addr, err, op)
-
-#if 0
-/*
- * We don't tell gcc that we are accessing memory, but this is OK
- * because we do not write to any memory gcc knows about, so there
- * are no aliasing issues.
- */
-#define __put_user_asm(x, addr, err, op)			\
-	__asm__ __volatile__(					\
-		"1:	"op" %1,0(%2)\n"			\
-		"2:\n"						\
-		".section .fixup,\"ax\"\n"			\
-		"3:	li %0,%3\n"				\
-		"	b 2b\n"					\
-		".section __ex_table,\"a\"\n"			\
-		"	.align 2\n"				\
-		"	.long 1b,3b\n"				\
-		".text"						\
-		: "=r"(err)					\
-		: "r"(x), "b"(addr), "i"(-EFAULT), "0"(err))
-#endif
+#define __put_user_asm(x, addr, err, op)		\
+	__asm__ __volatile__(				\
+		" "op" %1,%0"				\
+		: "=m"(*addr)				\
+		: "r"(x))				
 
 
 #define __get_user_nocheck(x,ptr,size)				\
@@ -192,31 +177,19 @@ extern long __get_user_bad(void);
 do {								\
 	retval = 0;						\
 	switch (size) {						\
-	  case 1: __get_user_asm(x,ptr,retval,"lbz"); break;	\
-	  case 2: __get_user_asm(x,ptr,retval,"lhz"); break;	\
-	  case 4: __get_user_asm(x,ptr,retval,"lwz"); break;	\
+	  case 1: __get_user_asm(x,ptr,retval,"ic"); break;	\
+	  case 2: __get_user_asm(x,ptr,retval,"lh"); break;	\
+	  case 4: __get_user_asm(x,ptr,retval,"l"); break;	\
 	  default: (x) = __get_user_bad();			\
 	}							\
 } while (0)
 
 /* XXX */
-#define __get_user_asm(x, addr, err, op)
-#if 0
 #define __get_user_asm(x, addr, err, op)		\
 	__asm__ __volatile__(				\
-		"1:	"op" %1,0(%2)\n"		\
-		"2:\n"					\
-		".section .fixup,\"ax\"\n"		\
-		"3:	li %0,%3\n"			\
-		"	li %1,0\n"			\
-		"	b 2b\n"				\
-		".section __ex_table,\"a\"\n"		\
-		"	.align 2\n"			\
-		"	.long 1b,3b\n"			\
-		".text"					\
-		: "=r"(err), "=r"(x)			\
-		: "b"(addr), "i"(-EFAULT), "0"(err))
-#endif 
+		" "op" %0,%1"				\
+		: "=r"(x)				\
+		: "m"(*addr))
 
 /* more complex routines */
 

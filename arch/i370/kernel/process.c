@@ -226,11 +226,13 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 	old_tss->ksp = _get_SP();
 	_set_SP (new_tss->ksp);
 
+	/* purge TLB (XXX is this really needed here ???) */
+	_ptlb();
 
 	// note "s" is from a different stack ... 
         __restore_flags (s);
 
-	// retuirn to do_fork()
+	// return to do_fork()
 	return 0;
 }
 
@@ -317,7 +319,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 			(((unsigned long) srcregs) - delta);
 		(*dstregs)->irregs.r12 = (unsigned long) &(p->tss.tca[0]);
 		(*dstregs)->oldregs =  (i370_interrupt_state_t *)
-			(((unsigned long) (srcregs->oldregs)) - delta);     
+			(((unsigned long) (srcregs->oldregs)));     
 		srcregs = srcregs->oldregs;
 		dstregs = &((*dstregs)->oldregs);
 	} while (srcregs);
@@ -333,10 +335,14 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
          * holds the returned pid, while non-zero r1 indicates an error.
 	 * The parent gets the childs pid.
 	 */
-	p->tss.regs -> irregs.r1 = 0;
+/* XXX this is mostly kinda mostly wrong, need to redesign ... */
+/* we don't want to deal with r15 klike this since it blow up ordinary
+ * syscalls */
+	// p->tss.regs -> irregs.r1 = 0;
 	p->tss.regs -> irregs.r15 = 0;
+	// p->tss.regs -> irregs.r13 = 0;
 
-	current->tss.regs -> irregs.r1 = 0;
+	// current->tss.regs -> irregs.r1 = 0;
 	current->tss.regs -> irregs.r15 = p->pid;
 
 	/* XXX what about page tables ?? */
@@ -350,7 +356,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 asmlinkage int 
 i370_sys_fork (void) {
-*((int *)0) = 0;
+*((int *)0) = 0;  /* fault on purpose */
 return 0;
 }
 
@@ -376,6 +382,10 @@ i370_sys_clone (unsigned long clone_flags)
                 res = 1;
 #endif /* __SMP__ */
         unlock_kernel();
+
+/* XXX */
+/* we should really be doing bottom half here */
+cli();
         return res;
 }
 

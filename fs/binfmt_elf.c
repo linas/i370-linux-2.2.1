@@ -738,7 +738,7 @@ do_load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 
 	padzero(elf_bss);
 
-#if 0
+#if 1
 	printk("(start_brk) %x\n" , current->mm->start_brk);
 	printk("(end_code) %x\n" , current->mm->end_code);
 	printk("(start_code) %x\n" , current->mm->start_code);

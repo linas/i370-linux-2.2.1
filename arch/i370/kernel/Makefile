@@ -13,8 +13,7 @@
 O_TARGET := kernel.o
 OX_OBJS := i370_ksyms.o setup.o
 
-
-O_OBJS := traps.o syscalls.o idle.o time.o io.o mm.o process.o bitops.o
+O_OBJS := traps.o syscalls.o idle.o time.o mm.o process.o bitops.o irq.o
 
 ifdef CONFIG_SMP
 O_OBJS += smp.o

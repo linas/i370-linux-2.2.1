@@ -1,6 +1,15 @@
-
 /*
- * mostly copied from the ppc implementation
+ * linux/arch/i370/kernel/process.c
+ *
+ * Derived from "linux/arch/ppc/kernel/process.c", copyrights apply:
+ *   Copyright (C) 1995  Linus Torvalds
+ *   Copyright (C) 1995-1996 Gary Thomas (gdt@linuxppc.org
+ *   Copyright (C) Cort Dougan (cort@cs.nmt.edu)
+ *   Copyright (C) Paul Mackerras (paulus@cs.anu.edu.au)
+ *
+ * Modified to implement Linux forr the ESA/390 class mainframes
+ *   Copyright (C) 1999 Linas Vepstas (linas@linas.org)
+ *
  * XXX this minimally works in a broken-like way for the ESA/390
  * needs a lot of fixin to be really operational...
  */
@@ -295,6 +304,13 @@ i370_sys_exit (void)
  * argument p is the copy_to_proc;  copy_from is "current"
  * usp and regs are what was pass to do_fork below ...
  * return 0 if success, non-zero if not
+ *
+ * XXX we need to check to see if usp is indeed a user-space
+ * stack pointer, and if so, set irregs.r13 to it.  We do not
+ * need to actually coppy the user-land stack, that happens
+ * "automagically".
+ *
+ * XXX no need to copy page tables ??? I think this happens automagically
  */
 
 extern void tcaStackOverflow(void);
@@ -364,8 +380,12 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	p->tss.regs -> irregs.r15 = 0;
 	current->tss.regs -> irregs.r15 = p->pid;
 
+#ifdef __SMP__
+        if ( (p->pid != 0) || !(clone_flags & CLONE_PID) )
+                p->tss.smp_fork_ret = 1;
+        p->last_processor = NO_PROC_ID;
+#endif /* __SMP__ */
 
-	/* XXX what about page tables ?? */
 	return 0;
 }
 

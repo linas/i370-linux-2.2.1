@@ -4,7 +4,7 @@
  *	Authors:	Alan Cox <iiitac@pyr.swan.ac.uk>
  *			Florian La Roche <rzsfl@rz.uni-sb.de>
  *
- *	Version:	$Id: skbuff.c,v 1.1 1999/02/08 07:24:38 linas Exp $
+ *	Version:	$Id: skbuff.c,v 1.1.1.1 1999/02/08 07:24:38 linas Exp $
  *
  *	Fixes:	
  *		Alan Cox	:	Fixed the worst of the load balancer bugs.

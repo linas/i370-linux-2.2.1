@@ -12,9 +12,8 @@
  */
 #include <asm/ptrace.h>
 
-/* XXX ALL WRONG */
-#define ELF_NGREG	32	/* includes gprs and control regs */
-#define ELF_NFPREG	4
+#define ELF_NGREG	16	/* includes gprs only */
+#define ELF_NFPREG	16
 
 /*
  * This is used to ensure we don't load something for the wrong architecture.

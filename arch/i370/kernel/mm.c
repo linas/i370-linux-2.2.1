@@ -51,14 +51,15 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
    num_physpages = max_mapnr;      /* RAM is assumed contiguous */
  
 #ifdef CONFIG_BLK_DEV_INITRD
+#ifdef CONFIG_VM
 	/*-------------------------------------------------------*/
 	/* If we are running under VM then we can load the RAM   */
 	/* disk from a shared segment (isn't VM wonderful!)      */
 	/*-------------------------------------------------------*/
 	if (CPUID[0] == 0xff)
 	{
-			static char NSSID[8] = {0xd9, 0xc1, 0xd4, 0xc4,
-			                        0xc9, 0xe2, 0xd2, 0x40};
+		static char NSSID[8] = {0xd9, 0xc1, 0xd4, 0xc4,
+		                        0xc9, 0xe2, 0xd2, 0x40};
 		static struct {
 			  double alignment;
 			  char RAMNSS[8];
@@ -78,6 +79,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
  
 		printk("RAMDISK NSS loaded\n");
 	}
+#endif /* CONFIG_VM */
 #endif /* CONFIG_BLK_DEV_INITRD */
 
    /* mark the first page RO since all vectors have been set up by now */

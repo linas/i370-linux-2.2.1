@@ -23,6 +23,9 @@ extern char cmd_line[512];
 // CPUID is the result of a STIDP
 unsigned char CPUID[8];
  
+// CPU Details
+CPU_t cpu_details[NR_CPUS];
+
 char saved_command_line[512];
 
 
@@ -35,7 +38,8 @@ extern void i370_find_devices (unsigned long *memory_start_p,
  */
 trc_page_t	*trace_base;
 
-void	setup_trace(unsigned long *memory_start) 
+void	
+setup_trace(unsigned long *memory_start) 
 {
 	long	i;
 	unsigned long cpuid = _stap() | (1<<31);
@@ -72,16 +76,38 @@ __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long * memory_start_p, unsigned long * memory_end_p))
 {
 	unsigned long ksp;
+	unsigned long mycpu, i_cpu;
 	extern int panic_timeout;
 	extern char _etext[], _edata[], _end[];
 
 	/* reboot on panic */	
 	panic_timeout = 180;
 	
+	/* query & construct CPU info */
 	__asm__ __volatile__ ("
 		STIDP	%0"
 		: "=m" (CPUID) );
  
+	memset(cpu_details, 0, sizeof(cpu_details));
+	mycpu = _stap();
+	cpu_details[0].CPU_address = mycpu;
+	sprintf(cpu_details[0].CPU_name,"S390%03d",mycpu);
+	cpu_details[0].CPU_status  = 0;
+	for (i_cpu = 1; i_cpu < NR_CPUS; i_cpu++) {
+		if (i_cpu != mycpu) {
+			if (_sigp(i_cpu, SIGPSENS) != 3) {
+				cpu_details[i_cpu].CPU_address = i_cpu;
+				sprintf(cpu_details[i_cpu].CPU_name,"S390%03d",i_cpu);
+				cpu_details[i_cpu].CPU_status = CPU_stopped;
+			}
+			else
+			{
+				cpu_details[i_cpu].CPU_status = CPU_inoprtv;
+			}
+		}
+	}
+
+	/* set up memory layout */
 	init_task.mm->start_code = PAGE_OFFSET;
 	init_task.mm->end_code = (unsigned long) _etext;
 	init_task.mm->end_data = (unsigned long) _edata;
@@ -92,8 +118,9 @@ __initfunc(void setup_arch(char **cmdline_p,
 	strcpy(saved_command_line, cmd_line);
 	*cmdline_p = cmd_line;
 
-	/* hardcode the memory size */
 	*memory_start_p = (unsigned long) _end;
+	/* We'll get a cpu id only if running under VM, in which
+	 * case we can DIAGNOSE the amount of available memory */
 	if (CPUID[0] == 0xff) {
 		__asm__ __volatile__ ("
 		SLR	r15,r15;
@@ -101,9 +128,10 @@ __initfunc(void setup_arch(char **cmdline_p,
 		LR	%0,r15"
 		: "=r" (*memory_end_p) :
 		: "r0", "memory", "r15");
+	} else {
+		/* hardcode the memory size */
+		*memory_end_p = 0x2000000;  // 32M
 	}
-	else
-	*memory_end_p = 0x2000000;  // 32M
 
 	i370_find_devices(memory_start_p,memory_end_p);
 
@@ -127,28 +155,41 @@ __initfunc(void setup_arch(char **cmdline_p,
 
 }
 
-void machine_restart(char *cmd)
+void 
+machine_restart(char *cmd)
 {
-	printk("machine restart\n");
+	printk("machine restart XXX not implemented\n");
 	i370_halt();
 }
 
-void machine_halt(void)
+void 
+machine_halt(void)
 {
    	printk("machine halt\n");
 	i370_halt();
 }
-void machine_power_off(void)
+void 
+machine_power_off(void)
 {
 	printk("machine power off\n");
 	i370_halt();
 }
 
-int get_cpuinfo(char *buffer)
+int 
+get_cpuinfo(char *buffer)
 {
-	unsigned long len = 0;
+	unsigned long len = 0, i_cpu;
 
-	len += sprintf(len+buffer,"XXX cpuinfo not implemented");
+	len += sprintf(len+buffer,"Processor: %08X\n",CPUID);
+	for (i_cpu = 0; i_cpu < NR_CPUS; i_cpu++) {
+		if (cpu_details[i_cpu].CPU_status != CPU_inoprtv) {
+			len += sprintf(len+buffer,"CPU: %s Address: %04d Status: %08X\n",
+				cpu_details[i_cpu].CPU_name,
+				cpu_details[i_cpu].CPU_address,
+				cpu_details[i_cpu].CPU_status);
+		}
+	}
+
 	return len;
 }
 

@@ -18,11 +18,15 @@
 #include <linux/sched.h>
 
 #include <asm/asm.h>
+#include <asm/iorb.h>
+#include <asm/irq.h>
 #include <asm/param.h>
 #include <asm/ptrace.h>
 #include <asm/signal.h>
 #include <asm/system.h>
 #include <asm/trace.h>
+#include <asm/unitblk.h>
+
 
 extern void sys_call_table(void);
 #ifdef CONFIG_XMON
@@ -248,14 +252,26 @@ RestartException(i370_interrupt_state_t *saved_regs)
 /*----------------------------------------------------------------*/
 /* Input and Output Interrupt Handling                            */
 /*----------------------------------------------------------------*/
+
+
 void
 InputOutputException(i370_interrupt_state_t *saved_regs)
 {
+	schib_t schib;
+	int     rc, irq;
 	long pfx_io_parm = *((long *) PFX_IO_PARM);
 	long pfx_subsys_id = *((long *) PFX_SUBSYS_ID);
+	unitblk_t *ucb = (unitblk_t *) pfx_io_parm;
 
-	//printk ("i/o interrupt subchannel=0x%x param=0x%x\n", 
-	//	pfx_subsysid, pfx_io_parm);
+	do {
+		rc = _tsch(pfx_subsys_id, &ucb->unitirb);
+		if (!rc) {
+			rc = _stsch(pfx_subsys_id, &schib);
+			irq = schib.isc;
+			do_IRQ(irq, saved_regs, ucb);
+		}
+		rc = _tpi(&pfx_io_parm);
+	} while (rc != 0);
 }
 
 /*----------------------------------------------------------------*/
@@ -327,7 +343,8 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 
 #ifdef LATER
 
-void ret_from_syscall (void) 
+void 
+ret_from_syscall (void) 
 {
 	int do_it_again = 1;
 
@@ -342,7 +359,7 @@ void ret_from_syscall (void)
 		}
 		if (return_to_user) {
 			if (need_reschedule) {
-				schedlue ();
+				schedule ();
 				do_it_again = 1;
 				continue;
 			}

@@ -610,6 +610,10 @@ static unsigned long get_wchan(struct task_struct *p)
 #elif defined(CONFIG_ARM)
 # define KSTK_EIP(tsk)	(((unsigned long *)(4096+(unsigned long)(tsk)))[1022])
 # define KSTK_ESP(tsk)	(((unsigned long *)(4096+(unsigned long)(tsk)))[1020])
+#elif defined(__i370__)
+/* XXX hack alert this may be wrong for i370 but it holds water for now */
+#define KSTK_EIP(tsk)	((tsk)->tss.regs->psw.addr)
+#define KSTK_ESP(tsk)	((tsk)->tss.regs->gpr[13])
 #elif defined(__mc68000__)
 #define	KSTK_EIP(tsk)	\
     ({			\

@@ -19,6 +19,11 @@
 #include <asm/machvec.h>
 #endif
 
+#ifdef CONFIG_I370_
+#include <asm/asm.h>
+#include <asm/psa.h>
+#endif
+
 asmlinkage void sys_sync(void);	/* it's really int */
 extern void unblank_console(void);
 extern int C_A_D;
@@ -73,6 +78,11 @@ NORET_TYPE void panic(const char * fmt, ...)
 #ifdef __alpha__
 	if (alpha_using_srm)
 		halt();
+#endif
+#ifdef CONFIG_I370
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
+	i370_halt();
 #endif
 	sti();
 	for(;;) {

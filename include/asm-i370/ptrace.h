@@ -23,30 +23,30 @@ typedef struct _i370_psw_s psw_t __attribute__ ((aligned (8)));
 /* ---------------------------------------------------------------- */
 /* Control register zero bit definitions */
 struct _i370_cr0_s {
-	/* LSB */
-	unsigned long :6;	/* unused */
-	unsigned long iksm:1;	/* interrupt key subclass mask */
-	unsigned long :2;	/* unused */
-	unsigned long sssm:1;	/* service siganl subclass mask */
-	unsigned long cpusm:1;	/* cpu timer subclass mask */
-	unsigned long clksm:1;	/* clock comparator subclass mask */
-	unsigned long todsm:1;	/* TOD-clock sync check subclass mask */
-	unsigned long ecsm:1;	/* external call subclass mask */
-	unsigned long essm:1;	/* emergency signal subclass mask */
-	unsigned long masm:1;	/* malfunction alert subclass mask */
-	unsigned long asfc:1;	/* adress space function control */
-	unsigned long vc:1;	/* vector control */
-	unsigned long :1;	/* unused */
-	unsigned long tf:5;	/* address translation format */
-	unsigned long spoc:1;	/* storage protection override control */
-	unsigned long fpoc:1;	/* fetch protection override control */
-	unsigned long ssc:1;	/* secondary space control */
-	unsigned long eac:1;	/* extraction authority control */
-	unsigned long lapc:1;	/* low address protection control */
-	unsigned long todc:1;	/* TOD clock sync control */
-	unsigned long ssmc:1;	/* SSM suppression control */
-	unsigned long :1;	/* unused */
 	/* MSB */
+	unsigned long :1;	/* unused */
+	unsigned long ssmc:1;	/* SSM suppression control */
+	unsigned long todc:1;	/* TOD clock sync control */
+	unsigned long lapc:1;	/* low address protection control */
+	unsigned long eac:1;	/* extraction authority control */
+	unsigned long ssc:1;	/* secondary space control */
+	unsigned long fpoc:1;	/* fetch protection override control */
+	unsigned long spoc:1;	/* storage protection override control */
+	unsigned long tf:5;	/* address translation format */
+	unsigned long :1;	/* unused */
+	unsigned long vc:1;	/* vector control */
+	unsigned long asfc:1;	/* adress space function control */
+	unsigned long masm:1;	/* malfunction alert subclass mask */
+	unsigned long essm:1;	/* emergency signal subclass mask */
+	unsigned long ecsm:1;	/* external call subclass mask */
+	unsigned long todsm:1;	/* TOD-clock sync check subclass mask */
+	unsigned long clksm:1;	/* clock comparator subclass mask */
+	unsigned long cpusm:1;	/* cpu timer subclass mask */
+	unsigned long sssm:1;	/* service siganl subclass mask */
+	unsigned long :2;	/* unused */
+	unsigned long iksm:1;	/* interrupt key subclass mask */
+	unsigned long :6;	/* unused */
+	/* LSB */
 };
 typedef struct _i370_cr0_s i370_cr0_t;
 
@@ -59,15 +59,15 @@ typedef union _i370_cr0_u cr0_t;
 /* ---------------------------------------------------------------- */
 /* Control register one bit definitions */
 struct _i370_cr1_s {
-	/* LSB */
-	unsigned long pstl:7;	/* primary segment table length */
-	unsigned long psaec:1;	/* primary storage alteration event control */
-	unsigned long ppsc:1;	/* primary private space control */
-	unsigned long psgc:1;	/* primary subspace group control */
-	unsigned long :2;	/* unused */
-	unsigned long psto:19;	/* primary segment table origin */
-	unsigned long pssec:1;	/* primary space-switch event control */
 	/* MSB */
+	unsigned long pssec:1;	/* primary space-switch event control */
+	unsigned long psto:19;	/* primary segment table origin */
+	unsigned long :2;	/* unused */
+	unsigned long psgc:1;	/* primary subspace group control */
+	unsigned long ppsc:1;	/* primary private space control */
+	unsigned long psaec:1;	/* primary storage alteration event control */
+	unsigned long pstl:7;	/* primary segment table length */
+	/* LSB */
 };
 typedef struct _i370_cr1_s i370_cr1_t;
 

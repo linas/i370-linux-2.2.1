@@ -49,10 +49,10 @@ extern inline void _set_TCA (unsigned long newtca)
 extern inline void _store_fpregs (double *memy)
 {
         asm volatile (
-		"STD	f0,%0;"
-		"STD	f2,%1;"
-		"STD	f4,%2;"
-		"STD	f6,%3;"
+		"STD	f0,%0;		\n"
+		"STD	f2,%1;		\n"
+		"STD	f4,%2;		\n"
+		"STD	f6,%3;		\n"
 		: "=m" (memy[0]), 
 		  "=m" (memy[1]),
 		  "=m" (memy[2]),
@@ -63,10 +63,10 @@ extern inline void _store_fpregs (double *memy)
 extern inline void _load_fpregs (double *memy)
 {
         asm volatile (
-		"LD	f0,%0;"
-		"LD	f2,%1;"
-		"LD	f4,%2;"
-		"LD	f6,%3;"
+		"LD	f0,%0;		\n"
+		"LD	f2,%1;		\n"
+		"LD	f4,%2;		\n"
+		"LD	f6,%3;		\n"
 		: : "m" (memy[0]), 
 		    "m" (memy[1]),
 		    "m" (memy[2]),
@@ -204,13 +204,13 @@ extern inline void i370_halt (void)
    ptr = ((ptr+4) / 8) * 8;
    psw = (unsigned long long *) ptr;
    asm volatile (
-	"	L	r1,=X'000a0000';	"
-	"	ST	r1,%0;			"
-	"	L	r1,=A(1f);		"
-	"	O	r1,=X'80000000';	"
-	"	ST	r1,4+%0;		"
-	"	LPSW	%0;			"
-	"1:	NOPR	r0;			"
+	"	L	r1,=X'000a0000';	\n"
+	"	ST	r1,%0;			\n"
+	"	L	r1,=A(1f);		\n"
+	"	O	r1,=X'80000000';	\n"
+	"	ST	r1,4+%0;		\n"
+	"	LPSW	%0;			\n"
+	"1:	NOPR	r0;			\n"
 	: "+m" (*psw) : : "r1", "memory");
 }
 

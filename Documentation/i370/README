@@ -7,9 +7,18 @@ Some things work. Most things don't.
 
 Cross-compiling
 ---------------
+  Currrently, the only way to build this kernel is by cross-compiling
+  it on a different platform.  You need binutils-2.9.4.0.3 or later, 
+  and the patches for egcs-1.1.2 from http://linas.org/linux/i370/
+  To build and install egcs and binutils, go into thier directories,
+  and type:
 
-  If you wish to cross-compile, then alter the following lines in the top
-  level make file:
+    configure --target=i370-ibm-linux --prefix=/your/home/sandbox
+    make
+    make install
+  
+  Now you should be able to compile the Linux kernel.
+  Alter the following lines in the top level make file:
 
     ARCH = <whatever>
         with
@@ -18,10 +27,8 @@ Cross-compiling
         and
 
     CROSS_COMPILE=
-        to
-    CROSS_COMPILE=<your-path-to-your-compiler-without-gcc>
-        eg.
-    CROSS_COMPILE=/usr/bin/i370-ibm-linux-
+        to e.g.
+    CROSS_COMPILE=/your/home/sandbox/i370-ibm-linux-
 
   Do a 'make config', followed by 'make dep', and finally 'make all' to
   build the kernel (vmlinux).  A compressed image can be built by doing

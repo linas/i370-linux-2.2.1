@@ -395,10 +395,11 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 		while (len > 0) {
 			pte_t *pte;
 			pte = find_pte (current->mm, va);
-			if (pte_none(*pte)) {
-				printk ("Error: copy_to_user: unmaped page \n");
-				/* I think we're suipposed to return 'len'
-				 * (the number unread bytes) at this point */
+			if (!pte || pte_none(*pte)) {
+				printk ("Error: copy_to_user: unmaped page for va=%08x\n", va);
+		/* XXX set this up correctly ... */
+		/* handle_mm_fault (current, ... ,1); */
+		/* make_pages_present ...*/
 				i370_halt();
 			} else {
 				unsigned long off = va & ~PAGE_MASK;
@@ -431,8 +432,8 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 		while (len > 0) {
 			pte_t *pte;
 			pte = find_pte (current->mm, va);
-			if (pte_none(*pte)) {
-				printk ("Error: copy_from_user: unmaped page \n");
+			if (!pte || pte_none(*pte)) {
+				printk ("Error: copy_from_user: unmaped page va=%08x\n", va);
 				i370_halt();
 			} else {
 				unsigned long off = va & ~PAGE_MASK;
@@ -470,8 +471,8 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 		while (len > 0) {
 			pte_t *pte;
 			pte = find_pte (current->mm, va);
-			if (pte_none(*pte)) {
-				printk ("Error: strncpy_from_user: unmaped page \n");
+			if (!pte || pte_none(*pte)) {
+				printk ("Error: strncpy_from_user: unmaped page va=%08x\n", va);
 				i370_halt();
 			} else {
 				unsigned long off = va & ~PAGE_MASK;
@@ -527,9 +528,12 @@ __clear_user(void *addr, unsigned long len)
 	while (len > 0) {
 		pte_t *pte;
 		pte = find_pte (current->mm, va);
-		if (pte_none(*pte)) {
-			printk ("Error: clear_user: unmaped page \n");
+		if (!pte || pte_none(*pte)) {
+			printk ("Error: clear_user: unmaped page va=%08x \n", va);
 			i370_halt();
+		/* XXX set this up correctly ... */
+		/* handle_mm_fault (current, ... ,1); */
+		/* make_pages_present ...*/
 		} else {
 			unsigned long off = va & ~PAGE_MASK;
 			unsigned long rlen = PAGE_SIZE - off;
@@ -565,8 +569,8 @@ strlen_user(const char *str)
 	while (notdone) {
 		pte_t *pte;
 		pte = find_pte (current->mm, va);
-		if (pte_none(*pte)) {
-			printk ("Error: strlen_user: unmaped page \n");
+		if (!pte || pte_none(*pte)) {
+			printk ("Error: strlen_user: unmaped page for va=%08x\n", va);
 			i370_halt();
 		} else {
 			unsigned long off = va & ~PAGE_MASK;
@@ -620,15 +624,15 @@ put_user_data(long data, void *addr, long len)
  */
 	va = (unsigned long) addr;
 	pte = find_pte (current->mm, va);
-	printk ("put_user_data: va=%x pte=%x = %x\n", va, pte, pte_val(*pte));
 
-	if (pte_none(*pte)) {
-		printk ("put_user_data: unmaped page \n");
+	if (!pte || pte_none(*pte)) {
+		printk ("put_user_data: unmaped page for va=%ul\n",va);
 		i370_halt();
 		/* XXX set this up correctly ... */
 		/* handle_mm_fault (current, ... ,1); */
 		/* make_pages_present ...*/
 	}
+	printk ("put_user_data: va=%x pte=%x = %x\n", va, pte, pte_val(*pte));
 
 	/* put together the real address */
 	off = va & ~PAGE_MASK;

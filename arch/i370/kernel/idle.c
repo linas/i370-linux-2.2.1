@@ -31,12 +31,7 @@
 #include <asm/cache.h>
 
 void zero_paged(void);
-void power_save(void);
-void inline htab_reclaim(void);
-
-unsigned long htab_reclaim_on = 0;
 unsigned long zero_paged_on = 0;
-unsigned long powersave_nap = 0;
 
 int idled(void *unused)
 {
@@ -50,9 +45,9 @@ int idled(void *unused)
 		check_pgt_cache();
 
 /*
+ * It might be interesting to copy the zero_paged code from 
+ * the powerpc directory to here ... sounds like a good idea ...
 		if ( !current->need_resched && zero_paged_on ) zero_paged();
-		if ( !current->need_resched && htab_reclaim_on ) htab_reclaim();
-		if ( !current->need_resched ) power_save();
 */
 
 #ifdef __SMP__

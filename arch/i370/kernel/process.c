@@ -144,13 +144,18 @@ void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 }
 
 // switch_to does the task switching.  
-// It needs to save registers and the psw,
-// unload the tasks segment table CR1 and mabye CR3 key ?? 
-// and then do the opposite fore the new process ...
+// I'm not to clear on what it needs to do ... 
+// ... needs to switch the stack pointer, at least ... 
+// ... change addressing modes (potentially, from real 
+//     to primary or v.v.  ...
+// ... modify the segment table CR1 and mabye CR3 key  ...
+// ... Purge TLB ...
 void
 switch_to(struct task_struct *prev, struct task_struct *new)
 {
-//         struct thread_struct *new_tss, *old_tss;
+	struct thread_struct *new_tss, *old_tss;
+	pt_regs_t *oldregs, *newregs;
+
 //        int s = _disable_interrupts();
 
 #ifdef CHECK_STACK
@@ -171,8 +176,39 @@ switch_to(struct task_struct *prev, struct task_struct *new)
         prev->last_processor = prev->processor;
         current_set[smp_processor_id()] = new;
 #endif /* __SMP__ */
-//        new_tss = &new->tss;
-//        old_tss = &current->tss;
+
+        old_tss = &current->tss;
+        new_tss = &new->tss;
+
+	current = new;
+
+	/* switch kernel stack pointers */
+	old_tss->ksp = _get_SP();
+	_set_SP (new_tss->ksp);
+
+#if 0
+	oldregs = old_tss->regs;
+	newregs = new_tss->regs;
+
+	/* I'm going to try to do this inline, and see if I can
+         * pull this off. It might be too hard ...
+	* BTW, this code is totally and completely wrong .... 
+	 */
+	asm volatile (
+	"bcr	15,0;"		/* sync */
+	"stm	r0,r15,%0;"	/* save all registers */
+
+	"lm	r0,r15,%1;"	/* restore all registers */
+	"bcr	15,0;"		/* sync */
+	: "=m" (oldregs)
+	: "m" (newregs)
+	: "memory",		/* disable optimization around this */ 
+	  "r0"			/* we blow r0 for psw */
+
+	);
+#endif
+
+
 //        _switch(old_tss, new_tss, new->mm->context);
 //        _enable_interrupts(s);
 }

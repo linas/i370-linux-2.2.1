@@ -21,6 +21,7 @@ extern __inline__ void __delay(unsigned int loops)
 
 extern __inline__ void udelay(unsigned long usecs)
 {
+#ifdef MULDI3_FIXED
         unsigned long long loops;
 
 	/* stunt to avoid a divide */
@@ -30,6 +31,12 @@ extern __inline__ void udelay(unsigned long usecs)
 
 	loops *= loops_per_sec;
         loops = loops >> 32;
+#else /* MULDI3_FIXED */
+	unsigned long loops;
+	loops = loops_per_sec / 1000000;
+	loops *= usecs;
+#endif /* MULDI3_FIXED */
+
 	__delay(loops);
 }
 

@@ -15,9 +15,11 @@
 	SPKA    sav(0);			/* Ensure we can use lo core */ \
 	L	r1,=X'000A0000';	/* disabled wait             */	\
 	ST	r1,sav(,0);						\
-	L	r1,=X'00000210';	/* must be any valid address */	\
+	L	r1,=A(1f);		/* must be any valid address */	\
+	O	r1,=X'80000000'; 	/* must be any valid address */	\
 	ST	r1,sav+4(,0);						\
-	LPSW	sav(0);			/* oops halt the machine     */
+	LPSW	sav(0);			/* oops halt the machine     */ \
+1:	NOPR	r0;
 
 /* First instruction executed is here */
 /* 

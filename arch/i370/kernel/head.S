@@ -1,5 +1,5 @@
 
-/* totally bogus */
+/* XXX totally bogus */
 	
 	.globl	_start
 _start:

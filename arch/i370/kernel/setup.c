@@ -120,8 +120,8 @@ __initfunc(void setup_arch(char **cmdline_p,
 	*cmdline_p = cmd_line;
 
 	*memory_start_p = (unsigned long) _end;
-	/* We'll get a cpu id only if running under VM, in which
-	 * case we can DIAGNOSE the amount of available memory */
+	/* If we're running under VM the first byte of the CPUID will be 0xff
+	 * in which case we can DIAGNOSE the amount of available memory */
 	if (CPUID[0] == 0xff) {
 	        *memory_end_p = VM_Diagnose_Code_60();
 	} else {

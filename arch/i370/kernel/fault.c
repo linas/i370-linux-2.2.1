@@ -119,6 +119,7 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
  struct vm_area_struct * vma;
  unsigned long fixup, valid_addr;
  int write;
+ unsigned short *ilc;
  
 printk ("do_page_fault addr=0x%x, pic=%x\n", address, pic_code);
   /*------------------------------------------------------------*/
@@ -169,8 +170,17 @@ printk(" handling mm fault on good page \n");
         goto bad_area;
      if (!valid_addr)
         goto bad_area;
-     write++;
+     write = 1;
+     ilc   = PFX_PRG_CODE;
+     regs->psw.addr -= *ilc;  /* Adjust the instruction ptr    */
+  } else {
+     /*-------------------------------------------------------*/
+     /* Check if this page is allowed to be written to        */
+     /*-------------------------------------------------------*/
+     if (vma->vm_flags & VM_WRITE)
+        write = 1;
   }
+ 
   /*----------------------------------------------------------*/
   /* If for any reason at all we couldn't handle the fault,   */
   /* make sure we exit gracefully rather than endlessly redo  */
@@ -193,7 +203,7 @@ bad_area:
  
 printk(" sending SEGV to user proc: here's the reg dump & backtrace:\n");
 show_regs(regs);
-print_backtrace (regs->irregs.r13);
+print_backtrace (regs->irregs.r13, user_mode(regs));
 
        info.si_signo = SIGSEGV;
        info.si_code  = SEGV_MAPERR;

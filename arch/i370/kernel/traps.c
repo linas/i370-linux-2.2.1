@@ -55,6 +55,9 @@ int (*debugger_dabr_match)(struct pt_regs *regs);
 void (*debugger_fault_handler)(struct pt_regs *regs);
 #endif
 #endif
+#ifdef LATER
+void ret_from_syscall(void);
+#endif
 
 void instruction_dump (unsigned short *pc)
 {

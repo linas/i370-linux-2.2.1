@@ -322,18 +322,19 @@ ret_from_syscall (void)
 	if (current->tss.in_slih) return;
 	current->tss.in_slih = 1;
 
-	/* Keep looping until there are no more pending 
-	 * interrupts. */
+	/* When we enable interrupts with sti(), we'll get a shower 
+	 * of interrupts here. The in_lsih flag will keep them 
+	 * returning to here quickly enough.  Handle them, and 
+	 * then keep looping until they're all gone.
+	 */
 	while (do_it_again) {
-		cli();
+		sti();    /* enable interrupts */
 		do_it_again = 0;
 
 		/* bitwise and */
 		if (bh_mask & bh_active) {
-printk ("gonna do bottom half\n");
 			do_bottom_half ();  // handle_bottom_half()
 			do_it_again = 1;
-printk ("did bottom half\n");
 		}
 		/* Are we returning to the user? */
 		if (user_mode(current->tss.regs)) {
@@ -352,7 +353,8 @@ printk ("did bottom half\n");
 			}
 		}
 	}
-	sti ();
+	/* return to FLIH with interrupts disabled */
+	cli ();  
 	current->tss.in_slih = 0;
 }
 

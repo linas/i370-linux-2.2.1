@@ -15,38 +15,36 @@
 #define rmb()  __asm__ __volatile__ ("BCR 15,0" : : : "memory")
 #define wmb()  __asm__ __volatile__ ("BCR 15,0" : : : "memory")
 
-/* XXX this is all hoprelessly wronmg */
-/* save flags should probably be Branch adn Stack BAKR ?? */
-#define __save_flags(flags)
-#define __save_and_cli(flags)	({__save_flags(flags);__cli();})
-extern __inline__ void __restore_flags(unsigned long flags) {}
+/* XXX these are probably wrong */
 
-#if 0
-/* this is how the powerpc did thins ... */
-#define __save_flags(flags)	({\
-	__asm__ __volatile__ ("mfmsr %0" : "=r" ((flags)) : : "memory"); })
+extern __inline__ unsigned long __cli (void)
+{
+        unsigned char oldval;
+        asm volatile ("STOSM    %0,0x3" : "=m" (oldval) : : "memory");
+	return oldval;
+}
 
-#define __save_and_cli(flags)	({__save_flags(flags);__cli();})
+extern __inline__ unsigned long __sti (void)
+{
+        unsigned char oldval;
+        asm volatile ("STNSM    %0,0xfc" : "=m" (oldval) : : "memory");
+	return oldval;
+}
+
+extern __inline__ unsigned long __get_save_flags (void)
+{
+        unsigned char oldval;
+        asm volatile ("STOSM    %0,0x0" : "=m" (oldval) : : "memory" );
+	return oldval;
+}
+
+#define __save_flags(flags)  ({flags = __get_save_flags(); })
+#define __save_and_cli(flags)	({flags = __cli();})
 
 extern __inline__ void __restore_flags(unsigned long flags)
 {
-        extern atomic_t n_lost_interrupts;
-	extern void do_lost_interrupts(unsigned long);
-
-        if ((flags & MSR_EE) && atomic_read(&n_lost_interrupts) != 0) {
-                do_lost_interrupts(flags);
-        } else {
-                __asm__ __volatile__ ("sync; mtmsr %0; isync"
-                              : : "r" (flags) : "memory");
-        }
+	asm volatile ("SSM	%0" : : "m" (flags) : "memory");
 }
-#endif
-
-
-extern void __sti(void);
-extern void __cli(void);
-extern int _disable_interrupts(void);
-extern void _enable_interrupts(int);
 
 extern void print_backtrace(unsigned long *);
 extern void show_regs(struct pt_regs * regs);

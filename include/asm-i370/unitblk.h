@@ -8,6 +8,8 @@
 #include <linux/fs.h>
 #include <linux/major.h>
 
+#include <asm/iorb.h>
+
 /*
  *	Define Unit Control Block
  */

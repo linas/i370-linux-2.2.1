@@ -3,9 +3,9 @@
 
 /*
  * XXX the I370 arch should be in the include file
- * "binutils/include/elf/common.h"  which defines EM_I370 to be 0xf00f
+ * "binutils/include/elf/common.h"  which defines EM_I370 to be 0x0009
  */
-#define EM_I370	0xf00f
+#define EM_I370	0x0009
 
 /*
  * ELF register definitions..
@@ -18,7 +18,7 @@
 /*
  * This is used to ensure we don't load something for the wrong architecture.
  */
-#define elf_check_arch(x) ((x) == EM_I370)
+#define elf_check_arch(x) (((x) == EM_I370) || ((x) == 0xf00f))
 
 /*
  * These are used to set parameters in the core dumps.

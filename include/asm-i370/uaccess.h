@@ -36,9 +36,9 @@
 #define __low_2gb(addr,size) ( (!((size) & 0x80000000)) && \
                                (!((((unsigned long)addr)+size) & 0x80000000)))
 
-#define __kernel_ok ((segment_eq(get_fs(), KERNEL_DS))
-#define __user_ok(addr,size) __low_2gb(addr,size)
-#define __access_ok(addr,size) __low_2gb((addr),(size))
+#define __kernel_ok               segment_eq(get_fs(), KERNEL_DS)
+#define __user_ok(addr,size)      __low_2gb(addr,size)
+#define __access_ok(addr,size)    __low_2gb((addr),(size))
 #define access_ok(type,addr,size) __access_ok((unsigned long)(addr),(size))
 
 extern inline int verify_area(int type, const void * addr, unsigned long size)

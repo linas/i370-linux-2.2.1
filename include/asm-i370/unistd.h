@@ -212,8 +212,8 @@
 extern int errno;
 
 #define __syscall_return(type) \
-	return (__sc_err ? errno = __sc_ret, __sc_ret = -1 : 0), \
-	       (type) __sc_ret
+	if (0 > __sc_ret) { errno = -__sc_ret; __sc_ret = -1; } \
+	return ((type) __sc_ret)
 
 #define __syscall_clobbers \
 	"r1", "r5", "r6", "r7", "r8", "r9", "r15"
@@ -221,7 +221,7 @@ extern int errno;
 #define _syscall0(type,name)						\
 type name(void)								\
 {									\
-	unsigned long __sc_ret, __sc_err;				\
+	unsigned long __sc_ret;						\
 	{								\
 		register unsigned long __reg_1 __asm__ ("r1");		\
 		register unsigned long __reg_15 __asm__ ("r15");	\
@@ -233,7 +233,6 @@ type name(void)								\
 			: "0"   (__reg_15), "1"   (__reg_1)		\
 			: __syscall_clobbers);				\
 		__sc_ret = __reg_15;					\
-		__sc_err = __reg_1;					\
 	}								\
 	__syscall_return (type);					\
 }
@@ -241,7 +240,7 @@ type name(void)								\
 #define _syscall1(type,name,type1,arg1)					\
 type name(type1 arg1)							\
 {									\
-	unsigned long __sc_ret, __sc_err;				\
+	unsigned long __sc_ret;						\
 	{								\
 		register unsigned long __reg_1 __asm__ ("r1");		\
 		register unsigned long __reg_5 __asm__ ("r5");		\
@@ -255,7 +254,6 @@ type name(type1 arg1)							\
 			: "0"   (__reg_15), "1"   (__reg_1)		\
 			: __syscall_clobbers);				\
 		__sc_ret = __reg_15;					\
-		__sc_err = __reg_1;					\
 	}								\
 	__syscall_return (type);					\
 }
@@ -263,7 +261,7 @@ type name(type1 arg1)							\
 #define _syscall2(type,name,type1,arg1,type2,arg2)			\
 type name(type1 arg1, type2 arg2)					\
 {									\
-	unsigned long __sc_ret, __sc_err;				\
+	unsigned long __sc_ret;						\
 	{								\
 		register unsigned long __reg_1 __asm__ ("r1");		\
 		register unsigned long __reg_5 __asm__ ("r5");		\
@@ -279,7 +277,6 @@ type name(type1 arg1, type2 arg2)					\
 			: "0"   (__reg_15), "1"   (__reg_1)		\
 			: __syscall_clobbers);				\
 		__sc_ret = __reg_15;					\
-		__sc_err = __reg_1;					\
 	}								\
 	__syscall_return (type);					\
 }
@@ -287,7 +284,7 @@ type name(type1 arg1, type2 arg2)					\
 #define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3)		\
 type name(type1 arg1, type2 arg2, type3 arg3)				\
 {									\
-	unsigned long __sc_ret, __sc_err;				\
+	unsigned long __sc_ret;						\
 	{								\
 		register unsigned long __reg_1 __asm__ ("r1");		\
 		register unsigned long __reg_5 __asm__ ("r5");		\
@@ -305,7 +302,6 @@ type name(type1 arg1, type2 arg2, type3 arg3)				\
 			: "0"   (__reg_15), "1"   (__reg_1)		\
 			: __syscall_clobbers);				\
 		__sc_ret = __reg_15;					\
-		__sc_err = __reg_1;					\
 	}								\
 	__syscall_return (type);					\
 }
@@ -313,7 +309,7 @@ type name(type1 arg1, type2 arg2, type3 arg3)				\
 #define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
 type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4)		\
 {									\
-	unsigned long __sc_ret, __sc_err;				\
+	unsigned long __sc_ret;						\
 	{								\
 		register unsigned long __reg_1 __asm__ ("r1");		\
 		register unsigned long __reg_5 __asm__ ("r5");		\
@@ -333,7 +329,6 @@ type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4)		\
 			: "0"   (__reg_15), "1"   (__reg_1)		\
 			: __syscall_clobbers);				\
 		__sc_ret = __reg_15;					\
-		__sc_err = __reg_1;					\
 	}								\
 	__syscall_return (type);					\
 }
@@ -341,7 +336,7 @@ type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4)		\
 #define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5) \
 type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
 {									\
-	unsigned long __sc_ret, __sc_err;				\
+	unsigned long __sc_ret;						\
 	{								\
 		register unsigned long __reg_1 __asm__ ("r1");		\
 		register unsigned long __reg_5 __asm__ ("r5");		\
@@ -363,7 +358,6 @@ type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
 			: "0"   (__reg_15), "1"   (__reg_1)		\
 			: __syscall_clobbers);				\
 		__sc_ret = __reg_15;					\
-		__sc_err = __reg_1;					\
 	}								\
 	__syscall_return (type);					\
 }

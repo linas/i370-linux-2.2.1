@@ -1,6 +1,8 @@
 
 i370 port of the Linux Kernel for the IBM 360/370/390 Mainframes
 ----------------------------------------------------------------
+This is a silly stupid stunt. Linux on a mainframe? Get real.
+
 By Linas Vepstas linas@linas.org
 
 Basically nothing works yet.  Doesn't even compile.

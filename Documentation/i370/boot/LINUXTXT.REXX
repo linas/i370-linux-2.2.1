@@ -18,15 +18,15 @@ Parse Var stream headers +4096 .
 /* Extract the elf header (x34 bytes) */
 Parse Var headers ehdr+52 headers
 
-Parse Var ehdr . +46 e_phnum
-Say "ELF has" e_phnum "program headers"
-
 /* Determine the number of program headers from the elf header */
-e_phnum = 3                     /* I'll guess for now (2 bytes at 0x2e) */
+Parse Var ehdr j+44 e_phnum+2 .
+phnum = C2D (e_phnum,2)
+Say "ELF has" phnum "program headers"
+
 sections = 0
 
 /* Extract each program header */
-Do i=1 To n
+Do i=1 To phnum
    Parse Var headers program_header.i+32 headers
    Parse Var program_header.i p_type +4 p_offset.i +4 p_vaddr.i +4 . +4 . +4 p_memsz.i +4 p_flag.i
    flag = C2D(p_type,4)

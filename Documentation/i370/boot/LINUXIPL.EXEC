@@ -2,14 +2,14 @@
 Address Command
 
 Arg fn ft .
-If fn="" Then fn="LINUX390"
+If fn="" Then fn="VMLINUX"
 If ft="" Then ft="KERNEL10"
 
-'PIPE <' fn ft 'A | REXX LINUXTXT | > LINUXIPL TEXT A F 80'
+'PIPE <' fn ft 'A | REXX LINUXTXT | > KERNEL TEXT A F 80'
 
 'CP SPOOL PUNCH CONT TO *'
 'PUNCH LINUX390 LOADER A (NOH'
-'PUNCH LINUXIPL TEXT A (NOH'
+'PUNCH KERNEL TEXT A (NOH'
 'CP SPOOL PUNCH NOCONT CLOSE'
 
 Say ""

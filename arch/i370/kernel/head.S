@@ -371,7 +371,7 @@ SupervisorCall:
 	L	r2,=A(sys_call_table)	/* load address of sys call table */
 	SLL	r1,2			/* 4 bytes per word ... */
 	L	r15,0(r2,r1)		/* load address of C routine */
-	STM     r3,r10,SAVED_R3(sp)	/* sys call args in regs */
+	STM     r5,r10,SAVED_R5(sp)	/* sys call args in regs */
 	LA	r2,SAVED_R5(,sp)	/* pointer to args on stack */
 	LA	r1,ARGP(,sp)		/* pointer to returned value */
 	BASR	lr,r15			/* jump to C routine */

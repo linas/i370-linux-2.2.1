@@ -15,20 +15,30 @@ _stext:
  *
  * Note that we will be using this stack not just for startup,
  * but also for the exception handlers below ...
+ * 
+ * Note that this stack is kind of bogus, and should be replaced by
+ * something that has a gaurd page at the end of it.
  */
 	.data
 	.balign	8
 .LSTACK:
-	.org	.+148,0xd0	// stack  
-	.org	.+512,0xaa	// args & returned values 
+	.org	4096,0xd0	// "callers" stack, load with eyecatcher  
+.LSTKEND:
 	.balign	8
 
         .text			// back to the text section
 	.globl	_start
 _start:
-	.using	.,r15		// use r15 as base register
 	BASR	r15,0		// load r15 with PSW 
+	.using	.,r15		// use r15 as base register
 	L	sp,=A(.LSTACK)	// load address of stack into r13
+	LA	r2,148(,sp)	// load r2 with top of stack
+	ST	r2,76(,sp)	// store top of stack at 76
+	LR	rtca,sp		// let bottom of stack double as tca
+	L	r1,=A(.LSTKEND)	// r0 == end of stack
+	ST	r1,12(,rtca)	// store end of stack in the tca
+	L	r1,=A(StackOverflow)	// bogus bogus hack alert XXX
+	ST	r1,116(,rtca)		// bogosity
 	L	r15,=A(start_kernel)	// load address of C routine
 	BASR	lr,r15		// jump to C routine
 	.balign	4		// align literal pool

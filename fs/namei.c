@@ -106,7 +106,6 @@ static inline int do_getname(const char *filename, char *page)
 	int retval;
 	unsigned long len = PAGE_SIZE;
 
-	/* XXX this test against TASK_SIZE assumes logic valid only for Intel arch... */
 	if ((unsigned long) filename >= TASK_SIZE) {
 		if (!segment_eq(get_fs(), KERNEL_DS))
 			return -EFAULT;

@@ -185,7 +185,11 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
        	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
         regs->psw.flags |= USER_PSW;
         regs->psw.addr = nip | PSW_31BIT;
-        regs->irregs.r13 = sp;
+	/* Currently, the elf stack grows downwards & we need to make
+	   some room for the libc _start() routine to pas parameters to main.  
+           sizeof stackframe == 144 bytes, args = 16B for total of 0xa0 = 160
+           regs->irregs.r13 = sp - sizeof (elf_stack_t) - 16 ; */
+        regs->irregs.r13 = sp - 0xa0;
         regs->irregs.r15 = nip | PSW_31BIT;
 
 	/* boffo ace rimer in other regs */

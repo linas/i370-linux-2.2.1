@@ -18,7 +18,7 @@
  * SLAB caches for signal bits.
  */
 
-#define DEBUG_SIG 0
+#define DEBUG_SIG 1
 
 #if DEBUG_SIG
 #define SIG_SLAB_DEBUG	(SLAB_DEBUG_FREE | SLAB_RED_ZONE /* | SLAB_POISON */)

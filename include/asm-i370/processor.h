@@ -167,7 +167,7 @@ struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer */
 	struct pt_regs *regs;		/* Pointer to saved interrupt state */
 	unsigned long	tca[32];	/* mostly wasted, empty space ... */
-	double		fpr[4];		/* Complete floating point set */
+	double		fpr[16];	/* Complete floating point set */
 
 	/* XXX still not clear on the stuff below ... */
 	unsigned long	*pg_tables;	/* Base of page-table tree */

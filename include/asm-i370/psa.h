@@ -36,13 +36,19 @@ struct PSA {		/* PSA: Prefixed Storage Area */
   char           reserved_0 [512];
 
   char           eyecatcher [4];/* "PSA " in ascii                    */
+
+  /* XXX Danger Danger! The compiler currently pads out the non-word
+   * sized structures to a full-word.  Note, however, that this
+   * is subject to change in future compilers!  Thus, we hand-pad
+   * the struct below to fullword! Doctor Doctor, it hurts when I do this!
+   */
   struct         _initflag
   { unsigned     vm       :1;	/* a VM guest                         */
     unsigned     hercules :1;	/* a hercules guest                   */
     unsigned              :5;
     unsigned     primary  :1;	/* the primary (booting) CPU          */
+    char         pad[3];        /* pad to full-word                   */
   } initflag;
-  char           pad[3];
 
   struct task_struct* Current;	/* thread executing on this CPU       */
 

@@ -51,18 +51,32 @@ _start:
 	.ltorg			// dump literal pool
 
 
+/* XXX stop the machine for debugging purposes.
+ * we can't do this in the real code; this needs to be
+ * replaced by panic in some cases, or other stuff in other cases.
+ */
+#define HALT(sav)							\
+	L	r1,=X'000A0000';	/* disabled wait */		\
+	ST	r1,sav(,0);						\
+	L	r1,=X'FFFFFFFF';	/* bad address */		\
+	ST	r1,sav+4(,0);						\
+	LPSW	sav(0);			/* oops halt the machine */
+
 /* XXX note that this tcaStackOverflow routine is called
  * in a funky and unusual way from the excpetion handler;
  * the register assignments don't quite follow the normal
  * ones because we cannot trash r15.  Yuck, review this.
  */
 tcaStackOverflow:
-	SVC	0xff		// force a fault to occur
+	HALT (INTERRUPT_BASE)		/* stop the machine (debug) */
+	.balign 4
+	.ltorg
+
 
 /* ================================================================ */
 /*
  * Exception vectors.
- * XXX currently sorta works, sometimes
+ * Usually works 
  */
 
 /*
@@ -168,7 +182,16 @@ tcaStackOverflow:
 #define SAVED_R9	FRAME_BASE + IR_R9
 #define SAVED_R10	FRAME_BASE + IR_R10
 
-#define EXCEPTION_PROLOG(sav,oldpsw)  					\
+/* ADJUST_BASE is used to advance the stack pointer base past the
+ * unsafe sections of a function pointer prolog.  Taking an interrupt
+ * and not adjusting would result in a corrupted stack.
+ */
+ 
+#define ADJUST_BASE							\
+	LA	r2,SF_BASE(,r2);	/* safe offset to stack top */	\
+
+
+#define EXCEPTION_PROLOG(sav,sp_adjust,oldpsw) 				\
 	STM	r11,r2,sav+8(0);	/* save gprs to low mem */	\
 	BASR	r15,0;			/* load r15 with PSW  */	\
 	.using	.,r15;			/* use r15 as base register */	\
@@ -195,7 +218,7 @@ tcaStackOverflow:
 1:					/* branch here if kernel */	\
 	/* we have a valid stack pointer; build a stackframe */		\
 	L	r2,76(,sp);		/* find top of kernel stack */	\
-	LA	r2,SF_BASE(,r2);	/* safe offset to stack top */	\
+	sp_adjust;			/* safe offset to stack top */	\
 	LA	r1,SF_SIZE(,r2);	/* add stackframe size */	\
 	CL	r1,12(,rtca);		/* got room ? */		\
 	BNH	2f;			/* if so blast ahead */		\
@@ -245,29 +268,18 @@ tcaStackOverflow:
 	L	r13,SAVED_R13(sp);	/* restore r13 */		\
 	LPSW	sav(0);			/* return from interrupt */	\
 
-/* XXX stop the machine for debugging purposes.
- * we can't do this in the real code; this needs to be
- * replaced by panic in some cases, or other stuff in other cases.
- */
-#define HALT(sav)							\
-	L	r1,=X'000A0000';	/* disabled wait */		\
-	ST	r1,sav(,0);						\
-	L	r1,=X'FFFFFFFF';	/* bad address */		\
-	ST	r1,sav+4(,0);						\
-	LPSW	sav(0);			/* oops halt the machine */
-
 
 /* Restart */
 	.globl Restart
 Restart:
-	EXCEPTION_PROLOG (INTERRUPT_BASE, IPL_PSW_OLD)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, IPL_PSW_OLD)
 	EXCEPTION_CALL_C (RestartException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 /* Machine Check */
 	.globl MachineCheck
 MachineCheck:
-	EXCEPTION_PROLOG (INTERRUPT_BASE, MACH_PSW_OLD)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, MACH_PSW_OLD)
 	EXCEPTION_CALL_C (MachineCheckException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
@@ -275,7 +287,7 @@ MachineCheck:
 #define NR_syscalls	188
 	.global SupervisorCall
 SupervisorCall:
-	EXCEPTION_PROLOG (INTERRUPT_BASE, SVC_PSW_OLD) 
+	EXCEPTION_PROLOG (INTERRUPT_BASE,  , SVC_PSW_OLD) 
 	SLR	r2,r2			/* put zero in r2 */
 	LH	r2,138(,0)		/* load interruption code from pfx */
 	LTR	r2,r2			/* is r2 zero ? */
@@ -305,21 +317,21 @@ SupervisorCall:
 /* Program Interruption */
 	.global ProgramCheck
 ProgramCheck:
-	EXCEPTION_PROLOG (INTERRUPT_BASE, PROG_PSW_OLD)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, PROG_PSW_OLD)
 	EXCEPTION_CALL_C (ProgramCheckException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 /* External */
 	.global External
 External:
-	EXCEPTION_PROLOG (INTERRUPT_BASE, EXTERN_PSW_OLD)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, EXTERN_PSW_OLD)
 	EXCEPTION_CALL_C (ExternalException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 /* Input Output */
 	.global InputOutput
 InputOutput:
-	EXCEPTION_PROLOG (INTERRUPT_BASE, IO_PSW_OLD)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, IO_PSW_OLD)
 	EXCEPTION_CALL_C (InputOutputException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 

@@ -15,7 +15,7 @@
  */
 
 /* bytes per L1 cache line */
-#define        L1_CACHE_BYTES  256      
+#define        L1_CACHE_BYTES  16      
 #define        L1_CACHE_ALIGN(x)       (((x)+(L1_CACHE_BYTES-1))&~(L1_CACHE_BYTES-1))
 
 #endif

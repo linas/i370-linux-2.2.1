@@ -1,6 +1,10 @@
 
 /* video3270.c 
- * placeholder for mapping 3270 functions to linux style 'video'.
+ *
+ * Rump for mapping 3270 functions to linux style 'video'.
+ * This is meant to implement a full-screen driver where 
+ * text can be written anywhere, and the cursor can be 
+ * positioned anywhere.
  *
  * --linas Oct 1999
  */
@@ -14,10 +18,14 @@
 #include <linux/console_struct.h>
 
 
+/* ================================================================ */
+
 __initfunc(static const char *vid3270_startup(void))
 { 
 	return "vid3270";
 }
+
+/* ================================================================ */
 
 static void
 vid3270_init(struct vc_data *conp, int init)
@@ -31,10 +39,14 @@ vid3270_init(struct vc_data *conp, int init)
 
 }
 
+/* ================================================================ */
+
 static void
 vid3270_deinit(struct vc_data *conp)
 {
 }
+
+/* ================================================================ */
 
 static int
 vid3270_switch(struct vc_data *conp)
@@ -42,10 +54,14 @@ vid3270_switch(struct vc_data *conp)
 	return 1;
 }
 
+/* ================================================================ */
+
 static void
 vid3270_clear(struct vc_data *conp, int sy, int sx, int height, int width)
 {
 }
+
+/* ================================================================ */
 
 static void
 vid3270_bmove(struct vc_data *conp, int sy, int sx, int dy, int dx,
@@ -53,13 +69,15 @@ vid3270_bmove(struct vc_data *conp, int sy, int sx, int dy, int dx,
 {
 }
 
+/* ================================================================ */
+
 static void
 vid3270_putcs(struct vc_data *conp, const unsigned short *s,
 	      int count, int y, int x)
 {
 	int i;
 	if (80 == count) {  /* quick hack don't print blank lines */
-		for(i=0; i<count; i++) if (0x20 != s[i]) goto prt:
+		for(i=0; i<count; i++) if (0x20 != s[i]) goto prt;
 		return;
 	}
 prt:
@@ -69,28 +87,30 @@ prt:
 	} 
 }
 
+/* ================================================================ */
+/* put one character */
+
 static void
 vid3270_putc(struct vc_data *conp, int c, int y, int x)
 {
 	unsigned short s = c;
-
-	if (console_blanked)
-		return;
-
+	if (console_blanked) return;
 	vid3270_putcs(conp, &s, 1, y, x);
 }
+
+/* ================================================================ */
 
 static void
 vid3270_cursor(struct vc_data *conp, int mode)
 {
 	switch (mode) {
 	case CM_ERASE:
-		break;
-
 	case CM_MOVE:
 	case CM_DRAW:
 	}
 }
+
+/* ================================================================ */
 
 static int
 vid3270_font_op(struct vc_data *conp, struct console_font_op *op)
@@ -98,17 +118,21 @@ vid3270_font_op(struct vc_data *conp, struct console_font_op *op)
 	return -ENOSYS;
 }
 
+/* ================================================================ */
+
 static int
 vid3270_blank(struct vc_data *conp, int blank)
 {
 	if (blank) {
-		/* do stuf here to blank the screen */
+		/* do stuff here to blank the screen */
 		return 0;
 	} else {
 		/* Let console.c redraw */
 		return 1;
 	}
 }
+
+/* ================================================================ */
 
 static int
 vid3270_scroll(struct vc_data *conp, int t, int b, int dir, int count)
@@ -122,10 +146,15 @@ vid3270_scroll(struct vc_data *conp, int t, int b, int dir, int count)
 	return 0;
 }
 
+/* ================================================================ */
+
 static int vid3270_dummy(void)
 {
 	return 0;
 }
+
+/* ================================================================ */
+/* function table */
 
 struct consw video3270_con = {
 	con_startup:		vid3270_startup,
@@ -148,8 +177,16 @@ struct consw video3270_con = {
 	con_invert_region:	NULL,
 };
 
+
+/* ================================================================ */
+/* takover function */
+/* XXX Note that its not really needed, as we already grabbed the console 
+ * in setup.c 
+ */
+
 __initfunc(void video3270_init(void))
 {
 	take_over_console(&video3270_con, 0, MAX_NR_CONSOLES-1, 1);
 }
 
+/* ================================================================ */

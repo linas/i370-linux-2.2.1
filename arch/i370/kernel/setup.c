@@ -16,7 +16,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long * memory_start_p, unsigned long * memory_end_p))
 {
 	extern int panic_timeout;
-	extern char _etext[], _edata[];
+	extern char _etext[], _edata[], _end[];
 //	extern char *klimit;
 //	extern unsigned long find_available_memory(void);
 // 	extern unsigned long *end_of_DRAM;
@@ -33,8 +33,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 	// strcpy(saved_command_line, cmd_line);
 	*cmdline_p = cmd_line;
 
-// 	*memory_start_p = find_available_memory();
- 	*memory_start_p = 0x10000;  // 64K 
+ 	*memory_start_p = _end;
 //	*memory_end_p = (unsigned long) end_of_DRAM;
 	*memory_end_p = 0x1000000;  // 16M
 

@@ -11,13 +11,16 @@ _stext:
 /* 
  * We set up just enough to let a C lang call to be made.
  * Basically, this means just reserving some space for 
- * a bogus stack (to which will be written garbage data)
- * and making r13 point at it. That's all, and we can call.
+ * a stack and making r13 point at it. That's all, and we can call.
+ *
+ * Note that we will be using this stack not just for startup,
+ * but also for the exception handlers below ...
  */
 	.data
 	.balign	8
 .LSTACK:
-	.org	.+148, 0xd0	// all stack, no frame
+	.org	.+148,0xd0	// stack  
+	.org	.+512,0xaa	// args & returned values 
 	.balign	8
 
         .text			// back to the text section
@@ -25,15 +28,12 @@ _stext:
 _start:
 	.using	.,r15		// use r15 as base register
 	BASR	r15,0		// load r15 with PSW 
-	B	.LSTART-_start	// jump over next word
-.LLEN:
-	.long	.LSTACK		// address of stack
-.LSTART:
-	L	sp,.LLEN-_start(0,r15)	// load address of stack into r13
+	L	sp,=A(.LSTACK)	// load address of stack into r13
 	L	r15,=A(start_kernel)	// load address of C routine
 	BASR	lr,r15		// jump to C routine
-
+	.balign	4		// align literal pool
 	.ltorg			// dump literal pool
+
 
 /* ================================================================ */
 /*
@@ -43,65 +43,49 @@ _start:
 
 
 /*
- * Exception entry code.  
- * save contents of registers. 
+ * Exception handling code.  
+ * Save contents of registers, call C routine.
+ * The C routine will return the double-word PSW on the stack 
  */
-#define EXCEPTION_PROLOG        \
-        STM     r14,r12,12(sp)  /* totally wrong; placeholder */
+#define EXCEPTION_HANDLER(handler)     				\
+	STM	r0,r15,4008(0);	/* save gprs to low mem */	\
+	.using	.,r15;		/* use r15 as base register */	\
+	BASR	r15,0;		/* load r15 with PSW  */	\
+	L	sp,=A(.LSTACK);	/* load addr of stack */	\
+	L	r15,=A(handler);/* load address of C routine */	\
+	LA	r1,4000(0,0);	/* pointer to arguments */	\
+	BASR	lr,r15;		/* jump to C routine */		\
+	LM	r6,r7,0(r15);	/* load double-word psw */	\
+	STM	r6,r7,4000(0);	/* store returned psw */	\
+	LM	r0,r15,4008(0);	/* restore saved gprs */	\
+	LPSW	4000(0);	/* return from interrupt */	\
+	.balign	8;		/* align literal pool */	\
+	.ltorg;			/* dump literal pool */		\
 
 /* Restart */
-	. = 0x100
+	.globl Restart
 Restart:
-	EXCEPTION_PROLOG 
-	bas 	r0, transfer_to_handler
-	.long	RestartException
+	EXCEPTION_HANDLER(RestartException)
 
 /* Machine Check */
-	. = 0x200
 MachineCheck:
-	EXCEPTION_PROLOG 
-	bas 	r0, transfer_to_handler
-	.long	MachineCheckException
+	EXCEPTION_HANDLER(MachineCheckException)
 
 /* Supervisor Call */
-	. = 0x300
 SupervisorCall:
-	EXCEPTION_PROLOG 
-	bas 	r0, transfer_to_handler
-	.long	SupervisorCallException
+	EXCEPTION_HANDLER(SupervisorCallException) 
 
 /* Program Interruption */
-	. = 0x400
 ProgramCheck:
-	EXCEPTION_PROLOG 
-	bas 	r0, transfer_to_handler
-	.long	ProgramCheckException
+	EXCEPTION_HANDLER(ProgramCheckException)
 
 /* External */
-	. = 0x500
 External:
-	EXCEPTION_PROLOG 
-	bas 	r0, transfer_to_handler
-	.long	ExternalException
+	EXCEPTION_HANDLER(ExternalException)
 
 /* Input Output */
-	. = 0x600
 InputOutput:
-	EXCEPTION_PROLOG 
-	bas 	r0, transfer_to_handler
-	.long	InputOutputException
-
-
-/*
- * This code finishes saving the registers to the exception frame
- * and jumps to the appropriate handler for the exception, turning
- * on address translation.
- */
-
-	. = 0x1000
-        .globl  transfer_to_handler
-transfer_to_handler:
-
+	EXCEPTION_HANDLER(InputOutputException)
 
 
 /*
@@ -109,7 +93,7 @@ transfer_to_handler:
  */	
 	.global __main
 __main:
-	basr 1,lr
+	basr r15,lr
 
 	
 /*

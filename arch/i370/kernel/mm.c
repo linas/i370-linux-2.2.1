@@ -11,8 +11,8 @@
 
 atomic_t next_mmu_context; 
 struct pgtable_cache_struct quicklists;
-// extern char __init_begin, __init_end;
-extern char etext[], _stext[];  
+extern char __init_begin, __init_end;
+extern char _etext[], _stext[];  
 
 
 __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
@@ -41,17 +41,15 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
    {
       if (PageReserved(mem_map + MAP_NR(addr))) 
       {
-         if (addr < (ulong) etext)
+         if (addr < (ulong) _etext)
          {
              codepages++;
          }
-/*
          else if (addr >= (unsigned long)&__init_begin
                && addr < (unsigned long)&__init_end)
          {
              initpages++;
          }
-*/
          else if (addr < (ulong) start_mem)
          {
             datapages++;

@@ -41,10 +41,11 @@ SECTIONS
   _bss = .;
   .sbss : { *(.sbss) *(.scommon) }
   .bss : { *(.bss) *(COMMON) }
+  _ebss = .;
 
-  .mdebug 0 : { *(.mdebug) }
-  .note 0 : { *(.note) }
-  .comment 0 : { *(.comment) }
+  .mdebug : { *(.mdebug) }
+  .note : { *(.note) }
+  .comment : { *(.comment) }
 
   . = ALIGN(4096);
   _end = .;

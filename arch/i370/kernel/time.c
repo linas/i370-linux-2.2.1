@@ -1,10 +1,10 @@
-/*
- * XXX all wrong implemenet everything here ...
- */
 
 #include <linux/init.h>
 #include <linux/kernel.h>
+#include <linux/sched.h>
 #include <linux/time.h>
+
+#include <asm/asm.h>
 
 
 /* keep track of when we need to update the rtc */
@@ -13,7 +13,27 @@ unsigned long last_rtc_update = 0;
 
 __initfunc(void time_init(void))
 {
-   printk ("do dah time init\n");
+	unsigned long skippy;
+	unsigned long long tod;
+	printk ("enter time init\n");
+
+	/* hack alert XXX I suppose that we should check that the
+	 * system TOD clock is not in the stopped state, and if it is, 
+	 * set it running again... 
+	 */
+	/* grab the system time of day clock, add 10 milliseconds,
+	 * and store that in the clock comparator.  That should start 
+	 * the interupts going. 
+	 */
+	tod = _stck();
+	tod += (1000000/HZ) << 12;
+	_sckc (tod);
+
+	/* wait for an interrupt */
+	skippy = jiffies;
+	while (skippy == jiffies) {/* empty */};
+
+	printk ("exit time init\n");
 }
 
 /*
@@ -21,22 +41,19 @@ __initfunc(void time_init(void))
  */
 void do_gettimeofday(struct timeval *tv)
 {
+/* XXX unhack this ; this is copied from ppc .... */
 #if 0
         unsigned long flags;
 
         save_flags(flags);
         cli();
         *tv = xtime;
-        /* XXX we don't seem to have the decrementers synced properly yet
-         * */
-#ifndef __SMP__
         tv->tv_usec += (decrementer_count - get_dec())
             * count_period_num / count_period_den;
         if (tv->tv_usec >= 1000000) {
                 tv->tv_usec -= 1000000;
                 tv->tv_sec++;
         }
-#endif
         restore_flags(flags);
 #endif
 }

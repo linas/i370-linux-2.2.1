@@ -1,7 +1,7 @@
 
 /*
  * mostly copied from the ppc implementation
- * XXX this is fairly broken for the 370
+ * XXX this minimally works in a broken-like way for the 370
  */
 
 #include <linux/init.h>
@@ -153,6 +153,7 @@ void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 {
 /* XXX this is all wrong */
 	printk ("start thread\n");
+*((int *)0) = 0;
         set_fs(USER_DS);
         regs->psw.flags = USER_PSW;
         regs->psw.addr = nip;
@@ -321,9 +322,13 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	 * Do this by inserting a zero in reg fifteen of the SVC
 	 * saved regs (in the SVC stack frame).  Note that r15
          * holds the returned pid, while non-zero r1 indicates an error.
+	 * The parent gets the childs pid.
 	 */
 	p->tss.regs -> irregs.r1 = 0;
 	p->tss.regs -> irregs.r15 = 0;
+
+	current->tss.regs -> irregs.r1 = 0;
+	current->tss.regs -> irregs.r15 = p->pid;
 
 	/* XXX what about page tables ?? */
 	return 0;
@@ -336,6 +341,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 asmlinkage int 
 i370_sys_fork (void) {
+*((int *)0) = 0;
 return 0;
 }
 

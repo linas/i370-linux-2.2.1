@@ -26,7 +26,8 @@ static inline cycles_t get_cycles(void)
 #ifdef __SMP__
 	cycles_t ret;
 
-	__asm__("mftb %0" : "=r" (ret) : );
+        /* STPT Store CPU Timer */
+	__asm__("STPT %0" : "m" (ret) : );
 	return ret;
 #else
 	return 0;

@@ -185,12 +185,18 @@ int check_stack(struct task_struct *tsk)
 void 
 i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 {
+        cr0_t cr0;
+
 	printk ("i370_start_thread(): setup for user-space thread\n");
         set_fs(USER_DS);
        	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
         regs->psw.flags |= USER_PSW;
         regs->psw.addr = nip | PSW_31BIT;
         regs->irregs.r13 = sp;
+
+        cr0.raw = _stctl_r0();
+        cr0.bits.tf = 0x16;
+        _lctl_r0(cr0.raw);
 }
 
 /* =================================================================== */

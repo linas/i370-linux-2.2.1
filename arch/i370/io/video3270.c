@@ -83,7 +83,7 @@ vid3270_putcs(struct vc_data *conp, const unsigned short *s,
 prt:
 	printk("vid3270_putcs %d chars at %d %d:\n", count, y, x);
 	for(i=0; i<count; i++) {
-		printk ("%c", s[i]);
+		printk ("%c", 0xff & s[i]);
 	} 
 }
 

@@ -35,36 +35,36 @@ char saved_command_line[512];
 extern void i370_find_devices (unsigned long *memory_start_p, 
 				unsigned long *memory_end_p);
 struct scatter_block {
-  struct scatter_block * next;
-  long                 len;
-  long                 offset;
-  char                 data[0];
+	struct scatter_block * next;
+	long                 len;
+	long                 offset;
+	char                 data[0];
 };
 
 void scatter_move(void * area, struct scatter_block * first_block)
 {
-  struct scatter_block *  block;
-  for (block = first_block; block; block = block->next){
-    if (block->len > 0)
-      memcpy((char *) area + block->offset, block->data, block->len);
-    else 
-      memset((char *) area + block->offset, 0, -(block->len));
-  }
+	struct scatter_block *	block;
+	for (block = first_block; block; block = block->next){
+		if (block->len > 0) {
+			memcpy((char *) area + block->offset, block->data, block->len);
+		} else	{
+			memset((char *) area + block->offset, 0, -(block->len));
+		}
+	}
 }
-  
+
 void setup_psa(void)
 {
-  _PSA_.initflag.hercules |= _i370_hercules_guest_p();
-  
-  _PSA_.Current = &init_task;		/* static, is in fact in the constant data */
-  
-  _PSA_.cpuadp = _stap();
-  _PSA_.cpuadl = _stap();
-  _PSA_.cpuno = 1;
-  _PSA_.cpumask = 0x0001;
-  
- /* that is, really, very minimal, in an smp env. it will fail blatantly */
-
+	_PSA_.initflag.hercules |= _i370_hercules_guest_p();
+	
+	_PSA_.Current = &init_task;		/* static, is in fact in the constant data */
+	
+	_PSA_.cpuadp = _stap();
+	_PSA_.cpuadl = _stap();
+	_PSA_.cpuno = 1;
+	_PSA_.cpumask = 0x0001;
+	
+	/* that is, really, very minimal, in an smp env. it will fail blatantly */
 } 
 
 /* ========================================================== */
@@ -177,7 +177,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 	*memory_start_p = (unsigned long) _end;
 	/* If we're running under VM the first byte of the CPUID will be 0xff
 	 * in which case we can DIAGNOSE the amount of available memory */
-	if (CPUID[0] == 0xff) {
+	if (CPUID[0] == 0xff || _i370_hercules_guest_p()) {
 	        *memory_end_p = VM_Diagnose_Code_60();
 	} else {
 		/* hardcode the memory size */

@@ -22,6 +22,9 @@ extern __inline__ void __delay(unsigned int loops)
 extern __inline__ void udelay(unsigned long usecs)
 {
 #ifdef MULDI3_FIXED
+	/* currently, the i370 compiler doesn't correctly handle
+	 * double-word multiplication. The muldi3 insn pattern 
+	 * isn't implemented. */
         unsigned long long loops;
 
 	/* stunt to avoid a divide */

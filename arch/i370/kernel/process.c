@@ -1,7 +1,8 @@
 
 /*
  * mostly copied from the ppc implementation
- * XXX this minimally works in a broken-like way for the 370
+ * XXX this minimally works in a broken-like way for the ESA/390
+ * needs a lot of fixin to be really operational...
  */
 
 #include <linux/init.h>
@@ -37,6 +38,8 @@ const unsigned long init_ksp __initdata = init_stack;
 const unsigned long init_kstend __initdata = ((unsigned long) &init_task) + 8192;
 const unsigned long init_tca __initdata = (unsigned long) (&init_task.tss.tca[0]);
 
+/* =================================================================== */
+
 unsigned long
 kernel_stack_top(struct task_struct *tsk)
 {
@@ -47,6 +50,13 @@ unsigned long
 task_top(struct task_struct *tsk)
 {
         return ((unsigned long)tsk) + sizeof(struct task_struct);
+}
+
+/* =================================================================== */
+
+int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) { 
+	printk ("dump fpu \n");
+	return 0;
 }
 
 void show_regs(struct pt_regs * regs)
@@ -84,6 +94,8 @@ print_backtrace(unsigned long *sp)
         printk("\n");
 }
 
+
+/* =================================================================== */
 
 #define CHECK_STACK
 #ifdef CHECK_STACK
@@ -146,19 +158,27 @@ int check_stack(struct task_struct *tsk)
 }
 #endif /* CHECK_STACK */
 
+/* =================================================================== */
+
 /*
- * Set up a thread for executing a new program
+ * Initialize a thread for running a user-land program
+ * This is where:
+ * -- we enable DAT (address translation)
+ * -- we set the problem state bit in the PSW
+ * -- set the user's stack pointer
+ * -- set the address at which to start executing the user process
  */
 void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 {
-/* XXX this is all wrong */
-	printk ("start thread\n");
-*((int *)0) = 0;
+	printk ("setup user-space thread\n");
         set_fs(USER_DS);
-        regs->psw.flags = USER_PSW;
+       	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
+        regs->psw.flags |= USER_PSW;
         regs->psw.addr = nip;
         regs->irregs.r13 = sp;
 }
+
+/* =================================================================== */
 
 // switch_to does the task switching.  
 // I'm not to clear on what it needs to do ... 
@@ -239,6 +259,8 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 }
 
 
+/* =================================================================== */
+
 void exit_thread(void)
 {
 }
@@ -257,6 +279,8 @@ i370_sys_exit (void)
 {
 	asm volatile ("SVC	23"); /* fault on purpose */
 }
+
+/* =================================================================== */
 
 /*
  * Copy a thread..
@@ -340,21 +364,12 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	p->tss.regs -> irregs.r15 = 0;
 	current->tss.regs -> irregs.r15 = p->pid;
 
-	/* new thread might return to user-mode when it returns 
-	 * from sys call; set the PSW appropriately */
-/* XXX I think this is not how one finds out about user mode ... */
-#if 0
-        if ((long)USER_DS == (long)(p->tss.fs)) {
-        	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
-        	regs->psw.flags |= USER_PSW;
-	} else {
-        	regs->psw.flags &= ~(PSW_DAT | PSW_PROB);
-	}
-#endif
 
 	/* XXX what about page tables ?? */
 	return 0;
 }
+
+/* =================================================================== */
 
 /* 
  * note:
@@ -362,10 +377,30 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
  */
 
 asmlinkage int 
-i370_sys_fork (void) {
-*((int *)0) = 0;  /* fault on purpose */
-return 0;
+i370_sys_fork (void) 
+{
+	int res = 0;
+	printk ("i370_sys_fork \n");
+
+	lock_kernel();
+	// XXX whatever
+	// res = do_fork(SIGCHLD, regs->gpr[1], regs);
+	i370_halt();
+
+	/* only parent returns here */
+#ifdef __SMP__
+	/* When we clone the idle task we keep the same pid but
+	 * the return value of 0 for both causes problems.
+	 * -- Cort
+	 */
+	if ((current->pid == 0) && (current == &init_task))
+		res = 1;
+#endif /* __SMP__ */
+	unlock_kernel();
+	return res;
 }
+
+/* =================================================================== */
 
 asmlinkage int 
 i370_sys_clone (unsigned long clone_flags)
@@ -391,13 +426,14 @@ i370_sys_clone (unsigned long clone_flags)
         unlock_kernel();
 
 /* XXX why are we cli'ing here ??? */
-cli();
+// cli();
 
 /* XXX should we be returning res here, or should we be returning
  * regs->irregs.r15 ?? */
         return res;
 }
 
+/* =================================================================== */
 /*
  * i370_kernel_thread ... creates a new kernel thread.
  * Called during initialization, and during module load to create
@@ -429,10 +465,4 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 	return 0;
 }
 
-
-int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) { 
-	printk ("dump fpu \n");
-	return 0;
-}
-
-
+/* ========================== END OF FILE =========================== */

@@ -10,8 +10,8 @@
  * Modified to implement Linux for the ESA/390 class mainframes
  *   Copyright (C) 1999 Linas Vepstas (linas@linas.org)
  *
- * XXX this minimally works in a broken-like way for the ESA/390
- * needs a lot of fixin to be really operational...
+ * XXX this works in a broken-like way for the ESA/390
+ * needs fixin to be really operational...
  * Changes: using psa.Current in lieu of current [ptr003]
  */
 
@@ -142,7 +142,7 @@ int check_stack(struct task_struct *tsk)
 	if ( (tsk->tss.ksp > stack_top) || (tsk->tss.ksp < stack_bot) )
 	{
 		printk("stack out of bounds: %s/%d\n"
-		       " stack_bot %08lx ksp %08lx stack_top %08lx\n",
+		       "    stack_bot %08lx ksp %08lx stack_top %08lx\n",
 		       tsk->comm,tsk->pid,
 		       stack_bot, tsk->tss.ksp, stack_top);
 		ret |= 2;
@@ -152,17 +152,17 @@ int check_stack(struct task_struct *tsk)
 	if ( (tsk == current) && ((_get_SP() > stack_top ) || (_get_SP() < stack_bot)) )
 	{
 		printk("current stack ptr out of bounds: %s/%d\n"
-		       " stack_bot %08lx sp %08lx stack_top %08lx\n",
+		       "    stack_bot %08lx sp %08lx stack_top %08lx\n",
 		       current->comm,current->pid,
 		       stack_bot, _get_SP(), stack_top);
 		ret |= 4;
 	}
 
 	/* check amount of free stack */
-	if ( 900 > (stack_top - tsk->tss.ksp) )
+	if ( 3000 > (stack_top - tsk->tss.ksp) )
 	{
 		printk("low on stack space: %s/%d\n"
-		       " stack_bot %08lx ksp %08lx stack_top %08lx\n",
+		       "    stack_bot %08lx ksp %08lx stack_top %08lx\n",
 		       tsk->comm,tsk->pid,
 		       stack_bot, tsk->tss.ksp, stack_top);
 		ret |= 8;
@@ -170,7 +170,10 @@ int check_stack(struct task_struct *tsk)
 	
 	if (ret)
 	{
-		panic("bad kernel stack");
+		printk("bad stack, halting\n");
+		show_regs (tsk->tss.regs);
+		print_backtrace (tsk->tss.regs->irregs.r13);
+		i370_halt();
 	}
 	return(ret);
 }

@@ -36,7 +36,10 @@ _start:
 	.using	.,r15		// use r15 as base register
 	L	sp,=A(init_ksp)	// load address of stack pointer into r13
 	L	sp,0(,sp)	// load address of stack into r13
-	LA	r2,148(,sp)	// load r2 with top of stack
+	LA	sp,7(,sp)	// doubleword align
+	SRL	sp,3
+	SLL	sp,3
+	LA	r2,152(,sp)	// load r2 with top of stack
 	ST	r2,76(,sp)	// store top of stack at 76
 	L	rtca,=A(init_tca)	// load address of pointer to tca.
 	L	rtca,0(,rtca)		// load address of tca

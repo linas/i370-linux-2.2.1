@@ -411,45 +411,49 @@ extern void InputOutput (void);
 extern void ProgramCheck (void);
 
 /*
- * we assume that we initialize traps while in real mode, i.e.
- * i.e. that the fixed storage locations (fsl) at low memory 
- * are where they're supposed to be.
+ * We initialize interrupt vectors twice:
+ * first with storage key zero, so that we can take timer interrupts while
+ * booting, and then, with a non-zero storage key so that we can run 
+ * the interrupts without clobbering text pages.
  */
 
-__initfunc(void trap_init(void))
+__initfunc(void i370_trap_init (int key))
 {
 	unsigned long long clock_reset;
 	unsigned long *sz;
 	psw_t psw;
-	printk ("trap init");
+	printk ("trap init with storage key=%d\n", key);
 
-	/* clear any pending timer interrupts before installing
-	 * external interrupt handler. Do this by setting the
-         * clock comparator to -1.
-	 */
-	clock_reset = 0xffffffffffffffffLL;
-	_sckc (clock_reset);
- 
-	/* store the offset between the task struct and the kernel stack
-	 * pointer in low memory where we can get at it for calculation
-	 */
-	sz = (unsigned long *) INTERRUPT_BASE;
-	*(sz-1) = (unsigned long) &(((struct task_struct *) 0) ->tss.ksp);
-	*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.regs);
+	/* do part of the initialization just once. */
+	if (0 == key) {
+		/* clear any pending timer interrupts before installing
+		 * external interrupt handler. Do this by setting the
+        	 * clock comparator to -1.
+		 */
+		clock_reset = 0xffffffffffffffffLL;
+		_sckc (clock_reset);
+	 
+		/* store the offset between the task struct and the kernel stack
+		 * pointer in low memory where we can get at it for calculation
+		 */
+		sz = (unsigned long *) INTERRUPT_BASE;
+		*(sz-1) = (unsigned long) &(((struct task_struct *) 0) ->tss.ksp);
+		*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.regs);
+	}
 
-	/* note that all interrupts will run in execution key 3 ... */
+	/* note that all interrupts will run in execution key 6 ... */
 	// install the SVC handler
-	psw.flags = DISAB_PSW;        // disable all interupts
+	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
 	psw.addr = ((unsigned long) SupervisorCall) | PSW_31BIT; 
 	*((psw_t *) SVC_PSW_NEW) = psw;
 
 	// install the External Interrupt (clock) handler
-	psw.flags = DISAB_PSW;        // disable all interupts
+	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
 	psw.addr = ((unsigned long) External) | PSW_31BIT; 
 	*((psw_t *) EXTERN_PSW_NEW) = psw;
 
 	// install the I/O Interrupt handler
-	psw.flags = DISAB_PSW;        // disable all interupts
+	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
 	psw.addr = ((unsigned long) InputOutput) | PSW_31BIT; 
 	*((psw_t *) IO_PSW_NEW) = psw;
 
@@ -459,9 +463,18 @@ __initfunc(void trap_init(void))
 	*((psw_t *) IPL_PSW_NEW) = psw;
 
 	// install the ProgramCheck handler
-	psw.flags = DISAB_PSW;        // disable all interupts
+	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
 	psw.addr = ((unsigned long) ProgramCheck) | PSW_31BIT; 
 	*((psw_t *) PROG_PSW_NEW) = psw;
+}
+
+/*
+ * init traps with the keys to the kingdom.
+ */
+
+__initfunc(void trap_init(void))
+{
+	i370_trap_init (0);
 }
 
 /* ===================== END OF FILE =================================== */

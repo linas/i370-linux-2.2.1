@@ -16,8 +16,13 @@
 #ifndef __ASSEMBLY__
 #ifdef __KERNEL__
 
-#define STRICT_MM_TYPECHECKS
+/* When running the kernel in real mode, use storage keys
+ * to protect the text segment from acidental corruption.
+ */
+#define KTEXT_STORAGE_KEY	3
+#define KDATA_STORAGE_KEY	0
 
+#define STRICT_MM_TYPECHECKS
 #ifdef STRICT_MM_TYPECHECKS
 /*
  * These are used to make use of C type-checking..

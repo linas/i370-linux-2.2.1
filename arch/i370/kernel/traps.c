@@ -48,17 +48,14 @@ void (*debugger_fault_handler)(struct pt_regs *regs);
 #endif
 #endif
 
-void instruction_dump (unsigned long *pc)
+void instruction_dump (unsigned short *pc)
 {
-        int i;
+   int i;
 
-        if((((unsigned long) pc) & 3))
-                return;
-
-        printk("Instruction DUMP:");
-        for(i = -3; i < 6; i++)
-                printk("%c%08lx%c",i?' ':'<',pc[i],i?' ':'>');
-        printk("\n");
+   printk("Instruction DUMP:");
+   for(i = -6; i < 12; i++)
+      printk("%c%04x%c",i?' ':'<',pc[i],i?' ':'>');
+   printk("\n");
 }
 
 
@@ -69,24 +66,24 @@ void instruction_dump (unsigned long *pc)
 void
 _exception(int signr, struct pt_regs *regs)
 {
-	if (!user_mode(regs))
-	{
-		show_regs(regs);
+   if (!user_mode(regs))
+   {
+      show_regs(regs);
 #if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
-		debugger(regs);
+      debugger(regs);
 #endif
-		print_backtrace((unsigned long *)regs->gpr[1]);
-		instruction_dump((unsigned long *)instruction_pointer(regs));
-		panic("Exception in kernel ia %lx signal %d",regs->psw.addr,signr);
-	}
-	force_sig(signr, current);
+      print_backtrace((unsigned long *)regs->gpr[0]);
+      instruction_dump((unsigned short *)instruction_pointer(regs));
+      panic("Exception in kernel psw.addr=%lx signal %d",regs->psw.addr,signr);
+   }
+   force_sig(signr, current);
 }
 
 psw_t
 MachineCheckException(struct pt_regs *regs)
 {
-	psw_t retval;
-	if ( !user_mode(regs) )
+   psw_t retval;
+   if ( !user_mode(regs) )
 	{
 #if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
 		if (debugger_fault_handler) {
@@ -108,27 +105,6 @@ MachineCheckException(struct pt_regs *regs)
    return retval;
 }
 
-psw_t
-UnknownException(struct pt_regs *regs)
-{
-   psw_t retval, *fsl;
-	printk("Bad trap at IA: %lx, PSW: %lx\n",
-	       regs->psw.addr, regs->psw.flags);
-	_exception(SIGTRAP, regs);	
-   return retval;
-}
-
-psw_t
-InstructionBreakpoint(struct pt_regs *regs)
-{
-   psw_t retval, *fsl;
-#if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
-	if (debugger_iabr_match(regs))
-		return;
-#endif
-	_exception(SIGTRAP, regs);
-   return retval;
-}
 
 psw_t
 ProgramCheckException(struct pt_regs *regs)
@@ -156,10 +132,15 @@ psw_t
 RestartException(struct pt_regs *regs)
 {
    psw_t retval, *fsl;
+
+   /* save old psw */
+   fsl = (psw_t *) IPL_PSW_OLD; 
+   regs->psw = *fsl;
+
    printk ("restart exception\n");
    panic("machine check");
-   fsl = (psw_t *) IPL_PSW_OLD; 
-   retval = *fsl; 
+
+   retval = regs->psw; 
    return retval;
 }
 
@@ -168,9 +149,14 @@ SupervisorCallException(struct pt_regs *regs)
 {
    psw_t retval, *fsl;
 
-   printk ("svc exception\n");
+   /* save old psw */
    fsl = (psw_t *) SVC_PSW_OLD; 
-   retval = *fsl; 
+   regs->psw = *fsl;
+
+   printk ("svc exception\n");
+
+   /* reurn posw to return to */
+   retval = regs->psw; 
    return retval;
 }
 
@@ -178,9 +164,14 @@ psw_t
 InputOutputException(struct pt_regs *regs)
 {
    psw_t retval, *fsl;
-   printk ("io exception\n");
+
+   /* save old psw */
    fsl = (psw_t *) IO_PSW_OLD; 
-   retval = *fsl; 
+   regs->psw = *fsl;
+
+   printk ("io exception\n");
+
+   retval = regs->psw; 
    return retval;
 }
 
@@ -188,12 +179,41 @@ psw_t
 ExternalException(struct pt_regs *regs)
 {
    psw_t retval, *fsl;
-   printk ("external exception\n");
+
+   /* save old psw */
    fsl = (psw_t *) EXTERN_PSW_OLD; 
-   retval = *fsl; 
+   regs->psw = *fsl;
+
+   printk ("external exception\n");
+
+   retval = regs->psw; 
    return retval;
 }
 
+/* ================================================================ */
+/* XXX mostly all junk below */
+
+psw_t
+UnknownException(struct pt_regs *regs)
+{
+   psw_t retval, *fsl;
+	printk("Bad trap at IA: %lx, PSW: %lx\n",
+	       regs->psw.addr, regs->psw.flags);
+	_exception(SIGTRAP, regs);	
+   return retval;
+}
+
+psw_t
+InstructionBreakpoint(struct pt_regs *regs)
+{
+   psw_t retval, *fsl;
+#if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
+	if (debugger_iabr_match(regs))
+		return;
+#endif
+	_exception(SIGTRAP, regs);
+   return retval;
+}
 psw_t
 SingleStepException(struct pt_regs *regs)
 {
@@ -230,6 +250,9 @@ trace_syscall(struct pt_regs *regs)
 	       regs->gpr[3]);
 }
 
+/* ================================================================ */
+/* wire in the interrupt vectors */
+
 extern void * SupervisorCall;
 
 /*
@@ -243,10 +266,11 @@ __initfunc(void trap_init(void))
    psw_t psw, *fsl;
    printk ("trap init");
 
-   fsl = IPL_PSW_NEW;
-
    fsl = (psw_t *) SVC_PSW_NEW;
    psw.flags = PSW_IO | PSW_EXTERN | PSW_MACH;     // disable interupts
    psw.addr = SupervisorCall || (1<<31); 
    *fsl = psw;
+
 }
+
+/* ===================== END OF FILE =================================== */

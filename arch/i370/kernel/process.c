@@ -19,9 +19,14 @@ union task_union init_task_union = { INIT_TASK };
 
 void show_regs(struct pt_regs * regs)
 {
-	printk ("dohh show more dohh here ...\n");
-        printk("PSW-bits: %08lX PSW-ia: %08lX \n",
-               regs->psw_bits, regs->psw_ia);
+   int i;
+
+   for (i=0; i<16; i+=2) {
+      printk ("GPR %d: %08lX   GPR %d %08lX \n", 
+         i, regs->gpr[i], i+1, regs->gpr[i+1]);
+   }
+   printk("PSW flags: %08lX PSW addr: %08lX \n",
+     regs->psw.flags, regs->psw.addr);
 
 }
 
@@ -31,7 +36,7 @@ print_backtrace(unsigned long *sp)
 //        int cnt = 0;
 //        unsigned long i;
 
-        printk("Call backtrace:\n");
+        printk("Call Backtrace:\n");
 #ifdef BOGUS_XXX
         while (sp) {
                 if (__get_user( i, &sp[1] ))
@@ -50,7 +55,7 @@ print_backtrace(unsigned long *sp)
 void
 switch_to(struct task_struct *prev, struct task_struct *new)
 {
-        printk("swith_to\n");
+   printk("swith_to\n");
 }
 
 void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)

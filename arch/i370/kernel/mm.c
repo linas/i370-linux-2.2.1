@@ -11,13 +11,14 @@
 
 atomic_t next_mmu_context; 
 struct pgtable_cache_struct quicklists;
-extern char __init_begin, __init_end;
-extern char _etext[], _stext[];  
+extern void *__init_begin, *__init_end;
+extern void *_text, *_etext,  *_stext;  
 
 
 __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 {
    unsigned long addr;
+   int lowpages = 0;
    int codepages = 0;
    int datapages = 0;
    int initpages = 0;
@@ -36,22 +37,30 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
      set_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);                
    }
 
-// hack alert should probably change the storage keys here
+   /* mark the first page RO since all vectors have been set up by now */
+   _sske (0x0, KTEXT_STORAGE_KEY);
+
    for (addr = PAGE_OFFSET; addr < end_mem; addr += PAGE_SIZE) 
    {
       if (PageReserved(mem_map + MAP_NR(addr))) 
       {
-         if (addr < (ulong) _etext)
+         if (addr < (ulong) _text)
          {
-             codepages++;
+            lowpages++;
          }
-         else if (addr >= (unsigned long)&__init_begin
-               && addr < (unsigned long)&__init_end)
+         else if (addr < (ulong) _etext)
          {
-             initpages++;
+            _sske (addr, KTEXT_STORAGE_KEY);
+            codepages++;
+         }
+         else if (addr >= (ulong) __init_begin
+               && addr < (ulong) __init_end)
+         {
+            initpages++;
          }
          else if (addr < (ulong) start_mem)
          {
+            _sske (addr, KDATA_STORAGE_KEY);
             datapages++;
          }
          continue;

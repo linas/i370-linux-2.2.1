@@ -24,7 +24,7 @@ CPP             = $(CC) -E $(CFLAGS)
 
 HEAD := arch/i370/kernel/head.o
 
-ARCH_SUBDIRS = arch/i370/kernel arch/i370/lib
+ARCH_SUBDIRS = arch/i370/io arch/i370/kernel arch/i370/lib
 SUBDIRS := $(SUBDIRS) $(ARCH_SUBDIRS)
 ARCHIVES := arch/i370/kernel/kernel.o arch/i370/lib/lib.o $(ARCHIVES)
 CORE_FILES := arch/i370/kernel/kernel.o arch/i370/lib/lib.o $(CORE_FILES)

@@ -39,7 +39,7 @@ $(BOOT_TARGETS): vmlinux
 .SUFFIXES:	.lst
 
 .s.lst:
-	$(AS) -als=$*.lst $< 
+	$(AS) -ahls=$*.lst $< 
 
 
 tags:

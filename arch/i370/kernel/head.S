@@ -23,36 +23,42 @@ _start:
 Restart:
 	EXCEPTION_PROLOG 
 	bas 	r0, transfer_to_handler
+	.long	RestartException
 
 /* Machine Check */
 	. = 0x200
 MachineCheck:
 	EXCEPTION_PROLOG 
 	bas 	r0, transfer_to_handler
+	.long	MachineCheckException
 
 /* Supervisor Call */
 	. = 0x300
 SupervisorCall:
 	EXCEPTION_PROLOG 
 	bas 	r0, transfer_to_handler
+	.long	SupervisorCallException
 
-/* Program */
+/* Program Interruption */
 	. = 0x400
-Program:
+ProgramCheck:
 	EXCEPTION_PROLOG 
 	bas 	r0, transfer_to_handler
+	.long	ProgramCheckException
 
 /* External */
 	. = 0x500
 External:
 	EXCEPTION_PROLOG 
 	bas 	r0, transfer_to_handler
+	.long	ExternalException
 
 /* Input Output */
 	. = 0x600
 InputOutput:
 	EXCEPTION_PROLOG 
 	bas 	r0, transfer_to_handler
+	.long	InputOutputException
 
 
 /*

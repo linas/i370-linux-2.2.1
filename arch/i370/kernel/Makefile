@@ -11,10 +11,10 @@
 	$(CC) $(CFLAGS) -D__ASSEMBLY__ -c $< -o $*.o
 
 O_TARGET := kernel.o
-OX_OBJS := setup.o
+OX_OBJS := i370_ksyms.o setup.o
 
 
-O_OBJS := idle.o 
+O_OBJS := traps.o idle.o 
 
 ifdef CONFIG_SMP
 O_OBJS += smp.o

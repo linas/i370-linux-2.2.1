@@ -257,15 +257,35 @@ int
 copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
             struct task_struct * p, struct pt_regs * regs)
 {
-	struct pt_regs *childregs;
+	i370_elf_stack_t *srcsp, *dstsp, *this_frame;
+	unsigned long delta;
 
 	printk("copy thread \n");
 
-	childregs = p->tss.regs;
-	*childregs = *regs;
+	/* copy the kernel stack, and fix up the entries in it,
+	 * so that it unwinds properly in the copied thread.
+	 */
+	srcsp = (i370_elf_stack_t *) (((char *) current) + sizeof (struct task_struct));
+	dstsp = (i370_elf_stack_t *) (((char *) p) + sizeof (struct task_struct));
+	this_frame = (i370_elf_stack_t *) _get_SP();
+	delta = ((unsigned long) srcsp) - ((unsigned long) dstsp);
+	p->tss.ksp = (unsigned long) dstsp;
 
-	childregs->irregs.r15 = 0;		/* result from 'fork' ??? */
-	childregs->irregs.r13 = usp;	/* user-space stack pointer */
+	memcpy (dstsp, srcsp, this_frame->stack_top - p->tss.ksp);
+	do {
+		dstsp -> caller_r12 = &(p->tss.tca[0]);
+		dstsp -> caller_sp = srcsp->caller_sp - delta;
+		dstsp -> callee_sp = srcsp->callee_sp - delta;
+		dstsp -> stack_top = srcsp->stack_top - delta;
+		srcsp = (i370_elf_stack_t *) (srcsp -> stack_top);
+		dstsp = (i370_elf_stack_t *) (dstsp -> stack_top);
+	} while (srcsp != this_frame);
+
+	/* if fork was from SVC, child gets a return value of zero.
+	 * Do this by inserting a zero in reg fifteen of the SVC
+	 * saved regs (in the SVC stack frame).
+	 */
+	regs -> irregs.r15 = 0;
 
 	/* XXX what about page tables ?? */
 	return 0;
@@ -283,7 +303,7 @@ i370_sys_clone (unsigned long clone_flags,
 {
         int res;
 	printk ("sys clone \n");
-	asm volatile ("SVC	66"); /* fault on purpose */
+	asm volatile ("SVC	67"); /* fault on purpose */
         lock_kernel();
         res = do_fork(clone_flags, regs->irregs.r13, regs);
 
@@ -296,8 +316,10 @@ i370_sys_clone (unsigned long clone_flags,
                 res = 1;
 #endif /* __SMP__ */
 /*
- * XXX not clear on this .. won't the child be returning with the kernel
- * already unlocked ?? 
+ * XXX not clear on this .. looks to me like both the parent and the child
+ * unlock ... is that OK ???
+ * also ... do_fork() calls lock_kernel, i.e. it gets locked twice... 
+ * is that OK ???
  */
         unlock_kernel();
         return res;
@@ -321,8 +343,7 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
 	printk ("create kernel_thread\n");
-	asm volatile ("SVC	67"); /* fault on purpose */
-	pid = i370_sys_clone (flags, current->tss.regs);
+        pid = do_fork(flags, 0, current->tss.regs);
         if (pid) return pid;
 	fn (args);
 	while (1) { i370_sys_exit(); } 

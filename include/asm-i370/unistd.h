@@ -1,7 +1,6 @@
 #ifndef _ASM_I370_UNISTD_H_
 #define _ASM_I370_UNISTD_H_
 
-/* XXX this file contains powerpc assembly that needs to be i370 assembly */
 /*
  * This file contains the system call numbers.
  */
@@ -206,6 +205,7 @@
 	"r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
 
 /* XXX NOOP FIXME */
+/* use SVC, what should the interruption code be ?? */
 #define _syscall0(type,name)						\
 type name(void)								\
 {									\

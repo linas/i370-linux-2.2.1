@@ -5,17 +5,17 @@
 #include <asm/processor.h>
 #include <asm/atomic.h>
 
-/* XXX this is all hoprelessly wronmg */
 /*
  * Memory barrier.
- * The sync instruction guarantees that all memory accesses initiated
+ * The BCR 15,0 (sync) instruction guarantees that all memory accesses initiated
  * by this processor have been performed (with respect to all other
  * mechanisms that access memory).
  */
-#define mb()  __asm__ __volatile__ ("sync" : : : "memory")
-#define rmb()  __asm__ __volatile__ ("sync" : : : "memory")
-#define wmb()  __asm__ __volatile__ ("sync" : : : "memory")
+#define mb()  __asm__ __volatile__ ("BCR 15,0" : : : "memory")
+#define rmb()  __asm__ __volatile__ ("BCR 15,0" : : : "memory")
+#define wmb()  __asm__ __volatile__ ("BCR 15,0" : : : "memory")
 
+/* XXX this is all hoprelessly wronmg */
 /* save flags should probably be Branch adn Stack BAKR ?? */
 #define __save_flags(flags)
 #define __save_and_cli(flags)	({__save_flags(flags);__cli();})

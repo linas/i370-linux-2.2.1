@@ -129,6 +129,9 @@ static int tty_fasync(int fd, struct file * filp, int on);
 extern long console_8xx_init(long, long);
 extern int rs_8xx_init(void);
 #endif /* CONFIG_8xx */
+#ifdef CONFIG_3270_CONSOLE
+extern long console_3270_init(long, long);
+#endif /* CONFIG_3270_CONSOLE */
 
 #ifndef MIN
 #define MIN(a,b)	((a) < (b) ? (a) : (b))
@@ -2053,6 +2056,9 @@ long __init console_init(long kmem_start, long kmem_end)
 	kmem_start = serial_console_init(kmem_start, kmem_end);
 #endif /* CONFIG_8xx */
 #endif
+#ifdef CONFIG_3270_CONSOLE
+	kmem_start = console_3270_init(kmem_start, kmem_end);
+#endif /* CONFIG_3270_CONSOLE */
 	return kmem_start;
 }
 

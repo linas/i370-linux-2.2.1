@@ -80,15 +80,15 @@
 /*------------------------------------------------------------*/
 /* External Interruption Codes */
 /*------------------------------------------------------------*/
-#define EI_INTERRUPT_KEY	0x0040	/* Interrupt Key */
-#define EI_TOD_CLOCK_SYNC	0x1003	/* TOD clock sync check */
-#define EI_CLOCK_COMP		0x1004	/* Clock Comparator */
-#define	EI_CPU_TIMER		0x1005	/* CPU Timer */
-#define	EI_MALFUNCTION		0x1200	/* Malfunction Alert */
-#define	EI_EMERGENCY		0x1201	/* Emerency Signal */
-#define	EI_CALL			0x1202	/* External Call */
-#define	EI_SERVICE		0x2401	/* Service Signal */
-#define	EI_IUCV		0x4000	/* IUCV Interrupt */
+#define EI_INTERRUPT_KEY	0x0040	/* Interrupt Key             */
+#define EI_TOD_CLOCK_SYNC	0x1003	/* TOD clock sync check      */
+#define EI_CLOCK_COMP		0x1004	/* Clock Comparator          */
+#define	EI_CPU_TIMER		0x1005	/* CPU Timer                 */
+#define	EI_MALFUNCTION		0x1200	/* Malfunction Alert         */
+#define	EI_EMERGENCY		0x1201	/* Emerency Signal           */
+#define	EI_CALL			0x1202	/* External Call             */
+#define	EI_SERVICE		0x2401	/* Service Signal            */
+#define	EI_IUCV			0x4000	/* IUCV Interrupt            */
 
 /*------------------------------------------------------------*/
 /* Bit encodings in the PSW */
@@ -111,13 +111,16 @@
 #define PSW_HOME	0x0000c000	/* Home Space Mode           */
 
 
-/*------------------------------------------------------------*/
-/* USER_PSW sets up flags for the user mode                   */
-/* HALT_PSW loads a disabled wait state (cpu halt)            */
-/*------------------------------------------------------------*/
+/*-------------------------------------------------------------------*/
+/* USER_PSW sets up flags for the user mode                          */
+/* KERN_PSW sets up flags for the kernel w/ interrupts enabled       */
+/* DISAB_PSW sets up flags for the kernel w/ interrupts disabled     */
+/* HALT_PSW loads a disabled wait state (cpu halt)                   */
+/*-------------------------------------------------------------------*/
 #define EN_PSW		PSW_VALID | PSW_IO | PSW_EXTERN | PSW_MACH 
-#define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB
+#define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(9)
 #define KERN_PSW	EN_PSW | PSW_KEY(3)
+#define DISAB_PSW	PSW_VALID | PSW_KEY(3)
 #define HALT_PSW	PSW_VALID | PSW_WAIT 
 
 

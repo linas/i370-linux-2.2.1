@@ -49,7 +49,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 	int i;
 	pmd_t *pme;
 
-	printk ("enter mem init startmem=0x%lx endmem=0x%lx\n", start_mem, end_mem);
+	/* printk ("enter mem init startmem=0x%lx endmem=0x%lx\n", start_mem, end_mem); */
 	end_mem &= PAGE_MASK;
 	high_memory = (void *) end_mem;
 	max_mapnr = MAP_NR(high_memory);
@@ -144,17 +144,16 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 	cr0.bits.lapc = 1;
 	_lctl_r0(cr0.raw);
 
-	printk("Memory: %luk available "
-			 "(%dk code, %dk data, %dk init)\n",
-	  (unsigned long) nr_free_pages << (PAGE_SHIFT-10),
-	  codepages << (PAGE_SHIFT-10),
-	  datapages << (PAGE_SHIFT-10),
-	  initpages << (PAGE_SHIFT-10));
+	printk("Memory: %luk available (%dk code, %dk data, %dk init)\n",
+		(unsigned long) nr_free_pages << (PAGE_SHIFT-10),
+		codepages << (PAGE_SHIFT-10),
+		datapages << (PAGE_SHIFT-10),
+		initpages << (PAGE_SHIFT-10));
 
 #ifdef CONFIG_BLK_DEV_INITRD
 	printk("Init Ramdisk: %luk  [%08lx,%08lx]\n",
-	  initrdpages << (PAGE_SHIFT-10),
-	  initrd_start, initrd_end);
+		initrdpages << (PAGE_SHIFT-10),
+		initrd_start, initrd_end);
 #endif /* CONFIG_BLK_DEV_INITRD */
 
 	/* initialize kernel address translation tables */
@@ -285,7 +284,7 @@ pte_t *i370_get_pte(pmd_t *pmd, unsigned long entry_index)
 	pte_t *pte;
 
 	/* entry index had better range between 0 and 255 */
-	printk ("enter i370_get_pte addr_of_ste=%p dx=%ld\n", pmd, entry_index);
+	/* printk ("enter i370_get_pte addr_of_ste=%p dx=%ld\n", pmd, entry_index); */
 	if (pmd_none(*pmd)) {
 		pte = (pte_t *) __get_free_page(GFP_KERNEL);
 		if (pte) {
@@ -350,7 +349,7 @@ __initfunc(unsigned long paging_init(unsigned long start_mem,
 {
 	int i;
 	pte_t *pte;
-	printk ("paging init startmem=%lx endmem=%lx\n", start_mem, end_mem);
+	/* printk ("paging init startmem=%lx endmem=%lx\n", start_mem, end_mem); */
 	/*
 	 * Grab some memory for bad_page and bad_pagetable to use.
 	 * Clear out the bad page.  Initilialze the bad pagetable.
@@ -412,14 +411,14 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 
 			pte = find_pte (current->mm, va);
 			if (!pte || pte_none(*pte)) {
-				printk ("cpy_to_user make_pages_present at va=%lx\n", va);
+				/* printk ("cpy_to_user make_pages_present at va=%lx\n", va); */
 				make_pages_present (va, va+len);
 				pte = find_pte (current->mm, va);
 			} 
 
 			if (len < rlen) rlen = len;
 			ra = pte_page (*pte) | off;
-			printk ("cpy_to_user va=%lx ra=%lx\n", va, ra);
+			/* printk ("cpy_to_user va=%lx ra=%lx\n", va, ra); */
 			memcpy ((void *)ra, (void *)frm, rlen);
 			len -= rlen;
 			frm += rlen;
@@ -458,14 +457,14 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 
 			pte = find_pte (current->mm, va);
 			if (!pte || pte_none(*pte)) {
-				printk ("cpy_from_user make_pages_present at va=%lx\n", va);
+				/* printk ("cpy_from_user make_pages_present at va=%lx\n", va); */
 				make_pages_present (va, va+len);
 				pte = find_pte (current->mm, va);
 			} 
 
 			if (len < rlen) rlen = len;
 			ra = pte_page (*pte) | off;
-			printk ("cpy_from_user va=%lx ra=%lx\n", va, ra);
+			/* printk ("cpy_from_user va=%lx ra=%lx\n", va, ra); */
 			memcpy ((void *)too, (void *)ra, rlen);
 			len -= rlen;
 			too += rlen;
@@ -504,13 +503,13 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 
 			pte = find_pte (current->mm, va);
 			if (!pte || pte_none(*pte)) {
-				printk ("strncpy_from_user make_pages_present at va=%lx\n", va);
+				/* printk ("strncpy_from_user make_pages_present at va=%lx\n", va); */
 				make_pages_present (va, va+count);
 				pte = find_pte (current->mm, va);
 			}
 			if (len < rlen) rlen = len;
 			ra = pte_page (*pte) | off;
-			printk ("strncpy_from_user va=%lx ra=%lx\n", va, ra);
+			/* printk ("strncpy_from_user va=%lx ra=%lx\n", va, ra); */
 			while (i<rlen) {
 				if (0 == *(char *)(ra+i)) {
 					i++;  /* copy null byte */
@@ -566,13 +565,13 @@ __clear_user(void *addr, unsigned long len)
 
 		pte = find_pte (current->mm, va);
 		if (!pte || pte_none(*pte)) {
-			printk ("clear_user make_pages_present at va=%lx\n", va);
+			/* printk ("clear_user make_pages_present at va=%lx\n", va); */
 			make_pages_present (va, va+len);
 			pte = find_pte (current->mm, va);
 		}
 		if (len < rlen) rlen = len;
 		ra = pte_page (*pte) | off;
-		printk ("clear_user va=%lx ra=%lx len=%ld\n", va, ra, len);
+		/* printk ("clear_user va=%lx ra=%lx len=%ld\n", va, ra, len); */
 		memset ((void *)ra, 0, rlen);
 		len -= rlen;
 		va += rlen;
@@ -610,12 +609,12 @@ strlen_user(const char *str)
 			printk(KERN_WARNING "strlen_user null ptr va=0x%lx\n", va);
 		pte = find_pte (current->mm, va);
 		if (!pte || pte_none(*pte)) {
-			printk ("strlen_user make_pages_present at va=%lx\n", va);
+			/* printk ("strlen_user make_pages_present at va=%lx\n", va); */
 			make_pages_present (va,va);
 			pte = find_pte (current->mm, va);
 		}
 		ra = pte_page (*pte) | off;
-		printk ("strlen_user va=%lx ra=%lx\n", va, ra);
+		/* printk ("strlen_user va=%lx ra=%lx\n", va, ra); */
 		while (i<rlen) {
 			if (0 == *(char *)(ra+i)) {
 				notdone = 0;
@@ -666,11 +665,11 @@ put_user_data(long data, void *addr, long len)
 	pte = find_pte (current->mm, va);
 
 	if (!pte || pte_none(*pte)) {
-		printk ("put_user_data make_pages_present at va=%lx\n", va);
+		/* printk ("put_user_data make_pages_present at va=%lx\n", va); */
 		make_pages_present (va, va+len);
 		pte = find_pte (current->mm, va);
 	}
-	printk ("put_user_data: va=%lx pte=%p pteval=%lx\n", va, pte, pte_val(*pte));
+	/* printk ("put_user_data: va=%lx pte=%p pteval=%lx\n", va, pte, pte_val(*pte)); */
 
 	/* put together the real address */
 	off = va & ~PAGE_MASK;

@@ -80,7 +80,7 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
  int write;
  unsigned short *ilc;
  
-printk ("do_page_fault addr=0x%lx, pic=%x\n", address, pic_code);
+  /* printk ("do_page_fault addr=0x%lx, pic=%x\n", address, pic_code); */
   /*------------------------------------------------------------*/
   /* If we're in an interrupt or have no user                   */
   /* context, we must not take the fault..                      */
@@ -99,7 +99,7 @@ printk ("do_page_fault addr=0x%lx, pic=%x\n", address, pic_code);
        goto good_area;
 
   if ((pic_code == PIC_PROTECTION) && address < 0x200) {
-printk ("do_page_fault null pointer deref ptr=0x%lx\n", address);
+       printk ("do_page_fault null pointer deref ptr=0x%lx\n", address);
        goto bad_area;
   }
   /* If we are here, then the address was below the vma start.
@@ -147,7 +147,7 @@ good_area:
      if (vma->vm_flags & VM_WRITE)
         write = 1;
   }
-  printk(" handling mm fault on good page \n");
+  /* printk(" handling mm fault on good page \n"); */
  
   /*----------------------------------------------------------*/
   /* If for any reason at all we couldn't handle the fault,   */

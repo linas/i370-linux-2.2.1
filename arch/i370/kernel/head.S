@@ -368,7 +368,8 @@ swapper_pg_dir:
  */
 	.globl	cmd_line
 cmd_line:
-	.ascii "prompt_ramdisk=0 load_ramdisk=1 ramdisk_start=1024 ramdisk_size=4096K"
+	/* .ascii "ramdisk_size=4096K root=/dev/ram" */
+	.ascii "root=/dev/ram"
 	.space	512
 
 /* The syscall table is in the text section; making it RO.

@@ -5,6 +5,7 @@
 #include <linux/init.h>
 #include <linux/reboot.h>
 #include <linux/delay.h>
+#include <linux/blk.h>
 
 #include <asm/pgtable.h>
 #include <asm/processor.h>
@@ -19,8 +20,6 @@ __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long ksp;
 	extern int panic_timeout;
 	extern char _etext[], _edata[], _end[];
-//	extern unsigned long find_available_memory(void);
-// 	extern unsigned long *end_of_DRAM;
 
 	/* reboot on panic */	
 	panic_timeout = 180;
@@ -35,9 +34,13 @@ __initfunc(void setup_arch(char **cmdline_p,
 	strcpy(saved_command_line, cmd_line);
 	*cmdline_p = cmd_line;
 
+	/* hardcode the memory size */
  	*memory_start_p = _end;
-//	*memory_end_p = (unsigned long) end_of_DRAM;
-	*memory_end_p = 0x2000000;  // 32M
+	*memory_end_p = 0x4000000;  // 64M
+
+	/* hard-code an initrd into the system */
+	initrd_start =   0x800000;    // 8M
+	initrd_end  =   0x1000000;    // 16M
 
 	/* init_task ksp hasn't been set & its bogus; set it */
 	ksp = init_stack;

@@ -4,6 +4,7 @@
  * XXX this is fairly broken for the 370
  */
 
+#include <linux/init.h>
 #include <linux/sched.h>
 #include <linux/smp_lock.h>
 
@@ -23,7 +24,13 @@ union task_union init_task_union = { INIT_TASK };
 
 /* only used to get secondary processor up */
 // struct task_struct *current_set[NR_CPUS] = {&init_task, };
+
 struct task_struct *current = &init_task;
+
+/* init_ksp and init_tca are used only in head.S during startup */
+const unsigned long init_ksp __initdata = init_stack;
+const unsigned long init_kstend __initdata = (unsigned long) (((char *) &init_task)+4096);
+const unsigned long init_tca __initdata = (unsigned long) (&init_task.tss.tca[0]);
 
 unsigned long
 kernel_stack_top(struct task_struct *tsk)

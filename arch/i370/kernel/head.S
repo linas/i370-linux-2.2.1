@@ -26,9 +26,12 @@ _stext:
  */
 	.data			// should probably be .section .data.init ?
 	.balign	8
-.LSTACK:
-	.org	4096,0xd0	// "callers" stack, load with eyecatcher  
-.LSTKEND:
+KTCA:
+	.space	256,0xca
+
+KSTACK:
+	.space	4096,0xd0	// "callers" stack, load with eyecatcher  
+KSTKEND:
 	.balign	8
 
         .text			// back to the text section
@@ -36,19 +39,22 @@ _stext:
 _start:
 	BASR	r15,0		// load r15 with PSW 
 	.using	.,r15		// use r15 as base register
-	L	sp,=A(.LSTACK)	// load address of stack into r13
+	L	sp,=A(KSTACK)	// load address of stack into r13
 	LA	r2,148(,sp)	// load r2 with top of stack
 	ST	r2,76(,sp)	// store top of stack at 76
-	LA	rtca,0(,sp)	// let bottom of stack double as tca
-	L	r1,=A(.LSTKEND)	// r1 == end of stack
+	L	rtca,=A(KTCA)	// let bottom of stack double as tca
+	L	r1,=A(KSTKEND)	// r1 == end of stack
 	ST	r1,12(,rtca)	// store end of stack in the tca
-	L	r1,=A(StackOverflow)	// bogus bogus hack alert XXX
+	L	r1,=A(tcaStackOverflow)	// bogus bogus hack alert XXX
 	ST	r1,116(,rtca)		// bogosity
 	L	r15,=A(start_kernel)	// load address of C routine
 	BASR	lr,r15		// jump to C routine
 	.balign	4		// align literal pool
 	.ltorg			// dump literal pool
 
+
+tcaStackOverflow:
+	SVC	0xff		// force a fault to occur
 
 /* ================================================================ */
 /*
@@ -66,7 +72,7 @@ _start:
 	STM	r0,r15,4008(0);	/* save gprs to low mem */	\
 	.using	.,r15;		/* use r15 as base register */	\
 	BASR	r15,0;		/* load r15 with PSW  */	\
-	L	sp,=A(.LSTACK);	/* load addr of stack */	\
+	L	sp,=A(KSTACK);	/* load addr of stack */	\
 	L	r15,=A(handler);/* load address of C routine */	\
 	LA	r1,4000(0,0);	/* pointer to arguments */	\
 	BASR	lr,r15;		/* jump to C routine */		\

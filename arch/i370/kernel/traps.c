@@ -273,4 +273,13 @@ __initfunc(void trap_init(void))
 
 }
 
+/* ================================================================ */
+
+int _disable_interrupts (void) { return 1;}
+void _enable_interrupts (int x) {}
+void __cli (void) {}
+void _hard_cli (void) {}
+void __sti (void) {}
+void _hard_sti (void) {}
+
 /* ===================== END OF FILE =================================== */

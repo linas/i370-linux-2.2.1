@@ -260,7 +260,23 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	return 0;
 }
 
+/*
+ * i370_kernel_thread ...
+ * I think this one needs to copy  ...?
+ */
+
+long 
+i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)  
+{
+	printk ("kernel_thread\n");
+	asm volatile ("SVC 0xbb"); // fault
+	return 0;
+}
+
+
 int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) { 
 	printk ("dump fpu \n");
 	return 0;
 }
+
+

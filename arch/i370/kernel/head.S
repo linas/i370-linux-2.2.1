@@ -24,7 +24,7 @@ _stext:
  * sp == r13 == stack pointer
  * rtca == r12 
  */
-	.data			// should probably be .section .data.init ?
+	.section .data.init	// we throw this section away after init
 	.balign	8
 KTCA:
 	.space	256,0xca

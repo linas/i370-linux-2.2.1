@@ -16,18 +16,18 @@
  */
 #define PAGE_OFFSET	0x0  
 
-#ifndef __ASSEMBLY__
-#ifdef __KERNEL__
-
 /* When running the kernel in real mode, use storage keys
  * to protect the text segment from acidental corruption.
  * Kernel executes in key 3.
- * User segment runs in key 8.
+ * User segment runs in key 9.
  * The four-bit key is stored in bits 24-28 of sske.
  */
-#define KTEXT_STORAGE_KEY	(0) << 4
-#define KDATA_STORAGE_KEY	(3) << 4
-#define USER_STORAGE_KEY	(8) << 4
+#define KTEXT_STORAGE_KEY	0x00
+#define KDATA_STORAGE_KEY	0x30
+#define USER_STORAGE_KEY	0x90
+
+#ifndef __ASSEMBLY__
+#ifdef __KERNEL__
 
 #define STRICT_MM_TYPECHECKS
 #ifdef STRICT_MM_TYPECHECKS

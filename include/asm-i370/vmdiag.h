@@ -329,15 +329,20 @@ extern inline int VM_Diagnose_Code_A0(void)
         return -ENOSYS;
 }
 
-
 /*
 		Diagnose  Code X'A4' - Synchronous I/O (Standard CMS Blocksize)
+		The parameter should point to a fullword aligned sbiop.
 */
-extern inline int VM_Diagnose_Code_A4(void)
+extern inline int VM_Diagnose_Code_A4(void * addr)
 {
-        return -ENOSYS;
+	register unsigned long r1 __asm__("r1");
+	register unsigned long rc __asm__("r15");
+	r1 = (unsigned long) addr; 
+	__asm__ __volatile__ (
+		".set _i370_implied_op,%0;.short 0x8310;.short 0x00a4":
+		"=r"(rc) : "r"(r1));
+	return rc;
 }
-
 
 /*
 		Diagnose  Code X'A8' - Synchronous I/O (for All Devices)

@@ -163,7 +163,7 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 	unsigned long long ticko;
 
 	/* get the interruption code */
-	code = *((unsigned short *) PFX_EXT_CODE);
+	code = *((unsigned long *) PFX_EXT_CODE);
 
 	/* currently we only handle and expect clock interrupts */
 	if ( EI_CLOCK_COMP != code) {

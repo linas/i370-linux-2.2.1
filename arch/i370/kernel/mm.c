@@ -27,6 +27,7 @@ atomic_t next_mmu_context;
 extern char __init_text_begin[], __init_text_end[];
 extern char __init_data_begin[], __init_data_end[];
 extern char _text[], _etext[];  
+extern char _bss[], _ebss[];  
 extern unsigned char CPUID[8];
 
 

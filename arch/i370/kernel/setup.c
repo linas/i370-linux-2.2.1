@@ -112,6 +112,12 @@ __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long mycpu, i_cpu;
 	extern int panic_timeout;
 	extern char _etext[], _edata[], _end[];
+	extern char _bss[], _ebss[];
+
+	/* Hack around bug in 3CARD boot loader which doesn't clear
+	 * the BSS but instead puts the elf symbol table there yuck. 
+	 */
+	memset (_bss, 0, ((unsigned long) _ebss) - ((unsigned long)_bss));
 
 	/* XXX XXX XXX Serious bug alert.
 	 * gcc version egcs-2.91.66 19990314 (egcs-1.1.2 release)

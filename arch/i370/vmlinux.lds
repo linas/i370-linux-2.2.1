@@ -2,7 +2,11 @@ OUTPUT_FORMAT("elf32-i370")
 ENTRY(_start)
 SECTIONS
 {
-   /* text section */
+  /* psa section  */
+  _PSA_ = 0x0;
+ 
+  /* text section */
+  /* starts at 64KB, should be enough room for a PSA for a 15-way SMP */
    . = 0x10000;
    _text = .;
    .text : { *(.text) }

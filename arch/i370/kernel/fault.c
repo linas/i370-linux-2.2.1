@@ -122,7 +122,6 @@ printk ("do_page_fault usermode stack fault addr=0x%x, frame=%x\n", address, reg
   /* we can handle it..                                       */
   /*----------------------------------------------------------*/
 good_area:
-printk(" handling mm fault on good page \n");
   write = 0;
   if (pic_code == PIC_PROTECTION) {
      if (!(vma->vm_flags & VM_WRITE))

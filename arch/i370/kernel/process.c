@@ -184,6 +184,10 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 	current = new;
 
+	/* switch control registers */
+	/* cr1 contains the segment table origin */
+	_lctl1 (new_tss->cr1);
+
 	/* switch kernel stack pointers */
 	old_tss->ksp = _get_SP();
 	_set_SP (new_tss->ksp);

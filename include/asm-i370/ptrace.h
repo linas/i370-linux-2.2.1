@@ -19,29 +19,25 @@
 
 #ifndef __ASSEMBLY__
 struct pt_regs {
-/* XXX all wrong for 370 */
 	unsigned long gpr[16];
-	unsigned long nip;
-	unsigned long msr;
-	unsigned long orig_gpr3; /* Used for restarting system calls */
-	unsigned long ctr;
-	unsigned long link;
-	unsigned long xer;
-	unsigned long ccr;
-	unsigned long trap;	/* Reason for being here */
-	unsigned long dar;	/* Fault registers */
-	unsigned long dsisr;
-	unsigned long result;   /* Result of a system call */
+	unsigned long fpr[8];    /* do we really need to save these ? */
+	unsigned long psw_bits;  /* bits in high word */
+	unsigned long psw_ia;    /* instruction address in low word */
+	unsigned long pad[2];
+/* XXX all wrong for 370 but we need something like this? */
+//	unsigned long orig_gpr3; /* Used for restarting system calls */
+//	unsigned long trap;	/* XXXXX Reason for being here */
+//	unsigned long result;   /* Result of a system call */
 };
 #endif
 
 #define STACK_FRAME_OVERHEAD	16	/* size of minimum stack frame */
 
 /* Size of stack frame allocated when calling signal handler. */
-#define __SIGNAL_FRAMESIZE	64
+#define __SIGNAL_FRAMESIZE	64   /* XXX whoa all wrong */
 
-#define instruction_pointer(regs) ((regs)->nip)
-#define user_mode(regs) ((regs)->msr & 0x4000)
+#define instruction_pointer(regs) ((regs)->psw_ia) & 0x7fffffff)
+#define user_mode(regs) ((regs)->psw_bits & 0x10000)
 
 /*
  * Offsets used by 'ptrace' system call interface.
@@ -65,19 +61,12 @@ struct pt_regs {
 #define PT_R15	15
 #define PT_R16	16
 
-#define PT_NIP	32
-#define PT_MSR	33
+#define PT_FPR0	18	/* each FP reg occupies 2 slots in this space */
+
+#define PT_PSW	25
 #ifdef __KERNEL__
 #define PT_ORIG_R3 34
 #endif
-#define PT_CTR	35
-#define PT_LNK	36
-#define PT_XER	37
-#define PT_CCR	38
-
-#define PT_FPR0	48	/* each FP reg occupies 2 slots in this space */
-#define PT_FPR31 (PT_FPR0 + 2*31)
-#define PT_FPSCR (PT_FPR0 + 2*32 + 1)
 
 #endif
 

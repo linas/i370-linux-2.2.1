@@ -196,7 +196,7 @@ struct thread_struct {
  */
 static inline unsigned long thread_saved_pc(struct thread_struct *t)
 {
-	return (t->regs) ? t->regs->nip : 0;
+	return (t->regs) ? (t->regs->psw_ia &0x7fffffff) : 0;
 }
 
 #define copy_segments(nr, tsk, mm)	do { } while (0)

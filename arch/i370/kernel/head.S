@@ -175,7 +175,7 @@ _cinit:
 	LA	r13,TASK_STRUCT_SIZE(,r12); /* framep is stack bot   */	\
 	B	2f;                     /*                           */	\
 1:					/* branch here if kernel     */	\
-	/* we have valid stack ptr; space safely past possible gorpa */	\
+	/* we have valid stack ptr; space safely past possible gorp  */	\
 	LA	r13,MAX_STACK_SIZE(,r11); /* space past gorp         */	\
 2:					/*                           */	\
 	LA	r11,SF_SIZ(,r13);       /* add stackframe size       */	\

@@ -59,7 +59,7 @@
 #define	PSW_EXTERN	0x01000000	/* External Mask */
 #define PSW_KEY_MASK	0x00f00000	/* PSW Protection Key Mask */
 #define PSW_KEY(key)	((key&0xf)<<(31-11))	/* PSW Protection Key */
-#define PSW_VALID	0x00800000	/* Must be set to one always */
+#define PSW_VALID	0x00080000	/* Must be set to one always */
 #define PSW_MACH	0x00400000	/* Machine Check Mask */
 #define PSW_WAIT	0x00200000	/* Wait State */
 #define PSW_PROB	0x00100000	/* Problem State (User Mode) */

@@ -2,16 +2,11 @@ OUTPUT_FORMAT("elf32-i370")
 ENTRY(_start)
 SECTIONS
 {
+   /* text section */
    . = 0x10000;
    _text = .;
    .text : { *(.text) }
    _etext = .;
-
-  /* Exception table */
-  . = ALIGN(16);
-  __start___ex_table = .;
-  __ex_table : { *(__ex_table) }
-  __stop___ex_table = .;
 
   /* Kernel symbol table */
   . = ALIGN(8);

@@ -292,152 +292,45 @@ extern inline pte_t * pte_offset(pmd_t * dir, unsigned long address)
 	return (pte_t *) pmd_page(*dir) + ((address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1));
 }
 
-
-/*
- * XXX ??? 
- * This is handled very differently since our page tables
- * are all 0's and I want to be able to use these zero'd pages elsewhere
- * as well - it gives us quite a speedup.
- *
- * Note that the SMP/UP versions are the same since we don't need a
- * per cpu list of zero pages since we do the zero-ing with the cache
- * off and the access routines are lock-free but the pgt cache stuff
- * _IS_ per-cpu since it isn't done with any lock-free access routines
- * (although I think we need arch-specific routines so I can do lock-free).
- *
- * I need to generalize this so we can use it for other arch's as well.
- * -- Cort
- */
-extern struct pgtable_cache_struct {
-	unsigned long *pgd_cache;
-	unsigned long *pte_cache;
-	unsigned long pgtable_cache_sz;
-	unsigned long *zero_cache;    /* head linked list of pre-zero'd pages */
-  	unsigned long zero_sz;	      /* # currently pre-zero'd pages */
-	unsigned long zeropage_hits;  /* # zero'd pages request that we've done */
-	unsigned long zeropage_calls; /* # zero'd pages request that've been made */
-  	unsigned long zerototal;      /* # pages zero'd over time */
-} quicklists;
-
-#ifdef __SMP__
-#warning do the pgt cache for SMP
-#define pgd_quicklist (quicklists.pgd_cache)
-#define pmd_quicklist ((unsigned long *)0)
-#define pte_quicklist (quicklists.pte_cache)
-#define pgtable_cache_size (quicklists.pgtable_cache_sz)
-#else /* __SMP__ */
-#define pgd_quicklist (quicklists.pgd_cache)
-#define pmd_quicklist ((unsigned long *)0)
-#define pte_quicklist (quicklists.pte_cache)
-#define pgtable_cache_size (quicklists.pgtable_cache_sz)
-#endif /* __SMP__ */
-
-#define zero_quicklist (quicklists.zero_cache)
-#define zero_cache_sz  (quicklists.zero_sz)
-
-/* return a pre-zero'd page from the list, return NULL if none available -- Cort */
-extern unsigned long get_zero_page_fast(void);
-
-extern __inline__ pgd_t *get_pgd_slow(void)
+extern __inline__ pgd_t *i370_pgd_alloc(void)
 {
-	pgd_t *ret/* = (pgd_t *)__get_free_page(GFP_KERNEL)*/, *init;
+	pgd_t *ret, *init;
 
-	if ( (ret = (pgd_t *)get_zero_page_fast()) == NULL )
-	{
-		ret = (pgd_t *)__get_free_page(GFP_KERNEL);
-		memset (ret, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));
-	}
+	ret = (pgd_t *)__get_free_page(GFP_KERNEL);
 	if (ret) {
 		init = pgd_offset(&init_mm, 0);
-		/*memset (ret, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));*/
+		memset (ret, 0, USER_PTRS_PER_PGD * sizeof(pgd_t));
 		memcpy (ret + USER_PTRS_PER_PGD, init + USER_PTRS_PER_PGD,
 			(PTRS_PER_PGD - USER_PTRS_PER_PGD) * sizeof(pgd_t));
 	}
 	return ret;
 }
 
-extern __inline__ pgd_t *get_pgd_fast(void)
-{
-        unsigned long *ret;
-
-        if((ret = pgd_quicklist) != NULL) {
-                pgd_quicklist = (unsigned long *)(*ret);
-                ret[0] = ret[1];
-                pgtable_cache_size--;
-        } else
-                ret = (unsigned long *)get_pgd_slow();
-        return (pgd_t *)ret;
-}
-
-extern __inline__ void free_pgd_fast(pgd_t *pgd)
-{
-        *(unsigned long *)pgd = (unsigned long) pgd_quicklist;
-        pgd_quicklist = (unsigned long *) pgd;
-        pgtable_cache_size++;
-}
-
-extern __inline__ void free_pgd_slow(pgd_t *pgd)
+extern __inline__ void i370_pgd_free(pgd_t *pgd)
 {
 	free_page((unsigned long)pgd);
 }
 
-extern pte_t *get_pte_slow(pmd_t *pmd, unsigned long address_preadjusted);
 
-extern __inline__ pte_t *get_pte_fast(void)
-{
-        unsigned long *ret;
-
-        if((ret = (unsigned long *)pte_quicklist) != NULL) {
-                pte_quicklist = (unsigned long *)(*ret);
-                ret[0] = ret[1];
-                pgtable_cache_size--;
-         }
-        return (pte_t *)ret;
-}
-
-extern __inline__ void free_pte_fast(pte_t *pte)
-{
-        *(unsigned long *)pte = (unsigned long) pte_quicklist;
-        pte_quicklist = (unsigned long *) pte;
-        pgtable_cache_size++;
-}
-
-extern __inline__ void free_pte_slow(pte_t *pte)
+extern __inline__ void i370_pte_free(pte_t *pte)
 {
 	free_page((unsigned long)pte);
 }
 
-/* We don't use pmd cache, so this is a dummy routine */
-extern __inline__ pmd_t *get_pmd_fast(void)
-{
-	return (pmd_t *)0;
-}
-
-extern __inline__ void free_pmd_fast(pmd_t *pmd)
-{
-}
-
-extern __inline__ void free_pmd_slow(pmd_t *pmd)
-{
-}
-
 extern void __bad_pte(pmd_t *pmd);
 
-#define pte_free_kernel(pte)    free_pte_fast(pte)
-#define pte_free(pte)           free_pte_fast(pte)
-#define pgd_free(pgd)           free_pgd_fast(pgd)
-#define pgd_alloc()             get_pgd_fast()
+#define pte_free_kernel(pte)    i370_pte_free(pte)
+#define pte_free(pte)           i370_pte_free(pte)
+#define pgd_free(pgd)           i370_pgd_free(pgd)
+#define pgd_alloc()             i370_pgd_alloc()
+
+extern pte_t *get_pte_slow(pmd_t *pmd, unsigned long address_preadjusted);
 
 extern inline pte_t * pte_alloc(pmd_t * pmd, unsigned long address)
 {
 	address = (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
 	if (pmd_none(*pmd)) {
-		pte_t * page = (pte_t *) get_pte_fast();
-		
-		if (!page)
-			return get_pte_slow(pmd, address);
-		pmd_val(*pmd) = (unsigned long) page;
-		return page + address;
+		return get_pte_slow(pmd, address);
 	}
 	if (pmd_bad(*pmd)) {
 		__bad_pte(pmd);
@@ -468,7 +361,6 @@ extern int do_check_pgt_cache(int, int);
 extern inline void set_pgdir(unsigned long address, pgd_t entry)
 {
 	struct task_struct * p;
-	pgd_t *pgd;
 #ifdef __SMP__
 	int i;
 #endif	
@@ -480,16 +372,6 @@ extern inline void set_pgdir(unsigned long address, pgd_t entry)
 		*pgd_offset(p->mm,address) = entry;
 	}
 	read_unlock(&tasklist_lock);
-#ifndef __SMP__
-	for (pgd = (pgd_t *)pgd_quicklist; pgd; pgd = (pgd_t *)*(unsigned long *)pgd)
-		pgd[address >> PGDIR_SHIFT] = entry;
-#else
-	/* To pgd_alloc/pgd_free, one holds master kernel lock and so does our callee, so we can
-	   modify pgd caches of other CPUs as well. -jj */
-	for (i = 0; i < NR_CPUS; i++)
-		for (pgd = (pgd_t *)cpu_data[i].pgd_quick; pgd; pgd = (pgd_t *)*(unsigned long *)pgd)
-			pgd[address >> PGDIR_SHIFT] = entry;
-#endif
 }
 
 extern pgd_t swapper_pg_dir[1024];
@@ -534,21 +416,12 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm,unsigned long va)
 #define module_map      vmalloc
 #define module_unmap    vfree
 
-/* CONFIG_APUS */
 /* For virtual address to physical address conversion */
 extern void cache_clear(__u32 addr, int length);
 extern void cache_push(__u32 addr, int length);
 extern int mm_end_of_chunk (unsigned long addr, int len);
 extern unsigned long iopa(unsigned long addr);
 extern unsigned long mm_ptov(unsigned long addr) __attribute__ ((const));
-
-/* Values for nocacheflag and cmode */
-/* These are not used by the APUS kernel_map, but prevents
-   compilation errors. */
-#define	KERNELMAP_FULL_CACHING		0
-#define	KERNELMAP_NOCACHE_SER		1
-#define	KERNELMAP_NOCACHE_NONSER	2
-#define	KERNELMAP_NO_COPYBACK		3
 
 /*
  * Map some physical address range into the kernel address space.

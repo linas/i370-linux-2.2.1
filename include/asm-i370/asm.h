@@ -11,20 +11,37 @@
 #ifndef __ASSEMBLY__  
 
 /* -------------------------------------------------------- */
-/* get the current value of the stack pointer */
-/* since this inlines, it will basically copy r13 to where-ever */
+/* Get and set the current value of the stack pointer SP and the stack 
+ * top pointer STP.  Note that SP points at the base, and that saved 
+ * regs, args, frame, * etc. are a positive offset from SP.  The STP
+ * becomes the SP during a subrutine call. 
+ */
+/* Get the current value of the stack pointer */
+/* Since this inlines, it will basically copy r13 to where-ever */
 extern inline unsigned long _get_SP(void)
 {
         unsigned long rc;
-        asm volatile ("LR	%0,sp" : "=r" (rc) : );
+        asm volatile ("LR	%0,r13" : "=r" (rc) : );
         return rc;
 }
 
-/* set the current value of the stack pointer */
-/* use with caution */
+extern inline unsigned long _get_STP(void)
+{
+        unsigned long rc;
+        asm volatile ("LR	%0,r11" : "=r" (rc) : );
+        return rc;
+}
+
+/* Set the current value of the stack pointer */
+/* Use with caution */
 extern inline void _set_SP (unsigned long newsp)
 {
-        asm volatile ("LR	sp,%0" : : "r" (newsp) : "memory");
+        asm volatile ("LR	r13,%0" : : "r" (newsp) : "memory");
+}
+
+extern inline void _set_STP (unsigned long newsp)
+{
+        asm volatile ("LR	r11,%0" : : "r" (newsp) : "memory");
 }
 
 /* -------------------------------------------------------- */

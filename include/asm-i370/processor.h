@@ -270,6 +270,7 @@ typedef struct {
 
 struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer             */
+	unsigned long	kstp;		/* Kernel stack top pointer         */
 	struct pt_regs *regs;		/* Pointer to saved interrupt state */
 	unsigned long  *pg_tables;	/* Base of page-table tree          */
 	cr0_t		cr0;		/* control register 0               */
@@ -293,6 +294,7 @@ struct thread_struct {
 
 #define INIT_TSS  { 						\
 	INIT_SP, /* ksp */ 					\
+	INIT_SP+MIN_STACK_SIZE, /* kstp */ 			\
 	0, /* regs */ 						\
 	(unsigned long *) swapper_pg_dir, /* pg_tables */ 	\
 	0, /* cr0 */ 						\

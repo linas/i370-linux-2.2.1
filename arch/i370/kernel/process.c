@@ -277,7 +277,6 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	dstsp = (i370_elf_stack_t *) dstksp;
 	this_frame = (i370_elf_stack_t *) _get_SP();
 	delta = srcksp - dstksp;
-	p->tss.ksp = dstksp;
 
 	/* XXX not clear to me how much of the parent stack needs to
          * be copied to the child ... esp if the parent stack has all sorts
@@ -292,6 +291,9 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		srcsp = (i370_elf_stack_t *) (srcsp -> stack_top);
 		dstsp = (i370_elf_stack_t *) (dstsp -> stack_top);
 	} while (srcsp != this_frame);
+
+	/* switch_to grabs the current ksp out of tss.ksp */
+	p->tss.ksp = ((unsigned long) this_frame) - delta;
 
 	/* if fork was from SVC, child gets a return value of zero.
 	 * Do this by inserting a zero in reg fifteen of the SVC

@@ -412,6 +412,14 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	/* Interrupt regs are stored on stack as well */
 	srcregs = current->tss.regs;
 	dstregs = &(p->tss.regs);
+
+	/* this can't happen, but it did ... */
+	if (!srcregs) {
+		printk("i370_copy_thread, damaged regs pointer\n");
+		show_regs (regs);
+		print_backtrace ((unsigned long) this_frame);
+		i370_halt();
+	}
 	do {
 		*dstregs = (i370_interrupt_state_t *) 
 			(((unsigned long) srcregs) - delta);

@@ -3,13 +3,17 @@
 
 .using	r0
 	
+/* start of text section */
         .text
         .globl  _stext
 _stext:
 
+/* first instruction executed is here */
         .text
 	.globl	_start
 _start:
+	LPSW	0(r0)
+	BAS	r14, start_kernel
 
 /*
  * Exception vectors.

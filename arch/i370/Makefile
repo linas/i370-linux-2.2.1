@@ -36,6 +36,11 @@ BOOT_TARGETS = netboot znetboot zImage \
 
 $(BOOT_TARGETS): vmlinux
 
+.SUFFIXES:	.lst
+
+.s.lst:
+	$(AS) -als=$*.lst $< 
+
 
 tags:
 	etags */*.c include/{asm,linux}/*.h arch/i370/kernel/*.{c,h}

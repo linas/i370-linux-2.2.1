@@ -251,12 +251,10 @@ __initfunc(void trap_init(void))
 	*(sz-1) = (unsigned long) &(((struct task_struct *) 0) ->tss.ksp);
 	*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.tca[0]);
 
-#ifdef LATER
 	// install the SVC handler
 	psw.flags = PSW_VALID;        // disable all interupts
 	psw.addr = ((unsigned long) SupervisorCall) | (1<<31); 
 	*((psw_t *) SVC_PSW_NEW) = psw;
-#endif
 
 	// install the External Interrupt (clock) handler
 	psw.flags = PSW_VALID;        // disable all interupts

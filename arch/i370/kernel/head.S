@@ -432,7 +432,7 @@ sys_call_table:
 	.long i370_sys_uname
 	.long i370_sys_iopl		/* 110 */
 	.long sys_vhangup
-	.long sys_idle
+	.long i370_sys_idle
 	.long i370_sys_vm86
 	.long sys_wait4
 	.long sys_swapoff	/* 115 */

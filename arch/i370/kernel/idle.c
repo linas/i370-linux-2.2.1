@@ -73,7 +73,7 @@ int cpu_idle(void *unused)
 /*
  * Syscall entry into the idle task. -- Cort
  */
-asmlinkage int sys_idle(void)
+asmlinkage int i370_sys_idle(void)
 {
 	if(current->pid != 0)
 		return -EPERM;

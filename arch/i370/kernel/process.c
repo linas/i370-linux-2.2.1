@@ -13,6 +13,9 @@
 #include <asm/pgtable.h>
 #include <asm/uaccess.h>
 
+#define __KERNEL_SYSCALLS__ 1
+#include <asm/unistd.h>
+
 static struct vm_area_struct init_mmap = INIT_MMAP;
 static struct fs_struct init_fs = INIT_FS;
 static struct file * init_fd_array[NR_OPEN] = { NULL, };
@@ -260,7 +263,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	i370_elf_stack_t *srcsp, *dstsp, *this_frame;
 	unsigned long delta;
 
-	printk("copy thread \n");
+	printk("i370 copy_thread\n");
 
 	/* copy the kernel stack, and fix up the entries in it,
 	 * so that it unwinds properly in the copied thread.
@@ -271,9 +274,13 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	delta = ((unsigned long) srcsp) - ((unsigned long) dstsp);
 	p->tss.ksp = (unsigned long) dstsp;
 
+	/* XXX not clear to me how much of the parent stack needs to
+         * be copied to the child ... esp if the parent stack has all sorts
+         * of interrupt grabage on it ... 
+         */
 	memcpy (dstsp, srcsp, this_frame->stack_top - p->tss.ksp);
 	do {
-		dstsp -> caller_r12 = &(p->tss.tca[0]);
+		dstsp -> caller_r12 = (unsigned long) &(p->tss.tca[0]);
 		dstsp -> caller_sp = srcsp->caller_sp - delta;
 		dstsp -> callee_sp = srcsp->callee_sp - delta;
 		dstsp -> stack_top = srcsp->stack_top - delta;
@@ -283,8 +290,10 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 	/* if fork was from SVC, child gets a return value of zero.
 	 * Do this by inserting a zero in reg fifteen of the SVC
-	 * saved regs (in the SVC stack frame).
+	 * saved regs (in the SVC stack frame).  Note that r15
+         * holds the returned pid, while non-zero r1 indicates an error.
 	 */
+	regs -> irregs.r1 = 0;
 	regs -> irregs.r15 = 0;
 
 	/* XXX what about page tables ?? */
@@ -302,13 +311,16 @@ return 0;
 }
 
 asmlinkage int 
-i370_sys_clone (unsigned long clone_flags,
-                         struct pt_regs *regs)
+i370_sys_clone (unsigned long clone_flags)
 {
+	struct pt_regs *regs;
         int res;
-	printk ("sys clone \n");
-	asm volatile ("SVC	67"); /* fault on purpose */
+
+	printk ("i370_sys_clone \n");
         lock_kernel();
+	regs = current->tss.regs;
+
+	/* all args pass to copy_thread */
         res = do_fork(clone_flags, regs->irregs.r13, regs);
 
 #ifdef __SMP__
@@ -319,12 +331,6 @@ i370_sys_clone (unsigned long clone_flags,
         if ((current->pid == 0) && (current == &init_task))
                 res = 1;
 #endif /* __SMP__ */
-/*
- * XXX not clear on this .. looks to me like both the parent and the child
- * unlock ... is that OK ???
- * also ... do_fork() calls lock_kernel, i.e. it gets locked twice... 
- * is that OK ???
- */
         unlock_kernel();
         return res;
 }
@@ -335,22 +341,26 @@ i370_sys_clone (unsigned long clone_flags,
  * misc important kernel threads. 
  *
  * The child is supposed to then call the arg fn(), and never return.
- * if for anyreason fn() returns, the child thread is supposed to be 
- * cleaned up and discarded.  Thus we don't have to worry about copying
+ * If for anyreason fn() returns, the child thread is supposed to be 
+ * cleaned up and discarded. Thus we don't have to worry about copying
  * all of the kernel stack; simply setting up a minimally configured
- * stack should do.
+ * stack should do. (??) (we don't actually do this)
  * 
+ * clone() is a system call, it results in i370_sys_clone() being
+ * called.  In turn, i370_sys_clone just calls do_fork() which then 
+ * calls copy_thread().
  */
 
 long 
 i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)  
 {
 	long pid;
-	printk ("create kernel_thread\n");
-        pid = do_fork(flags, 0, current->tss.regs);
+	printk ("i370_kernel_thread\n");
+        // pid = do_fork(flags, 0, current->tss.regs);
+	pid = clone (flags);
         if (pid) return pid;
 	fn (args);
-	while (1) { i370_sys_exit(); } 
+	while (1) {_exit (1); } 
 	return 0;
 }
 

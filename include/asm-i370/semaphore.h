@@ -40,6 +40,7 @@ static inline void wake_one_more(struct semaphore * sem)
 
 static inline int waking_non_zero(struct semaphore *sem, struct task_struct *tsk)
 {
+/*
 	int ret, tmp;
 
 	__asm__ __volatile__(
@@ -56,6 +57,8 @@ static inline int waking_non_zero(struct semaphore *sem, struct task_struct *tsk
 		: "cr0", "memory");
 
 	return ret;
+*/
+return 0;
 }
 
 extern inline void down(struct semaphore * sem)

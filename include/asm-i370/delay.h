@@ -15,9 +15,12 @@ extern unsigned long loops_per_sec;
 
 extern __inline__ void __delay(unsigned int loops)
 {
+/*
+XXX
 	if (loops != 0)
 		__asm__ __volatile__("mtctr %0; 1: bdnz 1b" : :
 				     "r" (loops) : "ctr");
+*/
 }
 
 extern __inline__ void udelay(unsigned long usecs)
@@ -26,8 +29,11 @@ extern __inline__ void udelay(unsigned long usecs)
 
 	/* compute (usecs * 2^32 / 10^6) * loops_per_sec / 2^32 */
 	usecs *= 0x10c6;		/* 2^32 / 10^6 */
+/*
+XXX
 	__asm__("mulhwu %0,%1,%2" : "=r" (loops) :
 		"r" (usecs), "r" (loops_per_sec));
+*/
 	__delay(loops);
 }
 

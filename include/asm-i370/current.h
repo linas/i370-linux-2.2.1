@@ -4,7 +4,8 @@
 /* XXX this is probably all wrong */
 /*
  * We keep `current' in r2 for speed.
- */
 register struct task_struct *current asm ("r2");
+ */
+struct task_struct *current;
 
 #endif /* !(_I370_CURRENT_H) */

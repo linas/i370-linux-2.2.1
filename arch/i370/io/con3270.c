@@ -25,7 +25,7 @@
 #include <asm/3270.h>
 #include <asm/atomic.h>
 #include <asm/delay.h>
-#include <asm/ebcidic.h>
+#include <asm/ebcdic.h>
 #include <asm/iorb.h>
 #include <asm/unitblk.h>
 

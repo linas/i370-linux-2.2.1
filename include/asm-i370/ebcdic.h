@@ -18,8 +18,9 @@ extern inline void
 __i370_translate (char * area, unsigned short size, const unsigned char table[256])   
 {
 	/* XXX should check that size is 4095 or smaller */
-	__asm__ (" TR    %O0(%2,%R0),%1;"   
-	  : ="m"(area): "m"(table), "I"(size))
+	__asm__ (" TR    %O0(%2,%R0),%1"
+		: "=m"(area)
+		: "m"(table), "I"(size));
 }
 
 #define __i370_translate_to_ascii(area,size)\

@@ -188,9 +188,10 @@ typedef struct _iorb {
 /* *	Issue SSCH 	*/
 
 extern inline int     
-_ssch(int sid, orb_t *orb) 
+_ssch (short sid, orb_t *orb) 
 {
 	int     rc;
+	long	scid = 0x10000 | sid;
 
         __asm__ __volatile__
         ("l     r1,%1;		"
@@ -198,18 +199,19 @@ _ssch(int sid, orb_t *orb)
          "ipm   r1;		"
          "la    %0,0(0,r1);	"
         : "=r" (rc)
-        : "m" (sid), "m"(*orb)
+        : "m" (scid), "m"(*orb)
         :"r1","memory");
 
-        return(rc & 0x30000000); /* just send the CC back in R15 */
+        return (rc & 0x30000000); 
 }
 
 /* *	Issue MSCH 	*/
 
 extern inline int     
-_msch(int sid, schib_t *schib) 
+_msch (short sid, schib_t *schib) 
 {
 	int     rc;
+	long	scid = 0x10000 | sid;
 
         __asm__ __volatile__
         ("l     r1,%1;		"
@@ -217,7 +219,7 @@ _msch(int sid, schib_t *schib)
          "ipm   r1;		"
          "la    %0,0(0,r1);	"
         : "=r" (rc)
-        : "m" (sid), "m"(*schib)
+        : "m" (scid), "m"(*schib)
         :"r1","memory");
 
         return(rc & 0x30000000);
@@ -226,9 +228,10 @@ _msch(int sid, schib_t *schib)
 /* *	Issue TSCH 	*/
 
 extern inline int     
-_tsch(int sid, irb_t *irb) 
+_tsch (short sid, irb_t *irb) 
 {
 	int     rc;
+	long	scid = 0x10000 | sid;
 
         __asm__ __volatile__
         ("l     r1,%1;		"
@@ -236,7 +239,7 @@ _tsch(int sid, irb_t *irb)
          "ipm   r1;		"
          "la    %0,0(0,r1);	"
         : "=r" (rc)
-        : "m" (sid), "m"(*irb)
+        : "m" (scid), "m"(*irb)
         :"r1","memory");
 
         return(rc & 0x30000000);
@@ -245,9 +248,10 @@ _tsch(int sid, irb_t *irb)
 /* *	Issue STSCH 	*/
 
 extern inline int     
-_stsch(int sid, schib_t *schib) 
+_stsch (short sid, schib_t *schib) 
 {
 	int     rc;
+	long	scid = 0x10000 | sid;
 
         __asm__ __volatile__
         ("l     r1,%1;		"
@@ -255,7 +259,7 @@ _stsch(int sid, schib_t *schib)
          "ipm   r1;		"
          "la    %0,0(0,r1);	"
         : "=r" (rc)
-        : "m" (sid), "m"(*schib)
+        : "m" (scid), "m"(*schib)
         :"r1","memory");
 
         return(rc & 0x30000000);

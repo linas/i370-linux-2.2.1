@@ -34,7 +34,8 @@ extern inline void mark_bh(int nr)
 	set_bit(nr, &bh_active);
 }
 
-#ifndef __SMP__
+#define __SMP_SMP_SMP__
+#ifndef __SMP_SMP_SMP__
 
 /*XXX get rid of this, everything should be SMP by default ... */
 /*

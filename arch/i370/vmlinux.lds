@@ -32,6 +32,7 @@ SECTIONS
   init_task : { *(init_task) }
 
   /* Global data */
+  . = ALIGN(4096);
   _data = .;
   .rodata : { *(.rodata) }
   .data : { *(.data) CONSTRUCTORS }
@@ -40,9 +41,11 @@ SECTIONS
   _bss = .;
   .sbss : { *(.sbss) *(.scommon) }
   .bss : { *(.bss) *(COMMON) }
-  _end = .;
 
   .mdebug 0 : { *(.mdebug) }
   .note 0 : { *(.note) }
   .comment 0 : { *(.comment) }
+
+  . = ALIGN(4096);
+  _end = .;
 }

@@ -261,12 +261,12 @@ extern inline void i370_halt (void)
 /* Load Real Address...                                     */
 /* -------------------------------------------------------- */
  
-extern inline void * _lra(void *va)
+extern inline void * _lra(unsigned long *va)
 {
  void *ra;
  
-	asm volatile ("
-		LRA     %0,%1;"
+	asm volatile (
+		"LRA     %0,%1;		\n"
 		: "=r" (ra)
 		: "m" (*va) );
 	return(ra);

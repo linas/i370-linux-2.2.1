@@ -27,8 +27,8 @@
 /*							  */
 /************************************************************/
 
-#define irq_enter(cpu, irq)     (++local_irq_count[cpu])
-#define irq_exit(cpu, irq)      (--local_irq_count[cpu])
+#define irq_enter(cpu, irq)     (++_PSA_.local_irq_count)
+#define irq_exit(cpu, irq)      (--_PSA_.local_irq_count)
 
 /*=============== End of Defines ===========================*/
 
@@ -57,6 +57,7 @@
 #include <asm/system.h>
 #include <asm/ptrace.h>
 #include <asm/unitblk.h>
+#include <asm/psa.h>
 
 /*================== End of Include Statements =============*/
 
@@ -117,11 +118,12 @@ init_IRQ(void))
 	cr6.raw       = _stctl_r6();
 	cr6.bits.iosm = ~0;
 	_lctl_r6(cr6.raw);
+#ifdef __SMP__
 	for (i_bh = 0; i_bh < NR_CPUS; i_bh++) {
 		local_bh_count[i_bh] = 0;
 		local_irq_count[i_bh] = 0;
 	}
-
+#endif  // __SMP__
 }
 
 /*===================== End of Function ====================*/

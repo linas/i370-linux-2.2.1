@@ -5,6 +5,7 @@
  * Copyright (c) 1999 Neale Fergusen 
  */
 
+#include <linux/kernel.h>
 #include <asm/asm.h>
 
 /* XXX might be useful to move abs to some ehadr file and inline? */
@@ -18,7 +19,7 @@ abs (int j)
 		LPR     %0,%1"
 		: "=r" (absj)
 		: "r" (j)
-		: );
+		);
 
 	return(absj);
 }

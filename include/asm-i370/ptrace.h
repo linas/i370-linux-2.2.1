@@ -162,6 +162,10 @@ typedef struct _i370_irregs_s irregs_t;
  * info to be able to take multiple nested interrupts, and move
  * on.  The rest of the interrupt state gets stored on the stack.
  * Per-thread state gets stored in the thread_struct and task_struct.
+ *
+ * This struct is created and manipulated with assembly code in 
+ * head.S and therefore must not be changed without making corresponding
+ * changes in head.S
  */
 typedef struct _i370_interrupt_state_s i370_interrupt_state_t;
 

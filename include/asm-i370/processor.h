@@ -99,8 +99,8 @@ typedef struct {
 struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer */
 	struct pt_regs *regs;		/* Pointer to saved interrupt state */
-	double		fpr[4];		/* Complete floating point set */
 	unsigned long	tca[32];	/* mostly wasted, empty space ... */
+	double		fpr[4];		/* Complete floating point set */
 
 	/* XXX still not clear on the stuff below ... */
 	unsigned long	*pg_tables;	/* Base of page-table tree */
@@ -120,9 +120,9 @@ struct thread_struct {
 #define INIT_TSS  { \
 	INIT_SP, /* ksp */ \
 	0, /* regs */ \
-	{0.0,0.0,0.0,0.0}, /* FPR's */ \
 	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* tca */ \
 	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, /* tca */ \
+	{0.0,0.0,0.0,0.0}, /* FPR's */ \
 					\
 	(unsigned long *) swapper_pg_dir, /* pg_tables */ \
 	0, /* wchan */ \

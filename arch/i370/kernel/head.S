@@ -67,6 +67,7 @@ _start:
  * the register assignments don't quite follow the normal
  * ones because we cannot trash r15.  Yuck, review this.
  */
+	.globl	tcaStackOverflow
 tcaStackOverflow:
 	HALT (INTERRUPT_BASE)		/* stop the machine (debug) */
 	.balign 4

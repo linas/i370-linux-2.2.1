@@ -33,7 +33,7 @@ struct task_struct *current = &init_task;
 /* init_ksp and init_tca are used only in head.S during startup 
  * to set up the inital stack */
 const unsigned long init_ksp __initdata = init_stack;
-const unsigned long init_kstend __initdata = (unsigned long) (((char *) &init_task)+4096);
+const unsigned long init_kstend __initdata = ((unsigned long) &init_task) + 8192;
 const unsigned long init_tca __initdata = (unsigned long) (&init_task.tss.tca[0]);
 
 unsigned long
@@ -256,6 +256,9 @@ i370_sys_exit (void)
  * usp and regs are what was pass to do_fork below ...
  * return 0 if success, non-zero if not
  */
+
+extern void tcaStackOverflow(void);
+
 int
 copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
             struct task_struct * p, struct pt_regs * regs)
@@ -279,8 +282,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	delta = srcksp - dstksp;
 
 	/* XXX not clear to me how much of the parent stack needs to
-         * be copied to the child ... esp if the parent stack has all sorts
-         * of interrupt grabage on it ... 
+         * be copied to the child ... 
          */
 	memcpy (dstksp, srcksp, this_frame->stack_top - srcksp);
 	do {
@@ -294,6 +296,11 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 	/* switch_to grabs the current ksp out of tss.ksp */
 	p->tss.ksp = ((unsigned long) this_frame) - delta;
+
+	/* the TCA area needs to be set up to hold the stack mem top,
+	 * and a pointer to the overflow routine. */
+	p->tss.tca[3] = ((unsigned long) p) + 8192;
+	p->tss.tca[29] = tcaStackOverflow; 
 
 	/* if fork was from SVC, child gets a return value of zero.
 	 * Do this by inserting a zero in reg fifteen of the SVC

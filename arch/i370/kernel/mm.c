@@ -33,6 +33,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
    int codepages = 0;
    int datapages = 0;
    int initpages = 0;
+   int initrdpages = 0;
 
    printk ("enter mem init\n");
    end_mem &= PAGE_MASK;
@@ -86,9 +87,14 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
          atomic_set(&mem_map[MAP_NR(addr)].count, 1);
 #ifdef CONFIG_BLK_DEV_INITRD
          if (!initrd_start ||
-              addr < (initrd_start & PAGE_MASK) || addr >= initrd_end)
-#endif /* CONFIG_BLK_DEV_INITRD */
+              addr < (initrd_start & PAGE_MASK) || addr >= initrd_end) {
+             free_page(addr);
+          } else {
+             initrdpages ++;
+          }
+#else  /* CONFIG_BLK_DEV_INITRD */
           free_page(addr);
+#endif /* CONFIG_BLK_DEV_INITRD */
 
           _sske (KDATA_STORAGE_KEY, addr);
       }
@@ -98,13 +104,17 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
    _spka (KDATA_STORAGE_KEY);
 
    printk("Memory: %luk available "
-          "(%dk kernel code, %dk data, %dk init) "
-          "[%08x,%08lx]\n",
+          "(%dk code, %dk data, %dk init)\n",
      (unsigned long) nr_free_pages << (PAGE_SHIFT-10),
      codepages << (PAGE_SHIFT-10),
      datapages << (PAGE_SHIFT-10),
-     initpages << (PAGE_SHIFT-10),
-     PAGE_OFFSET, end_mem);
+     initpages << (PAGE_SHIFT-10));
+
+#ifdef CONFIG_BLK_DEV_INITRD
+   printk("Init Ramdisk: %luk  [%08lx,%08lx]\n",
+     initrdpages << (PAGE_SHIFT-10),
+     initrd_start, initrd_end);
+#endif /* CONFIG_BLK_DEV_INITRD */
 }
 
 __initfunc(void free_initmem(void))

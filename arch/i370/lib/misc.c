@@ -1,7 +1,25 @@
 
-int abs (int j) { return ((j>0) ? -j : j); }
+/* arch/i370/lib/misc.c
+ * Miscellaneous i370 usitlities
+ *
+ * Copyright (c) 1999 Neale Fergusen 
+ */
 
-/* XXX hack alert these  routines are completely broken ... */
+/* XXX might be useful to move abs to some ehadr file and inline?
+int
+abs (int j)
+{
+	int absj;
+
+	__asm__ __volatile__ ("
+		LPR     %0,%1"
+		: "=r" (absj)
+		: "r" (j)
+		: );
+
+	return(absj);
+}
+
 
 /*
  * computes the checksum of a memory block at buff, length len,
@@ -15,10 +33,29 @@ int abs (int j) { return ((j>0) ? -j : j); }
  *
  * it's best to have buff aligned on a 32-bit boundary
  */
-unsigned int csum_partial(const unsigned char * buff, int len,
-                                 unsigned int sum) 
-{ return 0; }
 
+/* XXX this assembly depends on teh checksum facility being installed ... */
+unsigned int
+csum_partial(const unsigned char * buff, int len,
+             unsigned int sum)
+{
+	unsigned int cksum;
+
+	__asm__ __volatile__ ("
+		L       r8,%1;
+		L       r9,%2;
+		L       r1,%3;
+	1:	CKSM    r1,r8;
+		BO      1b;
+		ST      r1,%0"
+	: "=m" (cksum)
+	: "m" (buff), "m" (len), "m" (sum)
+	: "r1", "r8", "r9");
+
+	return (cksum);
+}
+
+/* XXX not implemented complete garbage ... */
 /*
  * Computes the checksum of a memory block at src, length len,
  * and adds in "sum" (32-bit), while copying the block to dst.
@@ -27,7 +64,7 @@ unsigned int csum_partial(const unsigned char * buff, int len,
  * NULL), and, for an error on src, zeroes the rest of dst.
  *
  * Like csum_partial, this must be called with even lengths,
- * * except for the last fragment.
+ * except for the last fragment.
  */
 unsigned int csum_partial_copy_generic(const char *src, char *dst,
                                               int len, unsigned int sum,

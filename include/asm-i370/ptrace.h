@@ -6,23 +6,33 @@
  * kernel stack during a system call or other kernel entry.
  *
  * this should only contain volatile regs
- * since we can keep non-volatile in the tss
- * should set this up when only volatiles are saved
- * by intr code.
  *
  * Since this is going on the stack, *CARE MUST BE TAKEN* to insure
  * that the overall structure is a multiple of 16 bytes in length.
+ * ??? huh ??? explain this  !
  *
  * Note that the offsets of the fields in this struct correspond with
- * the PT_* values below.  This simplifies arch/ppc/kernel/ptrace.c.
+ * the PT_* values below.  
  */
 
 #ifndef __ASSEMBLY__
+
+struct psw_s {
+	unsigned long flags;
+	unsigned long addr;
+};
+
+typedef struct psw_s psw_t;
+
+/*
+ * NOTE that this structure is accessed in binary in head.S and
+ * changes to it may break the exception handling code. Modify
+ * at your own risk.
+ */
 struct pt_regs {
+	psw_t         psw;	/* process status word */
 	unsigned long gpr[16];
 	unsigned long fpr[8];    /* do we really need to save these ? */
-	unsigned long psw_bits;  /* bits in high word */
-	unsigned long psw_ia;    /* instruction address in low word */
 	unsigned long pad[2];
 /* XXX all wrong for 370 but we need something like this? */
 //	unsigned long orig_gpr3; /* Used for restarting system calls */
@@ -36,8 +46,8 @@ struct pt_regs {
 /* Size of stack frame allocated when calling signal handler. */
 #define __SIGNAL_FRAMESIZE	64   /* XXX whoa all wrong */
 
-#define instruction_pointer(regs) (((regs)->psw_ia) & 0x7fffffff)
-#define user_mode(regs) ((regs)->psw_bits & 0x10000)
+#define instruction_pointer(regs) (((regs)->psw.addr) & 0x7fffffff)
+#define user_mode(regs) ((regs)->psw.flags & 0x10000)
 
 /*
  * Offsets used by 'ptrace' system call interface.

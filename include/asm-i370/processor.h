@@ -168,6 +168,42 @@ typedef struct
 } pc_handler;
  
 /*------------------------------------------------------------*/
+/* CPU Details structure                                      */
+/*------------------------------------------------------------*/
+
+typedef struct
+{
+	unsigned long  CPU_address;  /* Address of CPU             */
+	char  CPU_name[8];           /* An arbitrary name    */
+	unsigned long CPU_status;    /* CPU status (from SIGP Sense)*/
+	char  xxx[4];                /* Padding                 */
+} CPU_t;
+
+#define CPU_eqptchk 0x80000000	  /* Equipment check     */
+#define CPU_incstat 0x00000200    /* Incorrect state     */
+#define CPU_invlprm 0x00000100    /* Invalid parameter */
+#define CPU_extcall 0x00000080    /* External-call pending    */
+#define CPU_stopped 0x00000040    /* Stopped             */
+#define CPU_oprintv 0x00000020    /* Operator intervening     */
+#define CPU_chkstop 0x00000010    /* Check stop               */
+#define CPU_inoprtv 0x00000004    /* Inoperative             */
+#define CPU_invlord 0x00000002    /* Invalid order         */
+#define CPU_rcvrchk 0x00000001    /* Receiver check       */
+
+#define SIGPSENS 0x01   /* Sense                   */
+#define SIGPEXTC 0x02   /* External call           */
+#define SIGPESIG 0x03   /* Emergency signal     */
+#define SIGPSTRT 0x04   /* Start                   */
+#define SIGPSTOP 0x05   /* Stop                     */
+#define SIGPRSTA 0x06   /* Restart               */
+#define SIGPSASS 0x09   /* Stop and store status    */
+#define SIGPIRST 0x0B   /* Initial CPU reset   */
+#define SIGPCRST 0x0C   /* CPU reset           */
+#define SIGPSPFX 0x0D   /* Set prefix         */
+#define SIGPSSAA 0x0E   /* Store status at address  */
+
+
+/*------------------------------------------------------------*/
 /* TASK_SIZE is the size of the effective address space for   */
 /* one task which is 2GB for the 31-bit 390/ESA arch.         */
 /* Note that userland binaries are loaded such that the       */

@@ -1,4 +1,5 @@
 /*     
+ * structures defining ESA/390 I/O Devices
  */
         
 #ifndef I370_UNITB_H_

@@ -69,27 +69,46 @@ extern inline void _load_fpregs (double *memy)
 }
 
 /* -------------------------------------------------------- */
+/* the 64-bit clock words need to be 8-byte aligned.  But
+ * it seems that the __attribute__ ((aligned (8)) doesn't
+ * work on the stack.  So force alignment the hard way.
+ */
 /* Store Clock */
 extern inline unsigned long long _stck (void)
 {
-   unsigned long long tickee __attribute__ ((aligned (8)));
-   asm volatile ("STCK	%0" : "=m" (tickee) );
-   return tickee;
+   // unsigned long long tickee __attribute__ ((aligned (8)));
+   char area[12];
+   unsigned long ptr = (unsigned long ) area;
+   unsigned long long *tockee;
+   ptr = ((ptr+4) >> 3) << 3;
+   tockee = (unsigned long long *) ptr;
+   asm volatile ("STCK	%0" : "=m" (*tockee) );
+   return *tockee;
 }
 
 /* Store Clock Comparator */
 extern inline unsigned long long _stckc (void)
 {
-   unsigned long long tickee __attribute__ ((aligned (8)));
-   asm volatile ("STCKC	%0" : "=m" (tickee) );
-   return tickee;
+   // unsigned long long tickee __attribute__ ((aligned (8)));
+   char area[12];
+   unsigned long ptr = (unsigned long ) area;
+   unsigned long long *tockee;
+   ptr = ((ptr+4) / 8) * 8;
+   tockee = (unsigned long long *) ptr;
+   asm volatile ("STCKC	%0" : "=m" (*tockee) );
+   return *tockee;
 }
 
 /* Set Clock Comparator */
 extern inline void _sckc (unsigned long long tickee)
 {
-   unsigned long long tockee __attribute__ ((aligned (8))) = tickee;
-   asm volatile ("SCKC	%0" : : "m" (tockee) );
+   char area[12];
+   unsigned long ptr = (unsigned long ) area;
+   unsigned long long *tockee;
+   ptr = ((ptr+4) >> 3) << 3;
+   tockee = (unsigned long long *) ptr;
+   *tockee = tickee;
+   asm volatile ("SCKC	%0" : : "m" (*tockee) );
 }
 
 /* -------------------------------------------------------- */

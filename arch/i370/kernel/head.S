@@ -72,6 +72,13 @@ _start:
 	ST	r1,sav+4(,0);						\
 	LPSW	sav(0);			/* oops halt the machine */
 
+	.globl	Halt
+Halt:
+	HALT (INTERRUPT_BASE)		/* stop the machine (debug) */
+	.balign 4
+	.ltorg
+
+
 /* XXX note that this tcaStackOverflow routine is called
  * in a funky and unusual way from the excpetion handler;
  * the register assignments don't quite follow the normal

@@ -65,28 +65,39 @@ void instruction_dump (unsigned short *pc)
 /*
  * Trap & Exception support
  */
+extern inline void i370_halt (void) 
+{
+	psw_t halt_psw;
+	halt_psw.flags = HALT_PSW;   /* load disabled wait state */
+	halt_psw.addr = 0xffffffff;
+	_lpsw (*((unsigned long long *) &halt_psw));
+}
+	
 
 void
 _exception(int signr, struct pt_regs *regs)
 {
-   if (!user_mode(regs))
-   {
-      show_regs(regs);
+	if (!user_mode(regs))
+	{
+		show_regs(regs);
 #if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
-      debugger(regs);
+		debugger(regs);
 #endif
-      // print_backtrace((unsigned long *)regs->gpr[0]);
-      instruction_dump((unsigned short *)instruction_pointer(regs));
-      panic("Exception in kernel psw.addr=%lx signal %d",regs->psw.addr,signr);
-   }
-   force_sig(signr, current);
+		// print_backtrace((unsigned long *)regs->gpr[0]);
+		instruction_dump((unsigned short *)instruction_pointer(regs));
+		panic ("Exception in kernel psw.addr=%lx signal %d",
+			regs->psw.addr,signr);
+	}
+	force_sig(signr, current);
 }
 
-psw_t
-MachineCheckException(struct pt_regs *regs)
+void
+MachineCheckException(i370_interrupt_state_t *saved_regs)
 {
-   psw_t retval;
-   if ( !user_mode(regs) )
+	printk ("machine check \n");
+	i370_halt();
+
+	if ( !user_mode(regs) )
 	{
 #if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
 		if (debugger_fault_handler) {
@@ -105,15 +116,16 @@ MachineCheckException(struct pt_regs *regs)
 		panic("machine check");
 	}
 	_exception(SIGSEGV, regs);	
-   return retval;
 }
 
 
-psw_t
-ProgramCheckException(struct pt_regs *regs)
+void
+ProgramCheckException(i370_interrupt_state_t *saved_regs)
 {
-   psw_t retval;
-#ifdef JUNK_XXX
+	long *pfx_prg_code = ((long *) PFX_PRG_CODE);
+	long *pfx_prg_trans = ((long *) PFX_PRG_TRANS);
+
+#ifdef JUNK_XXX_RIMPLEMENT_THIS_SOMEDAY
 	if (regs->msr & 0x100000) {
 		/* IEEE FP exception */
 		_exception(SIGFPE, regs);
@@ -128,27 +140,27 @@ ProgramCheckException(struct pt_regs *regs)
 		_exception(SIGILL, regs);
 	}
 #endif 
-   return retval;
+	printk ("Program Check code=0x%x trans=0x%x\n", 
+		*pfx_prg_code, *pfx_prg_trans);
+
+	i370_halt(); 
 }
 
-extern inline void i370_halt (void) 
-{
-	psw_t halt_psw;
-	halt_psw.flags = HALT_PSW;
-	halt_psw.addr = 0xffffffff;
-	_lpsw (*((unsigned long long *) &halt_psw));
-}
-	
 void
 RestartException(i370_interrupt_state_t *saved_regs)
 {
 	printk ("restart exception\n");
-	panic("machine check");
+	panic("restart");
 }
 
 void
 InputOutputException(i370_interrupt_state_t *saved_regs)
 {
+	long *pfx_io_parm = (long *) PFX_IO_PARM;
+	long *pfx_subssy_id = (long *) PFX_SUBSYS_ID;
+
+	//printk ("i/o interrupt subchannel=0x%x param=0x%x\n", 
+	//	*pfx_subsysid, *pfx_io_parm);
 }
 
 void

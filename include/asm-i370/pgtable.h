@@ -202,7 +202,7 @@ extern inline int
 extern inline int 
 	pmd_bad(pmd_t pmd)	{ return 0; }
 extern inline int 
-	pmd_present(pmd_t pmd)	{ return (pmd_val(pmd) & _SEG_INVALID) != 0; }
+	pmd_present(pmd_t pmd)	{ return (pmd_val(pmd) & _SEG_INVALID) == 0; }
 extern inline void 
 	pmd_clear(pmd_t * pmdp)	{ pmd_val(*pmdp) = _SEG_INVALID; }
 
@@ -439,12 +439,12 @@ printk ("find_pte for va=0x%lx\n", va);
 	dir = pgd_offset( mm, va );
 	if (dir)
 	{
-printk ("find_pte got pgd for va=0x%lx\n", va);
+printk ("find_pte got pgd for dir=%p\n", dir);
 		pmd = pmd_offset(dir, va);
 		if (pmd && pmd_present(*pmd))
 		{
 			pte = pte_offset(pmd, va);
-printk ("find_pte got pmd for va=%x pte=0x%lx\n", va, pte);
+printk ("find_pte got pmd for va=%lx pte=%p\n", va, pte);
 		}
 	}
 	return pte;

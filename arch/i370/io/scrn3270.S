@@ -101,8 +101,3 @@ screnda:
 	.space	61,0x00			# Command Line Proper
 	.short	start_askip		# Askip field
 
-# 
-# Function literal pool
-# 
-	.balign 4
-	.ltorg

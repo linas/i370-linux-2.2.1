@@ -14,7 +14,7 @@
 #include <linux/console_struct.h>
 
 
-const char *vid3270_startup(void)
+__initfunc(static const char *vid3270_startup(void))
 { 
 	return "vid3270";
 }

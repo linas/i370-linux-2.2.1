@@ -69,8 +69,8 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
             datapages++;
          }
       } else {
-         /* the reserved bit was set previously, in page_init
-          * by free_mem_init.  Clear the bit now */
+         /* The reserved bit was set previously, in page_init
+          * by free_area_init, below.  Clear the bit now. */
          clear_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);                
          atomic_set(&mem_map[MAP_NR(addr)].count, 1);
 #ifdef CONFIG_BLK_DEV_INITRD
@@ -294,8 +294,6 @@ __initfunc(unsigned long paging_init(unsigned long start_mem,
                                      unsigned long end_mem))
 {
    printk ("paging init\n");
-   _sske (start_mem, 0x00);  // just for grins
-
    /*
     * Grab some memory for bad_page and bad_pagetable to use.
     */

@@ -314,17 +314,17 @@ set_pte (pte_t * ptep, pte_t val)
 
 static inline pte_t mk_pte_phys(unsigned long page, pgprot_t pgprot)
 { pte_t pte; 
-printk ("mk_pte_phys for vaddr=%lx flags=%lx\n",page,pgprot_val(pgprot));
+// printk ("mk_pte_phys for vaddr=%lx flags=%lx\n",page,pgprot_val(pgprot));
 pte_val(pte) = (page & PFRA_MASK) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t mk_pte(unsigned long page, pgprot_t pgprot)
 { pte_t pte; 
-printk ("mk_pte %lx %lx\n",page, pgprot_val(pgprot));
+// printk ("mk_pte %lx %lx\n",page, pgprot_val(pgprot));
 pte_val(pte) = (page & PFRA_MASK) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 { pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot); 
-printk ("pte_modify %lx %lx\n", pte_val(pte),pgprot_val(newprot));
+// printk ("pte_modify %lx %lx\n", pte_val(pte),pgprot_val(newprot));
 return pte; }
 
 /* pte_page returns only the addrss part of the entry; mask out misc bits */
@@ -474,18 +474,18 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
 	pte_t *pte = NULL;
 
 	va &= ADDR_MASK;
-printk ("find_pte for va=0x%lx\n", va);
+// printk ("find_pte for va=0x%lx\n", va);
 	
 	dir = pgd_offset( mm, va );
 	if (dir)
 	{
-printk ("find_pte got pgd for dir=%p\n", dir);
+// printk ("find_pte got pgd for dir=%p\n", dir);
 		pmd = pmd_offset(dir, va);
 		if (pmd && pmd_present(*pmd))
 		{
 			pte = pte_offset(pmd, va);
-/* XXX the power pc impl flushes the  tlb here, shoudl we ?? */
-printk ("find_pte got pmd for va=%lx pte=%p\n", va, pte);
+/* XXX the PowerPC implementation flushes the  tlb here, should we ?? */
+// printk ("find_pte got pmd for va=%lx pte=%p\n", va, pte);
 		}
 	}
 	return pte;

@@ -24,6 +24,6 @@ endif
 all: head.o kernel.o entry.o
 
 head.o: head.S $(TOPDIR)/include/linux/tasks.h 
-entry.o: entry.S 
+# entry.o: entry.S 
 
 include $(TOPDIR)/Rules.make

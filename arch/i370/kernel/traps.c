@@ -73,6 +73,7 @@ _exception(int signr, struct pt_regs *regs)
 	if (!user_mode(regs))
 	{
 		show_regs(regs);
+		print_backtrace (_get_SP());
 #if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
 		debugger(regs);
 #endif
@@ -93,6 +94,7 @@ MachineCheckException(i370_interrupt_state_t *saved_regs)
 {
 	printk ("machine check \n");
 	show_regs (saved_regs);
+	print_backtrace (_get_SP());
 	i370_halt();
 }
 
@@ -230,6 +232,7 @@ pc_unsupported(i370_interrupt_state_t *saved_regs,
 	printk ("Program Check Unsupported code=0x%x trans=0x%x\n",
 		code, trans);
 	show_regs (saved_regs);
+	print_backtrace (_get_SP());
 	i370_halt(); 
 }
 
@@ -367,7 +370,7 @@ StackOverflow(struct pt_regs *regs)
 	debugger(regs);
 #endif
 	show_regs(regs);
-	// print_backtrace((unsigned long *)regs->gpr[1]);
+	print_backtrace (_get_SP());
 	// instruction_dump((unsigned long *)regs->psw.addr);
 	i370_halt();
 }

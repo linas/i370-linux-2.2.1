@@ -90,25 +90,21 @@ void show_regs(struct pt_regs * regs)
 }
 
 void
-print_backtrace(unsigned long *sp)
+print_backtrace (unsigned long stackp)
 {
-//        int cnt = 0;
-//        unsigned long i;
+        int cnt = 0;
+	i370_elf_stack_t *sp;
 
         printk("Call Backtrace:\n");
-        printk("    xxxx not implemented\n");
-#ifdef BOGUS_XXX
-        while (sp) {
-                if (__get_user( i, &sp[1] ))
-                        break;
-                if (cnt++ % 7 == 0)
-                        printk("\n");
-                printk("%08lX ", i);
-                if (cnt > 32) break;
-                if (__get_user(sp, (unsigned long **)sp))
-                        break;
+	sp = (i370_elf_stack_t *) stackp;
+
+        while (sp && (cnt < 8)) 
+	{
+		printk ("   %02d   base=0x%lx link=0x%lx stack=%p\n", 
+			cnt, sp->caller_r3, sp->caller_r14, sp);
+		sp = (i370_elf_stack_t *) sp->caller_sp;
+		cnt ++;
         }
-#endif
         printk("\n");
 }
 
@@ -125,7 +121,7 @@ int check_stack(struct task_struct *tsk)
 	unsigned long stack_top = kernel_stack_top(tsk);
 	unsigned long tsk_top = task_top(tsk);
 	int ret = 0;
-	unsigned long *i=0;
+	// unsigned long *i=0;
 
 	if ( !tsk )
 		printk("check_stack(): tsk bad tsk %p\n",tsk);
@@ -150,7 +146,7 @@ int check_stack(struct task_struct *tsk)
 		ret |= 4;
 	}
 
-#if 1	
+#if 0	
 	/* check amount of free stack */
 	for ( i = (unsigned long *)task_top(tsk) ; 
 		i < (unsigned long * ) kernel_stack_top(tsk) ; i++ )
@@ -186,7 +182,8 @@ int check_stack(struct task_struct *tsk)
  * -- set the user's stack pointer
  * -- set the address at which to start executing the user process
  */
-void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
+void 
+i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 {
 	printk ("setup user-space thread\n");
         set_fs(USER_DS);
@@ -354,7 +351,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
         /* unwind one frame; don't copy this frame */
 	this_frame = (i370_elf_stack_t *) _get_SP();
-        this_frame = this_frame->caller_sp;
+        this_frame = (i370_elf_stack_t *) (this_frame->caller_sp);
 
 	delta = srcksp - dstksp;
 
@@ -489,7 +486,7 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
         // otherwise scheduling doesn't work.
         // pid = do_fork(flags, 0, current->tss.regs);
 	pid = clone (flags);
-	printk ("i370_kernel_thread(): return from clone, pid=%d\n",pid);
+	printk ("i370_kernel_thread(): return from clone, pid=%ld\n",pid);
         if (pid) return pid;
 	fn (args);
 	while (1) {_exit (1); } 

@@ -1,8 +1,8 @@
 
 /* totally bogus */
 	
-	.globl	__start
-__start:
+	.globl	_start
+_start:
 
 /*
  * This routine is just here to keep GCC happy - sigh...

@@ -20,8 +20,24 @@ CFLAGS          := $(CFLAGS) -D__i370__ -fsigned-char -msoft-float -pipe \
                 -fno-builtin -Wno-uninitialized -mmultiple -mstring
 CPP             = $(CC) -E $(CFLAGS)
 
+MAKEBOOT = $(MAKE) -C arch/$(ARCH)/boot 
+
 BOOT_TARGETS = netboot znetboot zImage \
          znetboot.initrd zImage.initrd 
 
 $(BOOT_TARGETS): vmlinux
+
+
+tags:
+	etags */*.c include/{asm,linux}/*.h arch/i370/kernel/*.{c,h}
+
+archclean:
+	rm -f arch/i370/kernel/{mk_defs,ppc_defs.h,find_name,checks}
+	@$(MAKEBOOT) clean
+
+archmrproper:
+
+archdep:
+	$(MAKEBOOT) fastdep
+
  

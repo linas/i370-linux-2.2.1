@@ -15,6 +15,16 @@
 #include <asm/errno.h>
 #include <asm/processor.h>
 
+/* Stop the machine. Handy for debugging purposes, but also
+ * used in a few "it can't possibly happen" situations.
+ */
+#define HALT(sav)							\
+	L	r1,=X'000A0000';	/* disabled wait */		\
+	ST	r1,sav(,0);						\
+	L	r1,=X'FFFFFFFF';	/* bad address */		\
+	ST	r1,sav+4(,0);						\
+	LPSW	sav(0);			/* oops halt the machine */
+
 /* first instruction executed is here */
 /* 
  * We set up just enough to let a C lang call to be made.
@@ -67,27 +77,12 @@ _cinit:
 	L	r1,=A(tcaStackOverflow)	// bogus bogus hack alert XXX
 	ST	r1,116(,rtca)		// bogosity
 	L	r15,=A(start_kernel)	// load address of C routine
-	BASR	lr,r15		// jump to C routine
-	.balign	4		// align literal pool
-	.ltorg			// dump literal pool
+	BASR	lr,r15			// jump to C routine
+	HALT (INTERRUPT_BASE)		// its impossible to return to here ...
 
+	.balign	4			// align literal pool
+	.ltorg				// dump literal pool
 
-/* XXX stop the machine for debugging purposes.
- * we can't do this in the real code; this needs to be
- * replaced by panic in some cases, or other stuff in other cases.
- */
-#define HALT(sav)							\
-	L	r1,=X'000A0000';	/* disabled wait */		\
-	ST	r1,sav(,0);						\
-	L	r1,=X'FFFFFFFF';	/* bad address */		\
-	ST	r1,sav+4(,0);						\
-	LPSW	sav(0);			/* oops halt the machine */
-
-	.globl	Halt
-Halt:
-	HALT (INTERRUPT_BASE)		/* stop the machine (debug) */
-	.balign 4
-	.ltorg
 
 
 /* XXX note that this tcaStackOverflow routine is called

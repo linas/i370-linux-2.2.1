@@ -16,26 +16,18 @@
 #define rmb()  __asm__ __volatile__ ("sync" : : : "memory")
 #define wmb()  __asm__ __volatile__ ("sync" : : : "memory")
 
+/* save flags should probably be Branch adn Stack BAKR ?? */
+#define __save_flags(flags)
+#define __save_and_cli(flags)	({__save_flags(flags);__cli();})
+extern __inline__ void __restore_flags(unsigned long flags) {}
+
+#if 0
+/* this is how the powerpc did thins ... */
 #define __save_flags(flags)	({\
 	__asm__ __volatile__ ("mfmsr %0" : "=r" ((flags)) : : "memory"); })
+
 #define __save_and_cli(flags)	({__save_flags(flags);__cli();})
 
-extern __inline__ void dcbf(void *line)
-{
-	asm("dcbf %0,%1\n\t"
-	    "sync \n\t"
-	    "isync \n\t"
-	    :: "r" (line), "r" (0));
-}
-
-extern __inline__ void dcbi(void *line)
-{
-	asm("dcbi %0,%1\n\t"
-	    "sync \n\t"
-	    "isync \n\t"
-	    :: "r" (line), "r" (0));
-}
-     
 extern __inline__ void __restore_flags(unsigned long flags)
 {
         extern atomic_t n_lost_interrupts;
@@ -48,6 +40,7 @@ extern __inline__ void __restore_flags(unsigned long flags)
                               : : "r" (flags) : "memory");
         }
 }
+#endif
 
 
 extern void __sti(void);

@@ -140,6 +140,10 @@ do {								\
 struct __large_struct { unsigned long buf[100]; };
 #define __m(x) (*(struct __large_struct *)(x))
 
+/* XXX */
+#define __put_user_asm(x, addr, err, op)
+
+#if 0
 /*
  * We don't tell gcc that we are accessing memory, but this is OK
  * because we do not write to any memory gcc knows about, so there
@@ -158,6 +162,7 @@ struct __large_struct { unsigned long buf[100]; };
 		".text"						\
 		: "=r"(err)					\
 		: "r"(x), "b"(addr), "i"(-EFAULT), "0"(err))
+#endif
 
 
 #define __get_user_nocheck(x,ptr,size)				\
@@ -191,6 +196,9 @@ do {								\
 	}							\
 } while (0)
 
+/* XXX */
+#define __get_user_asm(x, addr, err, op)
+#if 0
 #define __get_user_asm(x, addr, err, op)		\
 	__asm__ __volatile__(				\
 		"1:	"op" %1,0(%2)\n"		\
@@ -205,6 +213,7 @@ do {								\
 		".text"					\
 		: "=r"(err), "=r"(x)			\
 		: "b"(addr), "i"(-EFAULT), "0"(err))
+#endif 
 
 /* more complex routines */
 

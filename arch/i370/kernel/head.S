@@ -2,6 +2,7 @@
  * Implementation of startup code and FLIH entry/exit for ESA/390
  */
 
+#include <asm/errno.h>
 #include <asm/processor.h>
 
 /* first instruction executed is here */
@@ -111,15 +112,15 @@ tcaStackOverflow:
  * sav+36  saved r2
  */
 #define SF_BASE 0x50	/* stack-frame offset, past STM r15,r0,72(r2) of prolog */
-#define SF_SIZE 0x98	/* stack-frame size */
+#define SF_SIZE (0x98 +	0x40) /* stack-frame size */
 
-#define EXCEPTION_HANDLER(sav,oldpsw,handler)  				\
+#define EXCEPTION_PROLOG(sav,oldpsw)  					\
 	STM	r11,r2,sav+8(0);	/* save gprs to low mem */	\
 	BASR	r15,0;			/* load r15 with PSW  */	\
 	.using	.,r15;			/* use r15 as base register */	\
 	L	r1,oldpsw(,0);		/* get old psw flags into r1 */	\
 	N	r1,=X'00010000';	/* is in problem state? */	\
-	BZ	.L1##handler;		/* sp is already ok if kern */	\
+	BZ	1f;			/* sp is already ok if kern */	\
 	L	r11,=V(current);	/* addr of current pointer */	\
 	L	r11,0(,r11);		/* addr of current process */	\
 	LA	sp,0(,r11);		/* copy r11 to r13 */		\
@@ -135,59 +136,124 @@ tcaStackOverflow:
 	ST	r1,12(,rtca);		/* store end of stack in tca */ \
 	L	r1,=A(tcaStackOverflow);/* bogus hack alert XXX */	\
 	ST	r1,116(,rtca);		/* bogosity */			\
-.L1##handler:				/* branch here if kernel */	\
+1:					/* branch here if kernel */	\
 	L	r2,76(,sp);		/* find top of kernel stack */	\
 	LA	r2,SF_BASE(,r2);	/* safe offset to stack top */	\
 	LA	r1,SF_SIZE(,r2);	/* add stackframe size */	\
 	CL	r1,12(,rtca);		/* got room ? */		\
-	BNH	.L2##handler;		/* if so blast ahead */		\
+	BNH	2f;			/* if so blast ahead */		\
 	LR	r0,r1;			/* overflow in r0 not r1 */	\
 	L	r1,116(,rtca);		/* load overflow handler */	\
 	BASR	r14,r1;			/* call overflow handler */	\
 	LR	r1,r0;			/* stack top in r1 not r0 */	\
-.L2##handler:				/* yes we have room on stack */	\
+2:					/* yes we have room on stack */	\
 	L	r0,72(,sp);		/* propagate */			\
 	STM	r0,r1,72(r2);		/* store new stack top */	\
 	MVI	0(r2),0x10;		/* store marker */		\
 	LR	sp,r2;			/* initialize stack pointer */	\
+	LM	r1,r2,oldpsw(0);	/* get old psw into r1,r2 */	\
+	STM	r1,r2,0x98(sp);		/* save old psw on stack */	\
+	LM	r1,r2,sav+8(0);		/* copy regs out of prefix */	\
+	STM	r1,r2,0x100(sp);	/* copy regs */			\
+	LM	r1,r2,sav+16(0);	/* copy regs out of prefix */	\
+	STM	r1,r2,0x108(sp);	/* copy regs */			\
+	LM	r1,r2,sav+24(0);	/* copy regs out of prefix */	\
+	STM	r1,r2,0x110(sp);	/* copy regs */			\
+	LM	r1,r2,sav+32(0);	/* copy regs out of prefix */	\
+	STM	r1,r2,0x118(sp);	/* copy regs */			\
+	
+
+
+#define EXCEPTION_CALL_C(handler)  					\
 	L	r15,=A(handler);	/* load address of C routine */	\
-	LA	r11,sav(,0);		/* pointer to arguments */	\
-	LA	r1,sav(,0);		/* pointer to returned value */	\
+	LA	r11,0x98(,sp);		/* pointer to arguments */	\
+	LA	r1,0x98(,sp);		/* pointer to returned value */	\
 	BASR	lr,r15;			/* jump to C routine */		\
-	LM	r11,r2,sav+8(0);	/* restore saved gprs */	\
+
+#define EXCEPTION_EPILOG(sav)  						\
+	LM	r1,r2,0x98(sp);		/* get old psw from stack */	\
+	STM	r1,r2,sav(0);		/* move to prefix page */	\
+	LM	r11,r12,0x100(sp);	/* restore r11, r12 */		\
+	LM	r14,r2,0x10c(sp);	/* restore r14 to r2 */		\
+	L	r13,0x108(sp);		/* restore r13 */		\
 	LPSW	sav(0);			/* return from interrupt */	\
 	.balign	8;			/* align literal pool */	\
 	.ltorg;				/* dump literal pool */		\
 
+/* XXX stop the machine for debuggin purposes.
+ * we can't do this in the real code; this needs to be
+ * replaced by panic in some cases, or other stuff in other cases.
+ */
+#define HALT(sav)							\
+	L	r1,=X'000A0000';	/* disabled wait */		\
+	ST	r1,sav(,0);						\
+	L	r1,=X'FFFFFFFF';	/* bad address */		\
+	ST	r1,sav+4(,0);						\
+	LPSW	sav(0);			/* oops halt the machine */
+
+
 /* Restart */
 	.globl Restart
 Restart:
-	EXCEPTION_HANDLER (INTERRUPT_BASE, IPL_PSW_OLD, RestartException)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, IPL_PSW_OLD)
+	EXCEPTION_CALL_C (RestartException)
+	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 /* Machine Check */
 	.globl MachineCheck
 MachineCheck:
-	EXCEPTION_HANDLER (INTERRUPT_BASE, MACH_PSW_OLD, MachineCheckException)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, MACH_PSW_OLD)
+	EXCEPTION_CALL_C (MachineCheckException)
+	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 /* Supervisor Call */
+#define NR_syscalls	256
 	.global SupervisorCall
 SupervisorCall:
-	EXCEPTION_HANDLER (INTERRUPT_BASE, SVC_PSW_OLD, SupervisorCallException) 
+	EXCEPTION_PROLOG (INTERRUPT_BASE, SVC_PSW_OLD) 
+	SLR	r2,r2			/* put zero in r2 */
+	LH	r2,138(,0)		/* load interruption code */
+	LTR	r2,r2			/* is r2 zero ? */
+	BZ	3f			/* branch if zero */
+	HALT (INTERRUPT_BASE)		/* stop the machine */
+3:
+	L	r1,0x118(sp)		/* get syscall number */
+	LA	r2,NR_syscalls(,0)	/* max of NR_syscalls */
+	SLR	r2,r1			/* syscall must be less than NR */
+	BP	4f			/* valid syscall ? */
+	LA	r15,ENOSYSCALL(,0)	/* load r15 with errno */
+	ST	r15,0x110(,sp)		/* return r15 to caller */
+	ST	r1,0x118(,sp)		/* return r1 to caller */
+	EXCEPTION_EPILOG (INTERRUPT_BASE)	/* return from interrupt */
+4:
+	L	r2,=A(sys_call_table)	/* load address of sys call table */
+	L	r15,0(r2,r1)		/* load address of C routine */
+	STM     r3,r10,0x120(sp)	/* sys call args in regs */
+	LA	r11,0x128(,sp)		/* pointer to args on stack */
+	LA	r1,0x144(,sp)		/* pointer to returned value */
+	BASR	lr,r15			/* jump to C routine */
+	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 /* Program Interruption */
 	.global ProgramCheck
 ProgramCheck:
-	EXCEPTION_HANDLER (INTERRUPT_BASE, PROG_PSW_OLD, ProgramCheckException)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, PROG_PSW_OLD)
+	EXCEPTION_CALL_C (ProgramCheckException)
+	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 /* External */
 	.global External
 External:
-	EXCEPTION_HANDLER (INTERRUPT_BASE, EXTERN_PSW_OLD, ExternalException)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, EXTERN_PSW_OLD)
+	EXCEPTION_CALL_C (ExternalException)
+	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 /* Input Output */
 	.global InputOutput
 InputOutput:
-	EXCEPTION_HANDLER (INTERRUPT_BASE, IO_PSW_OLD, InputOutputException)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, IO_PSW_OLD)
+	EXCEPTION_CALL_C (InputOutputException)
+	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 
 /*
@@ -216,3 +282,208 @@ swapper_pg_dir:
 	.globl	cmd_line
 cmd_line:
 	.space	512
+
+/* The syscall table is copied from the powerpc code; it should match
+ * the table in <asm/unistd.h> which was copied from powerpc code 
+ * XXX might be a better deal to use the alpha syscall table... ??? XXX
+ * XXX it needs to be hammered into shape for the i370
+ */
+	.data
+	.align 4
+	.globl	sys_call_table
+sys_call_table:
+	.long sys_ni_syscall	/* 0  -  old "setup()" system call */
+	.long sys_exit
+//	.long sys_fork
+	.long sys_read
+	.long sys_write
+	.long sys_open		/* 5 */
+	.long sys_close
+	.long sys_waitpid
+	.long sys_creat
+	.long sys_link
+	.long sys_unlink	/* 10 */
+//	.long sys_execve
+	.long sys_chdir
+	.long sys_time
+	.long sys_mknod
+	.long sys_chmod		/* 15 */
+	.long sys_lchown
+	.long sys_ni_syscall			/* old break syscall holder */
+	.long sys_stat
+	.long sys_lseek
+	.long sys_getpid	/* 20 */
+	.long sys_mount
+	.long sys_oldumount
+	.long sys_setuid
+	.long sys_getuid
+	.long sys_stime		/* 25 */
+//	.long sys_ptrace
+	.long sys_alarm
+	.long sys_fstat
+//	.long sys_pause
+	.long sys_utime		/* 30 */
+	.long sys_ni_syscall			/* old stty syscall holder */
+	.long sys_ni_syscall			/* old gtty syscall holder */
+	.long sys_access
+	.long sys_nice
+	.long sys_ni_syscall	/* 35 */	/* old ftime syscall holder */
+	.long sys_sync
+	.long sys_kill
+	.long sys_rename
+	.long sys_mkdir
+	.long sys_rmdir		/* 40 */
+	.long sys_dup
+//	.long sys_pipe
+	.long sys_times
+	.long sys_ni_syscall			/* old prof syscall holder */
+	.long sys_brk		/* 45 */
+	.long sys_setgid
+	.long sys_getgid
+	.long sys_signal
+	.long sys_geteuid
+	.long sys_getegid	/* 50 */
+	.long sys_acct
+	.long sys_umount			/* recycled never used phys() */
+	.long sys_ni_syscall			/* old lock syscall holder */
+	.long sys_ioctl
+	.long sys_fcntl		/* 55 */
+	.long sys_ni_syscall			/* old mpx syscall holder */
+	.long sys_setpgid
+	.long sys_ni_syscall			/* old ulimit syscall holder */
+//	.long sys_olduname
+	.long sys_umask		/* 60 */
+	.long sys_chroot
+	.long sys_ustat
+	.long sys_dup2
+	.long sys_getppid
+	.long sys_getpgrp	/* 65 */
+	.long sys_setsid
+//	.long sys_sigaction
+	.long sys_sgetmask
+	.long sys_ssetmask
+	.long sys_setreuid	/* 70 */
+	.long sys_setregid
+//	.long sys_sigsuspend
+	.long sys_sigpending
+	.long sys_sethostname
+	.long sys_setrlimit	/* 75 */
+	.long sys_getrlimit
+	.long sys_getrusage
+	.long sys_gettimeofday
+	.long sys_settimeofday
+	.long sys_getgroups	/* 80 */
+	.long sys_setgroups
+//	.long ppc_select
+	.long sys_ni_syscall
+	.long sys_symlink
+	.long sys_lstat
+	.long sys_readlink	/* 85 */
+	.long sys_uselib
+	.long sys_swapon
+	.long sys_reboot
+	.long old_readdir
+//	.long sys_mmap		/* 90 */
+	.long sys_munmap
+	.long sys_truncate
+	.long sys_ftruncate
+	.long sys_fchmod
+	.long sys_fchown	/* 95 */
+	.long sys_getpriority
+	.long sys_setpriority
+	.long sys_ni_syscall			/* old profil syscall holder */
+	.long sys_statfs
+	.long sys_fstatfs	/* 100 */
+//	.long sys_ioperm
+	.long sys_socketcall
+	.long sys_syslog
+	.long sys_setitimer
+	.long sys_getitimer	/* 105 */
+	.long sys_newstat
+	.long sys_newlstat
+	.long sys_newfstat
+//	.long sys_uname
+//	.long sys_iopl		/* 110 */
+	.long sys_vhangup
+	.long sys_idle
+//	.long sys_vm86
+	.long sys_wait4
+	.long sys_swapoff	/* 115 */
+	.long sys_sysinfo
+//	.long sys_ipc
+	.long sys_fsync
+//	.long sys_sigreturn
+//	.long sys_clone		/* 120 */
+	.long sys_setdomainname
+	.long sys_newuname
+//	.long sys_modify_ldt
+	.long sys_adjtimex
+	.long sys_mprotect	/* 125 */
+	.long sys_sigprocmask
+	.long sys_create_module
+	.long sys_init_module
+	.long sys_delete_module
+	.long sys_get_kernel_syms	/* 130 */
+	.long sys_quotactl
+	.long sys_getpgid
+	.long sys_fchdir
+	.long sys_bdflush
+	.long sys_sysfs		/* 135 */
+	.long sys_personality
+	.long sys_ni_syscall	/* for afs_syscall */
+	.long sys_setfsuid
+	.long sys_setfsgid
+	.long sys_llseek	/* 140 */
+        .long sys_getdents
+//	.long ppc_select
+	.long sys_ni_syscall
+	.long sys_flock
+	.long sys_msync
+	.long sys_readv		/* 145 */
+	.long sys_writev
+	.long sys_getsid
+	.long sys_fdatasync
+	.long sys_sysctl
+	.long sys_mlock		/* 150 */
+	.long sys_munlock
+	.long sys_mlockall
+	.long sys_munlockall
+	.long sys_sched_setparam
+	.long sys_sched_getparam	/* 155 */
+	.long sys_sched_setscheduler
+	.long sys_sched_getscheduler
+	.long sys_sched_yield
+	.long sys_sched_get_priority_max
+	.long sys_sched_get_priority_min  /* 160 */
+	.long sys_sched_rr_get_interval
+	.long sys_nanosleep
+	.long sys_mremap
+	.long sys_setresuid
+	.long sys_getresuid	/* 165 */
+	.long sys_query_module
+	.long sys_poll
+	.long sys_nfsservctl
+	.long sys_setresgid
+	.long sys_getresgid	/* 170 */
+	.long sys_prctl
+//	.long sys_rt_sigreturn
+	.long sys_rt_sigaction
+	.long sys_rt_sigprocmask	
+	.long sys_rt_sigpending	/* 175 */
+	.long sys_rt_sigtimedwait
+	.long sys_rt_sigqueueinfo
+//	.long sys_rt_sigsuspend
+	.long sys_pread
+	.long sys_pwrite	/* 180 */
+	.long sys_chown
+	.long sys_getcwd
+	.long sys_capget
+	.long sys_capset
+//	.long sys_sigaltstack	/* 185 */
+	.long sys_sendfile
+	.long sys_ni_syscall		/* streams1 */
+	.long sys_ni_syscall		/* streams2 */
+	.space (NR_syscalls-188)*4
+
+
+/* =========================== end of file ============================== */

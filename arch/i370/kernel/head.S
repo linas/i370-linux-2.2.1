@@ -1,28 +1,44 @@
+/*
+ * implementation of startup code for ESA/390
+ */
 
-/* XXX totally bogus */
-
-.using	r0
-	
 /* start of text section */
         .text
         .globl  _stext
 _stext:
 
 /* first instruction executed is here */
-/* at this point we expect to have the following registers 
- * to contain valid values:
- * r3 -- base register
- * r4 -- page origin table
- * r13 -- stack pointer
+/* 
+ * We set up just enough to let a C lang call to be made.
+ * Basically, this means just reserving some space for 
+ * a bogus stack (to which will be written garbage data)
+ * and making r13 point at it. That's all, and we can call.
  */
+	.data
+	.balign	8
+.LSTACK:
+	.org	.+148, 0xd0	// all stack, no frame
+	.balign	8
 
-        .text
+        .text			// back to the text section
 	.globl	_start
 _start:
-	BAS	r14, start_kernel
+	.using	.,r15		// use r15 as base register
+	BASR	r15,0		// load r15 with PSW 
+	B	.LSTART-_start	// jump over next word
+.LLEN:
+	.long	.LSTACK		// address of stack
+.LSTART:
+	L	sp,.LLEN-_start(0,r15)	// load address of stack into r13
+	L	r15,=A(start_kernel)	// load address of C routine
+	BASR	lr,r15		// jump to C routine
 
+	.ltorg			// dump literal pool
+
+/* ================================================================ */
 /*
  * Exception vectors.
+ * XXX currently totally bogus code
  */
 
 

@@ -46,37 +46,19 @@
 #define PRG_SAVE_CTX_CODE       0xe48
 #define PRG_SAVE_CTX_TRANS      0xe4c
 #define PRG_SAVE_CTX_C12        0xe50
- 
+
+/* TASK_STRUCT_SIZE should really be sizeof(struct task_struct) except that we need
+ * to use this in assembly code.  So we're going to pad it a bit, and go from 
+ * there. Last I measured, sizeof(struct task_struct) was 768 (!)   
+*/
+#define TASK_STRUCT_SIZE	1024 
+
 #define OFFSET_KREGS    0xef8   /* Offset to kernel register pointer */
 #define OFFSET_KSP      0xefc   /* Offset to kernel stack pointer */
 #define INTERRUPT_BASE	0xf00	/* Interrupt scratch area */
  
 #define PC_INTERRUPT_BASE       0xf80   /* PC Interrupt scratch area */
  
-/* these defines map the struct _i370_interrupt_state_s in <asm/ptrace.h> */
-#define IR_PSW          0x0
-#define IR_R11          0x8
-#define IR_R12          0xc
-#define IR_R13          0x10
-#define IR_R14          0x14
-#define IR_R15          0x18
-#define IR_R0           0x1c
-#define IR_R1           0x20
-#define IR_R2           0x24
-#define IR_R3           0x28    
-#define IR_R4           0x2c
- 
-#define IR_R5           0x30
-#define IR_R6           0x34
-#define IR_R7           0x38
-#define IR_R8           0x3c
-#define IR_R9           0x40
-#define IR_R10          0x44
- 
-#define IR_CR0          0x48
-#define IR_CR1          0x4c
-#define IR_OLDREGS      0x50
-
 /*------------------------------------------------------------*/
 /* External Interruption Codes */
 /*------------------------------------------------------------*/
@@ -301,8 +283,8 @@ struct thread_struct {
 
 #define init_task	(init_task_union.task)
 
-/* the initial stack pointer is 160 bytes down from top of stack */
-#define init_stack	(&init_task_union.stack[2048-40])
+/* the initial stack pointer is just above the top of the task struct */
+#define init_stack	(((unsigned long)(&init_task_union.stack)) + TASK_STRUCT_SIZE)
 
 #define INIT_SP		init_stack
 

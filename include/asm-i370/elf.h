@@ -64,6 +64,10 @@ typedef elf_fpreg_t elf_fpregset_t[ELF_NFPREG];
 
 #define ELF_PLATFORM	(NULL)
 
+/* The i370 stack will grow upwards; thus the mm stack flags need 
+    to indicate this */
+#define VM_STACK_FLAGS 0x0277
+
 #ifdef __KERNEL__
 #define SET_PERSONALITY(ex, ibcs2) \
 	current->personality = (ibcs2 ? PER_SVR4 : PER_LINUX)

@@ -92,35 +92,49 @@ union _i370_cr6_u {
 	unsigned long raw;
 };
 typedef union _i370_cr6_u cr6_t;
+#endif /* __ASSEMBLY__ */
 
 /* ---------------------------------------------------------------- */
 /* The current i370-elf stack entry.  This corresponds to 
  * what the current gcc/egcs generates, but is subject to 
- * change (!?).  Currently, it appears to be largely MVS 
- * compatible.  We could save 64 bytes by chopping out the 
- * unused x's between 80 and 140.
+ * change (!?).  
  *
- * Function args immediately follow the stack; upon
- * subroutine entry, r11 is pointing at this area.
+ * Function args immediately follow the stack; after that
+ * come local variables.  Normally, r13 points at the base 
+ * of the stack, while r11 points just after the top.
  *
  * If the subroutine returns by value something larger
  * then 4 bytes, then the caller should reserve space
  * for the returned value; upon entry, r1 points at
  * the this area. Returned values 4 bytes or smaller
- * are returned in r15, else r15 set to point at the '
+ * are returned in r15, else r15 is set to point at the
  * returned value.
  *
- * r13 is the stack pointer
+ * r11 is the (top of the) stack pointer
+ * r13 is the frame pointer (aka bottom of the stack).
  * r10 is the static chain register
  * r12 is the .data address literal base pointer
  * r3  is the .text address literal (branch) base register
- * r4  is base table origin pointer
+ * r1 is the struct value return pointer
+ * r14 is the link register
+ * r15 is the value return register
  */
 
+/* The MIN_STACK_SIZE is the smallest possible stack size: 
+ * just the size of struct i370_elf_stack, and no args, no local vars.
+ * The MAX_STACK_SIZE is the largest possible stack size: 
+ * the size of struct i370_elf_stack, and 100 args (of 4 bytes each)
+ * This limit on the max number of arguments sounds reasonable, right !?!?
+ */
+#define MIN_STACK_SIZE 88
+#define MAX_STACK_SIZE 488
+
+
+#ifndef __ASSEMBLY__
 struct _i370_elf_stack_s {
-	unsigned long	eyecatcher;		/* 0 */
-	unsigned long	caller_sp;		/* 4 */
-	unsigned long	callee_sp;		/* 8 */
+	unsigned long	page_table;		/* 0 */
+	unsigned long	unused1;		/* 4 */
+	unsigned long	caller_sp;		/* 8 */
 	unsigned long	caller_r14;		/* 12 */
 	unsigned long	caller_r15;		/* 16 */
 	unsigned long	caller_r0;		/* 20 */
@@ -134,27 +148,12 @@ struct _i370_elf_stack_s {
 	unsigned long	caller_r8;		/* 52 */
 	unsigned long	caller_r9;		/* 56 */
 	unsigned long	caller_r10;		/* 60 */
-	unsigned long	caller_r11;		/* 64 */
+	unsigned long	callee_sp;		/* 64 */
 	unsigned long	caller_r12;		/* 68 */
-	unsigned long	unused;		 	/* 72 */ 
-	unsigned long	x0;			/* 76 */
-	unsigned long	x1;			/* 80 */
-	unsigned long	x2;			/* 84 */
-	unsigned long	x3;			/* 88 */
-	unsigned long	x4;			/* 92 */
-	unsigned long	x5;			/* 96 */
-	unsigned long	x6;			/* 100 */
-	unsigned long	x7;			/* 104 */
-	unsigned long	x8;			/* 108 */
-	unsigned long	x9;			/* 112 */
-	unsigned long	x10;			/* 116 */
-	unsigned long	x11;			/* 120 */
-	unsigned long	x12;			/* 124 */
-	unsigned long	x13;			/* 128 */
-	unsigned long	x14;			/* 132 */
-	unsigned long	x15;			/* 136 */
-	unsigned long	x16;			/* 140 */
-	unsigned long	scratch;		/* 144 */
+	unsigned long	unused2;	 	/* 72 */ 
+	unsigned long	unused3;		/* 76 */
+	unsigned long	scratch1;		/* 80 */
+	unsigned long	scratch2;		/* 84 */
 };
 typedef struct _i370_elf_stack_s i370_elf_stack_t;
 
@@ -189,7 +188,7 @@ typedef struct _i370_irregs_s irregs_t;
  *
  * This struct is created and manipulated with assembly code in 
  * head.S and therefore must not be changed without making corresponding
- * changes in head.S
+ * changes in head.S (such as SF_SIZE)
  */
 typedef struct _i370_interrupt_state_s i370_interrupt_state_t;
 
@@ -206,7 +205,6 @@ struct _i370_interrupt_state_s {
 //	unsigned long result;   /* Result of a system call */
 };
 
-
 #define pt_regs _i370_interrupt_state_s
 
 #define INIT_REGS { 			\
@@ -215,13 +213,41 @@ struct _i370_interrupt_state_s {
 	 0,0,0,0,0,0,0,0}, /* irregs */	\
 	0,0, /* cr */			\
 	0}
+#endif /* __ASSEMBLY__ */
 
+/* These defines map the struct _i370_interrupt_state_s .
+ * This is used by the assembly code to find things.
+ */
+#define IR_PSW          0x0
+#define IR_R11          0x8
+#define IR_R12          0xc
+#define IR_R13          0x10
+#define IR_R14          0x14
+#define IR_R15          0x18
+#define IR_R0           0x1c
+#define IR_R1           0x20
+#define IR_R2           0x24
+#define IR_R3           0x28    
+#define IR_R4           0x2c
+ 
+#define IR_R5           0x30
+#define IR_R6           0x34
+#define IR_R7           0x38
+#define IR_R8           0x3c
+#define IR_R9           0x40
+#define IR_R10          0x44
+ 
+#define IR_CR0          0x48
+#define IR_CR1          0x4c
+#define IR_OLDREGS      0x50
+
+#ifndef __ASSEMBLY__
 /* ---------------------------------------------------------------- */
 
 #define instruction_pointer(regs) (((regs)->psw.addr) & 0x7fffffff)
 #define user_mode(regs) ((regs)->psw.flags & 0x10000)
 
-#endif
+#endif /* __ASSEMBLY__ */
 
 #endif
 

@@ -9,7 +9,7 @@
   is permitted under the obligations of the GNU General Public Licence.
   See file COPYRIGHT for details. There is NO warranty.
 
-  Date: $Id: string.h,v 1.3 1999/09/19 17:22:29 linas Exp $
+  Date: $Id: string.h,v 1.4 1999/10/06 03:48:18 linas Exp $
   Known Bugs: Generally, it is not checked for architecturally given
         length restrictions. 
   Changes:
@@ -146,15 +146,10 @@ size_t strlen (const char *head)
   return length;
 };
 
-#endif // STRING_INLINES
-#endif // STRING_FEATURE
+#endif /* STRING_INLINES */
+#endif /* STRING_FEATURE */
 
 extern int strcasecmp(const char *, const char *);
 
-#endif // STRING_H
-
-
-
-
-
+#endif /* STRING_H */
 

@@ -81,7 +81,11 @@ struct vm_area_struct {
 #define VM_LOCKED	0x2000
 #define VM_IO           0x4000  /* Memory mapped I/O or similar */
 
+#ifndef CONFIG_390
 #define VM_STACK_FLAGS	0x0177
+#else
+/* The i370 stack grows up ... VM_STACK_FLAGS moved to asm/a.out.h */
+#endif
 
 /*
  * mapping from the currently active vm_flags protection bits (the

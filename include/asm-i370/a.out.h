@@ -1,8 +1,16 @@
 #ifndef __I370_A_OUT_H__
 #define __I370_A_OUT_H__
 
-/* grabbed from the intel stuff  */   
+/* The stack top will be at the very highest possible memory 
+   on the 31-bit machines: at 2GB */
 #define STACK_TOP TASK_SIZE
+
+/* The i370 stack will grow upwards; thus the mm stack flags need
+    to indicate this */
+#define VM_STACK_FLAGS 0x0277
+
+/* currently 4meg  XXX hack alert .... */
+#define I370_STACK_SIZE 0x400000
 
 struct exec
 {

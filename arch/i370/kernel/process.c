@@ -108,7 +108,8 @@ int check_stack(struct task_struct *tsk)
 
 #if 1	
 	/* check amount of free stack */
-	for ( i = (unsigned long *)task_top(tsk) ; i < kernel_stack_top(tsk) ; i++ )
+	for ( i = (unsigned long *)task_top(tsk) ; 
+		i < (unsigned long * ) kernel_stack_top(tsk) ; i++ )
 	{
 		if ( !i )
 			printk("check_stack(): i = %p\n", i);
@@ -117,7 +118,7 @@ int check_stack(struct task_struct *tsk)
 			/* only notify if it's less than 900 bytes */
 			if ( (i - (unsigned long *)task_top(tsk))  < 900 )
 				printk("%d bytes free on stack\n",
-				       i - task_top(tsk));
+				       i - (unsigned long *)task_top(tsk));
 			break;
 		}
 	}
@@ -260,16 +261,49 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	return 0;
 }
 
+
+asmlinkage int 
+i370_sys_clone (unsigned long clone_flags,
+                         struct pt_regs *regs)
+{
+        int res;
+	printk ("sys clone \n");
+	asm volatile ("SVC 0xbb"); // fault on purpose
+        // lock_kernel();
+        res = do_fork(clone_flags, regs->gpr[13], regs);
+
+#ifdef __SMP__
+        /* When we clone the idle task we keep the same pid but
+         * the return value of 0 for both causes problems.
+         * -- Cort
+         */
+        if ((current->pid == 0) && (current == &init_task))
+                res = 1;
+#endif /* __SMP__ */
 /*
- * i370_kernel_thread ...
- * I think this one needs to copy  ...?
+ * XXX not clear on this .. won't the child be returning with the kernel
+ * already unlocked ?? 
+ */
+        // unlock_kernel();
+        return res;
+}
+
+/*
+ * i370_kernel_thread ... creates a new kernel thread.
+ * implements the usual fork-exec style creation.
+ * 
  */
 
 long 
 i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)  
 {
-	printk ("kernel_thread\n");
-	asm volatile ("SVC 0xbb"); // fault
+	long pid;
+	printk ("create kernel_thread\n");
+	asm volatile ("SVC 0xbb"); // fault on purpose
+	// pid = i370_sys_clone (flags, xxx);
+        if (pid) return pid;
+	fn (args);
+	// i370_sys_exit();  XXX !!!??
 	return 0;
 }
 

@@ -11,7 +11,7 @@
 extern inline unsigned long _get_SP(void)
 {
         unsigned long rc;
-        asm volatile ("LA	%0,0(,sp)" : "=r" (rc) : );
+        asm volatile ("LR	%0,sp" : "=r" (rc) : );
         return rc;
 }
 
@@ -28,7 +28,7 @@ extern inline void _set_SP (unsigned long newsp)
 extern inline unsigned long _get_TCA(void)
 {
         unsigned long rc;
-        asm volatile ("LA	%0,0(,tca)" : "=r" (rc) : );
+        asm volatile ("LR	%0,tca" : "=r" (rc) : );
         return rc;
 }
 
@@ -36,7 +36,7 @@ extern inline unsigned long _get_TCA(void)
 /* use with caution */
 extern inline void _set_TCA (unsigned long newtca)
 {
-        asm volatile ("LR	sp,%0" : : "r" (newtca) : "memory");
+        asm volatile ("LR	tca,%0" : : "r" (newtca) : "memory");
 }
 
 /* -------------------------------------------------------- */

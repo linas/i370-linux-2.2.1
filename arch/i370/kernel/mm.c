@@ -87,10 +87,6 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 #endif /* CONFIG_VM */
 #endif /* CONFIG_BLK_DEV_INITRD */
 
-	/* Mark the first page RW since we need to put interrupt stuff there.
-	 * Low address protection is turned on later, below */
-	_sske (KDATA_STORAGE_KEY, 0x0);
-
 	for (addr = 0x0; addr < end_mem; addr += PAGE_SIZE) 
 	{
 		if (addr < (ulong) start_mem)
@@ -143,6 +139,10 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 			 _sske (KDATA_STORAGE_KEY, addr);
 		}
 	}
+
+	/* Mark the first page RW since we need to put interrupt stuff there.
+	 * Low address protection is turned on later, below */
+	_sske (KDATA_STORAGE_KEY, 0x0);
 
 	/* Take away write privledges from text pages. */
 	_spka (KDATA_STORAGE_KEY);

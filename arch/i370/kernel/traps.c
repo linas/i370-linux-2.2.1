@@ -422,6 +422,9 @@ __initfunc(void i370_trap_init (int key))
 	unsigned long long clock_reset;
 	unsigned long *sz;
 	psw_t psw;
+
+	key >>= 4;
+	key &= 0xf;
 	printk ("trap init with storage key=%d\n", key);
 
 	/* do part of the initialization just once. */
@@ -440,9 +443,6 @@ __initfunc(void i370_trap_init (int key))
 		*(sz-1) = (unsigned long) &(((struct task_struct *) 0) ->tss.ksp);
 		*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.regs);
 	}
-
-	key >>= 4;
-	key &= 0xf;
 
 	/* note that all interrupts will run in execution key 6 ... */
 	// install the SVC handler

@@ -23,6 +23,14 @@ extern inline void _set_SP (unsigned long newsp)
 }
 
 /* -------------------------------------------------------- */
+/* Store Clock */
+extern inline unsigned long long _stck (void)
+{
+   unsigned long long tickee;
+   asm volatile ("STCK	%0" : "=m" (tickee) );
+   return tickee;
+}
+
 /* Store Clock Comparator */
 extern inline unsigned long long _stckc (void)
 {

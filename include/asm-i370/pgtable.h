@@ -433,7 +433,7 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
 	pmd_t *pmd;
 	pte_t *pte = NULL;
 
-	va &= PAGE_MASK;
+	va &= ADDR_MASK;
 printk ("find_pte for va=0x%lx\n", va);
 	
 	dir = pgd_offset( mm, va );

@@ -109,11 +109,20 @@ setup_trace(unsigned long *memory_start)
 __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long * memory_start_p, unsigned long * memory_end_p))
 {
-	unsigned long ksp;
 	unsigned long mycpu, i_cpu;
 	extern int panic_timeout;
 	extern char _etext[], _edata[], _end[];
 
+	/* XXX XXX XXX Serious bug alert.
+	 * gcc version egcs-2.91.66 19990314 (egcs-1.1.2 release)
+	 * seems to have a bad optimizer bug that 
+	 * transforms 
+	 * init_task.tss.ksp = (unsigned long) &init_task +1024;
+	 * into garbage. The work-around is to set the value
+	 * here, and to increment it later, after a subr call,
+	 * so to trick the compiler into thinking its volatile
+	 */
+	init_task.tss.ksp = (unsigned long) &init_task;
 
 	setup_psa();		/*  */
 
@@ -128,13 +137,13 @@ __initfunc(void setup_arch(char **cmdline_p,
 	memset(cpu_details, 0, sizeof(cpu_details));
 	mycpu = _stap();
 	cpu_details[0].CPU_address = mycpu;
-	sprintf(cpu_details[0].CPU_name,"S390%03d",mycpu);
+	sprintf(cpu_details[0].CPU_name,"S390%03ld",mycpu);
 	cpu_details[0].CPU_status  = 0;
 	for (i_cpu = 1; i_cpu < NR_CPUS; i_cpu++) {
 		if (i_cpu != mycpu) {
 			if (_sigp(i_cpu, SIGPSENS) != 3) {
 				cpu_details[i_cpu].CPU_address = i_cpu;
-				sprintf(cpu_details[i_cpu].CPU_name,"S390%03d",i_cpu);
+				sprintf(cpu_details[i_cpu].CPU_name,"S390%03ld",i_cpu);
 				cpu_details[i_cpu].CPU_status = CPU_stopped;
 			}
 			else
@@ -172,9 +181,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 	initrd_end    =  0x500000;  // 5M
 
 	/* init_task ksp hasn't been set & its bogus; set it */
-	ksp = init_stack;
-	init_task.tss.ksp = ksp ;
-	init_task.tss.kstp = ksp + MIN_STACK_SIZE;
+	init_task.tss.ksp += TASK_STRUCT_SIZE;
 
 	setup_trace(memory_start_p);
 
@@ -213,10 +220,10 @@ get_cpuinfo(char *buffer)
 {
 	unsigned long len = 0, i_cpu;
 
-	len += sprintf(len+buffer,"Processor: %08X\n",CPUID);
+	len += sprintf(len+buffer,"Processor: %08lX\n", (unsigned long) CPUID);
 	for (i_cpu = 0; i_cpu < NR_CPUS; i_cpu++) {
 		if (cpu_details[i_cpu].CPU_status != CPU_inoprtv) {
-			len += sprintf(len+buffer,"CPU: %s Address: %04d Status: %08X\n",
+			len += sprintf(len+buffer,"CPU: %s Address: %04ld Status: %08lX\n",
 				cpu_details[i_cpu].CPU_name,
 				cpu_details[i_cpu].CPU_address,
 				cpu_details[i_cpu].CPU_status);

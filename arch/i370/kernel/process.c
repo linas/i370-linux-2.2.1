@@ -141,11 +141,21 @@ int check_stack(struct task_struct *tsk)
 	/* check if stored ksp is bad */
 	if ( (tsk->tss.ksp > stack_top) || (tsk->tss.ksp < stack_bot) )
 	{
-		printk("stack out of bounds: %s/%d\n"
+		printk("stack pointer out of bounds: %s/%d\n"
 		       "    stack_bot %08lx ksp %08lx stack_top %08lx\n",
 		       tsk->comm,tsk->pid,
 		       stack_bot, tsk->tss.ksp, stack_top);
 		ret |= 2;
+	}
+	
+	/* check if stored kstp is bad */
+	if ( (tsk->tss.kstp > stack_top) || (tsk->tss.kstp < stack_bot) )
+	{
+		printk("stack top pointer out of bounds: %s/%d\n"
+		       "    stack_bot %08lx kstp %08lx stack_top %08lx\n",
+		       tsk->comm,tsk->pid,
+		       stack_bot, tsk->tss.kstp, stack_top);
+		ret |= 4;
 	}
 	
 	/* check if stack ptr RIGHT NOW is bad */
@@ -155,17 +165,27 @@ int check_stack(struct task_struct *tsk)
 		       "    stack_bot %08lx sp %08lx stack_top %08lx\n",
 		       current->comm,current->pid,
 		       stack_bot, _get_SP(), stack_top);
-		ret |= 4;
+		ret |= 8;
+	}
+
+	/* check if stack ptr RIGHT NOW is bad */
+	if ( (tsk == current) && ((_get_STP() > stack_top ) || (_get_STP() < stack_bot)) )
+	{
+		printk("current stack top ptr out of bounds: %s/%d\n"
+		       "    stack_bot %08lx stp %08lx stack_top %08lx\n",
+		       current->comm,current->pid,
+		       stack_bot, _get_STP(), stack_top);
+		ret |= 0x10;
 	}
 
 	/* check amount of free stack */
-	if ( 3000 > (stack_top - tsk->tss.ksp) )
+	if ( 3000 > (stack_top - tsk->tss.kstp) )
 	{
 		printk("low on stack space: %s/%d\n"
 		       "    stack_bot %08lx ksp %08lx stack_top %08lx\n",
 		       tsk->comm,tsk->pid,
-		       stack_bot, tsk->tss.ksp, stack_top);
-		ret |= 8;
+		       stack_bot, tsk->tss.kstp, stack_top);
+		ret |= 0x20;
 	}
 	
 	if (ret)
@@ -256,7 +276,7 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 // A non-zero return value indicates an error.
 
 int
-switch_to(struct task_struct *prev, struct task_struct *new)
+switch_to(struct task_struct *prev, struct task_struct *next)
 {
 	struct thread_struct *new_tss, *old_tss;
 
@@ -264,19 +284,19 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 #ifdef CHECK_STACK
         check_stack(prev);
-        check_stack(new);
+        check_stack(next);
 #endif /* CHECK_STACK */
 
 #define SHOW_TASK_SWITCHES
 #ifdef SHOW_TASK_SWITCHES
 	printk("task switch ");
-        printk("%s/%d -> %s/%d PSW 0x%lx 0x%lx cpu %d root %p/%p\n",
+        printk("%s/%d -> %s/%d PSW 0x%lx 0x%lx cpu %d \n",
                prev->comm,prev->pid,
-               new->comm,new->pid,
-               new->tss.regs->psw.flags,
-               new->tss.regs->psw.addr,
-               new->processor,
-               new->fs->root,prev->fs->root);
+               next->comm,next->pid,
+               next->tss.regs->psw.flags,
+               next->tss.regs->psw.addr,
+               next->processor);
+	printk ("current sp=%x next sp=%x\n", _get_SP(), next->tss.ksp);
 #endif
 #ifdef __SMP__
         prev->last_processor = prev->processor;
@@ -284,8 +304,8 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 	
 #endif /* __SMP__ */
 
-        old_tss = &current->tss;
-        new_tss = &new->tss;
+        old_tss = &prev->tss;
+        new_tss = &next->tss;
 
 	/* save and restore flt point regs.  We do this here because 
 	 * it is NOT done at return from interrupt (in order to save
@@ -293,7 +313,7 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 	_store_fpregs (old_tss->fpr);
 	_load_fpregs (new_tss->fpr);
 
-	current = new;
+	current = next;
 
 	/* switch control registers */
 	/* cr1 contains the segment table origin */
@@ -301,6 +321,8 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 	/* switch kernel stack pointers */
 	old_tss->ksp = _get_SP();
+	old_tss->kstp = _get_STP();
+	_set_STP (new_tss->kstp);
 	_set_SP (new_tss->ksp);
 
 	/* purge TLB (XXX is this really needed here ???) */
@@ -381,7 +403,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
             struct task_struct * p, struct pt_regs * regs)
 {
 	unsigned long srctop, dsttop;
-	i370_elf_stack_t *srcsp, *dstsp, *this_frame;
+	i370_elf_stack_t *srcsp, *dstsp;
+	i370_elf_stack_t *this_frame, *this_frame_top;
 	i370_elf_stack_t *lastsrc, *lastdst;
 	void *srcbase, *dstbase;
 	unsigned long delta;
@@ -397,10 +420,20 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	dsttop = kernel_stack_top (p);
 
 	this_frame = (i370_elf_stack_t *) _get_SP();
+        this_frame_top = this_frame;
         this_frame = (i370_elf_stack_t *) (this_frame->caller_sp);
 	srcsp = this_frame;
 
 	delta = srctop - dsttop;
+
+	/* switch_to() grabs the current ksp out of tss.ksp */
+	p->tss.ksp = ((unsigned long) this_frame) - delta;
+	p->tss.kstp = ((unsigned long) this_frame_top) - delta;
+
+#ifdef CHECK_STACK
+        check_stack(current);
+        check_stack(p);
+#endif /* CHECK_STACK */
 
 	srcbase = (void *) kernel_stack_bot (current);
 	dstbase = (void *) kernel_stack_bot (p);
@@ -415,9 +448,6 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
 	} while (srcsp);
 	lastdst -> caller_sp = 0;
-
-	/* Switch_to grabs the current ksp out of tss.ksp */
-	p->tss.ksp = ((unsigned long) this_frame) - delta;
 
 	/* Interrupt regs are stored on stack as well */
 	srcregs = current->tss.regs;
@@ -495,12 +525,9 @@ asmlinkage int
 i370_sys_fork (void) 
 {
 	int res = 0;
-	printk ("i370_sys_fork(): not implemented \n");
 
 	lock_kernel();
-	// XXX whatever
-	// res = do_fork(SIGCHLD, regs->gpr[1], regs);
-	i370_halt();
+	res = do_fork(SIGCHLD, regs->irregs.r13, regs);
 
 	/* only parent returns here */
 #ifdef __SMP__

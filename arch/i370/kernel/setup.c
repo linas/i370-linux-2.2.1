@@ -173,8 +173,8 @@ __initfunc(void setup_arch(char **cmdline_p,
 
 	/* init_task ksp hasn't been set & its bogus; set it */
 	ksp = init_stack;
-	ksp = ((ksp +7) >>3 ) << 3;
 	init_task.tss.ksp = ksp ;
+	init_task.tss.kstp = ksp + MIN_STACK_SIZE;
 
 	setup_trace(memory_start_p);
 

@@ -1,4 +1,4 @@
-# $Id: config.in,v 1.1 1999/02/08 06:58:47 linas Exp $
+# $Id: config.in,v 1.2 1999/03/06 20:10:32 linas Exp $
 # For a description of the syntax of this configuration file,
 # see the Configure script.
 #
@@ -43,35 +43,71 @@ tristate 'Kernel support for MISC binaries' CONFIG_BINFMT_MISC
 
 bool 'Include kgdb kernel debugger' CONFIG_KGDB
 bool 'Include xmon kernel debugger' CONFIG_XMON
-bool 'Support for early boot text console (BootX only)' CONFIG_BOOTX_TEXT
 
 endmenu
 
-source drivers/block/Config.in
-#source drivers.new/Config.in
+# ====================================================================
+#
+# Block device driver configuration
+#
+mainmenu_option next_comment
+comment 'Block devices'
+
+tristate 'Loopback device support' CONFIG_BLK_DEV_LOOP
+if [ "$CONFIG_NET" = "y" ]; then
+  tristate 'Network block device support' CONFIG_BLK_DEV_NBD
+fi
+bool 'Multiple devices driver support' CONFIG_BLK_DEV_MD
+if [ "$CONFIG_BLK_DEV_MD" = "y" ]; then
+  tristate '   Linear (append) mode' CONFIG_MD_LINEAR
+  tristate '   RAID-0 (striping) mode' CONFIG_MD_STRIPED
+  tristate '   RAID-1 (mirroring) mode' CONFIG_MD_MIRRORING
+  tristate '   RAID-4/RAID-5 mode' CONFIG_MD_RAID5
+fi
+if [ "$CONFIG_MD_LINEAR" = "y" -o "$CONFIG_MD_STRIPED" = "y" ]; then
+  bool '      Boot support (linear, striped)' CONFIG_MD_BOOT
+fi
+tristate 'RAM disk support' CONFIG_BLK_DEV_RAM
+if [ "$CONFIG_BLK_DEV_RAM" = "y" ]; then
+  bool '   Initial RAM disk (initrd) support' CONFIG_BLK_DEV_INITRD
+fi
+tristate 'XT hard disk support' CONFIG_BLK_DEV_XD
+
+# if [ "$CONFIG_BLK_DEV_HD_IDE" = "y" -o "$CONFIG_BLK_DEV_HD_ONLY" = "y" ]; then
+#   define_bool CONFIG_BLK_DEV_HD y
+# else
+#   define_bool CONFIG_BLK_DEV_HD n
+# fi
+
+endmenu
+
+# ====================================================================
 
 if [ "$CONFIG_NET" = "y" ]; then
   source net/Config.in
 fi
 
-if [ "$CONFIG_NET" = "y" ]; then
-  mainmenu_option next_comment
-  comment 'Network device support'
+# ====================================================================
+#
+# Character device configuration
+#
+mainmenu_option next_comment
+comment 'Character devices'
 
-  bool 'Network device support' CONFIG_NETDEVICES
-  if [ "$CONFIG_NETDEVICES" = "y" ]; then
-    source drivers/net/Config.in
-  fi
-  endmenu
+bool 'Virtual terminal' CONFIG_VT
+if [ "$CONFIG_VT" = "y" ]; then
+  bool 'Support for console on virtual terminal' CONFIG_VT_CONSOLE
 fi
 
-
-mainmenu_option next_comment
-comment 'Console drivers'
-source drivers/video/Config.in
+# there are no serial ports, just stub this for now
+tristate 'Standard/generic (dumb) serial support' CONFIG_SERIAL
+if [ "$CONFIG_SERIAL" = "y" ]; then
+   bool '   Support for console on serial port' CONFIG_SERIAL_CONSOLE
+fi
 endmenu
 
-source drivers/char/Config.in
+# ====================================================================
 source fs/Config.in
 
 endmenu
+

@@ -282,7 +282,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
          * be copied to the child ... esp if the parent stack has all sorts
          * of interrupt grabage on it ... 
          */
-	memcpy (dstksp, srcksp, this_frame->stack_top - p->tss.ksp);
+	memcpy (dstksp, srcksp, this_frame->stack_top - srcksp);
 	do {
 		dstsp -> caller_r12 = (unsigned long) &(p->tss.tca[0]);
 		dstsp -> caller_sp = srcsp->caller_sp - delta;
@@ -290,7 +290,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		dstsp -> stack_top = srcsp->stack_top - delta;
 		srcsp = (i370_elf_stack_t *) (srcsp -> stack_top);
 		dstsp = (i370_elf_stack_t *) (dstsp -> stack_top);
-	} while (srcsp != this_frame);
+	} while (srcsp <= this_frame);
 
 	/* switch_to grabs the current ksp out of tss.ksp */
 	p->tss.ksp = ((unsigned long) this_frame) - delta;

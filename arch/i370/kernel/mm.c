@@ -396,8 +396,13 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 		unsigned long va, frm;
 		va = (unsigned long) to;
 		frm = (unsigned long) from;
-		if (va < PAGE_SIZE) 
+		if (va < PAGE_SIZE) {
 			printk(KERN_WARNING "copy_to_user null ptr va=0x%lx\n", va);
+			show_regs (current->tss.regs);
+			print_backtrace (current->tss.regs->irregs.r13);
+			printk ("\nabove was user stack, the kernel stack shown below:\n");
+			print_backtrace (_get_SP());
+		}
 		while (len > 0) {
 			unsigned long off = va & ~PAGE_MASK;
 			unsigned long rlen = PAGE_SIZE - off;
@@ -434,8 +439,13 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 		unsigned long va, too;
 		va = (unsigned long) from;
 		too = (unsigned long) to;
-		if (va < PAGE_SIZE) 
+		if (va < PAGE_SIZE) {
 			printk(KERN_WARNING "copy_from_user null ptr va=0x%lx\n", va);
+			show_regs (current->tss.regs);
+			print_backtrace (current->tss.regs->irregs.r13);
+			printk ("\nabove was user stack, the kernel stack shown below:\n");
+			print_backtrace (_get_SP());
+		}
 		while (len > 0) {
 			unsigned long off = va & ~PAGE_MASK;
 			unsigned long rlen = PAGE_SIZE - off;

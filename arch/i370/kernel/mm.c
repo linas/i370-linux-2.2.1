@@ -175,6 +175,9 @@ __initfunc(void free_initmem(void))
 void si_meminfo(struct sysinfo *val)
 { }
 
+void show_mem(void) 
+{ printk (" show mem not implemented\n"); }
+
       
 /*
  * The context counter has overflowed.

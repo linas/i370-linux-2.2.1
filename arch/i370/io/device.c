@@ -64,7 +64,7 @@ static int i370_doio(int, schib_t *, ccw_t *);
 static int i370_getsid(int, schib_t *, idchar_t *);
 static int i370_getrdc(int, schib_t *, devchar_t *);
 static int i370_getvol_eckd(int, schib_t *, devchar_t *);
-static void register_driver(long, schib_t *, unitblk_t *, idchar_t *);
+static void i370_register_driver(long, schib_t *, unitblk_t *, idchar_t *);
 
 /*================== End of Prototypes =====================*/
 
@@ -207,7 +207,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 			_msch(sid, &schib);
 
 			/*----------------------------------------------------*/
-			/* If we can find a device '009' under VM	     */
+			/* If we can find a device '009' under VM	      */
 			/*----------------------------------------------------*/
 			if ((schib.devno == 0x0009) && (CPUID[0] == 0xff)) {
 				dev_cons	   = devices;
@@ -219,12 +219,11 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 				strncpy(devices->unitname,s390_devices[I_3210].devName,7);
 				devices->unitname[7] = 0x0;
 				devices->unitstat  = UNIT_READY;
+printk ("Device 9 is %s (%d, %d)\n", devices->unitname, devices->unitmajor, devices->unitminor);
 			}
 			else {
 				rc = i370_getsid(sid,&schib,&dev_id);
-
-				if (!rc)
-					register_driver(sid, &schib, devices, &dev_id);
+				if (!rc) i370_register_driver(sid, &schib, devices, &dev_id);
 			}
 			devices++;
 		}
@@ -312,13 +311,13 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 }
 
 /************************************************************/
-/*                                                       */
-/* Name       - i370_getsid.                           */
-/*                                                       */
+/*                                                          */
+/* Name       - i370_getsid.                                */
+/*                                                          */
 /* Function   - Issue a Sense ID to a specific subchannel.  */
-/*           When supported, a device will return its    */
-/*           control unit and model information.        */
-/*                                                       */
+/*           When supported, a device will return its       */
+/*           control unit and model information.            */
+/*                                                          */
 /************************************************************/
 
  
@@ -338,13 +337,13 @@ i370_getsid(int sid, schib_t *schib, idchar_t *id)
 
 	memset(id, 0, sizeof(idchar_t));
 	ioccw[0].flags   = CCW_CC | CCW_SLI;
-	ioccw[0].cmd     = CCW_CMD_SID;	    /* ccw command is read */
+	ioccw[0].cmd     = CCW_CMD_SID;	     /* ccw command is read */
 	ioccw[0].count   = sizeof(idchar_t); /* length of read bfr */
-	ioccw[0].dataptr = id;	/* address of read buffer */
-	ioccw[1].cmd =   CCW_CMD_NOP;	/* ccw is NOOP */
-	ioccw[1].flags = CCW_SLI;	/* Suppress Length Incorrect */
-	ioccw[1].dataptr = 0;	/* buffer = 0 */
-	ioccw[1].count =   1;
+	ioccw[0].dataptr = id;	             /* address of read buffer */
+	ioccw[1].cmd     = CCW_CMD_NOP;	     /* ccw is NOOP */
+	ioccw[1].flags   = CCW_SLI;	     /* Suppress Length Incorrect */
+	ioccw[1].dataptr = 0;	             /* buffer = 0 */
+	ioccw[1].count   = 1;
  
 	rc = i370_doio(sid, schib, ioccw);
  
@@ -352,13 +351,13 @@ i370_getsid(int sid, schib_t *schib, idchar_t *id)
 }
  
 /************************************************************/
-/*                                                       */
-/* Name       - i370_getrdc.                           */
-/*                                                       */
+/*                                                          */
+/* Name       - i370_getrdc.                                */
+/*                                                          */
 /* Function   - Issue a read device characteristics to a    */
-/*           specific subchannel. This information       */
-/*           is used to auto-configure the device.       */
-/*                                                       */
+/*           specific subchannel. This information          */
+/*           is used to auto-configure the device.          */
+/*                                                          */
 /************************************************************/
 
 int     
@@ -520,18 +519,18 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 /*===================== End of Function ====================*/
 
 /************************************************************/
-/*                                                       */
-/* Name       - register_driver.                           */
-/*                                                       */
+/*                                                          */
+/* Name       - i370_register_driver.                       */
+/*                                                          */
 /* Function   - Register a valid device with its appropriate*/
-/*           device driver. Register its usage of its    */
-/*           configured interrupt subclass (loosely      */
-/*           equivalent to an IRQ).                  */
-/*                                                       */
+/*           device driver. Register its usage of its       */
+/*           configured interrupt subclass (loosely         */
+/*           equivalent to an IRQ).                         */
+/*                                                          */
 /************************************************************/
 
 static void
-register_driver(long sid, schib_t *schib,
+i370_register_driver(long sid, schib_t *schib,
                unitblk_t *devices, idchar_t *dev_id)
 {
 	int i_map, i_dev, rc;
@@ -562,9 +561,7 @@ register_driver(long sid, schib_t *schib,
 			s390_devices[i_dev].devName,
 			s390_devices[i_dev].curMinor++);
 
-// this prints garbage to the screen why ??? 
-// printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitmajor, i_dev);
-// printk ("register %s at major=%d i_dev=%d\n",  s390_devices[i_dev].devName, devices->unitmajor, i_dev);
+printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitmajor, i_dev);
 		if (s390_devices[i_dev].drvType == CHRDEV)
 		{
 			rc = register_chrdev(s390_devices[i_dev].major,

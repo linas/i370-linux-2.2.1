@@ -44,22 +44,22 @@ check_bugs(void)
 {
 }
 
-asmlinkage int i370_sys_execve(unsigned long a0, unsigned long a1,
-			       unsigned long a2)
+asmlinkage int i370_sys_execve(unsigned long fname, unsigned long argv,
+			       unsigned long envp)
 {
 	int error;
 	char * filename;
         struct pt_regs *regs;
 
-	printk("i370_sys_execve: name = %s\n", a0);
+	printk("i370_sys_execve: name = %s\n", (char *) fname);
 	lock_kernel();
 	regs = current->tss.regs; 
-	filename = getname((char *) a0);
+	filename = getname((char *) fname);
 	error = PTR_ERR(filename);
 	if (IS_ERR(filename)) {
-		printk("EXECVE Error: name = %s\n",a0);
+		printk("EXECVE Error: name = %s\n", (char *) fname);
 	} else {
-		error = do_execve(filename, (char **) a1, (char **) a2, regs);
+		error = do_execve(filename, (char **) argv, (char **) envp, regs);
 		putname(filename);
 	}
 	unlock_kernel();
@@ -69,30 +69,37 @@ asmlinkage int i370_sys_execve(unsigned long a0, unsigned long a1,
 
 asmlinkage int i370_sys_ptrace (void) 
 { 
+	printk("i370_sys_ptrace: unsupported\n");
 	i370_halt();
 	return 1;
 }
 asmlinkage int i370_sys_sigaction (void) { 
+	printk("i370_sys_sigaction: unsupported\n");
 	i370_halt();
 	return 1;
 }
 asmlinkage int i370_sys_sigsuspend (void) { 
+	printk("i370_sys_sigsuspend: unsupported\n");
 	i370_halt();
 	return 1;
 }
 asmlinkage int i370_sys_rt_sigsuspend (void) { 
+	printk("i370_sys_rt_sigsuspend: unsupported\n");
 	i370_halt();
 	return 1;
 }
 asmlinkage int i370_sys_sigreturn (void) { 
+	printk("i370_sys_sigreturn: unsupported\n");
 	i370_halt();
 	return 1;
 }
 asmlinkage int i370_sys_rt_sigreturn (void) { 
+	printk("i370_sys_rt_sigreturn: unsupported\n");
 	i370_halt();
 	return 1;
 }
 asmlinkage int i370_sys_sigaltstack (void) { 
+	printk("i370_sys_sigalstack: unsupported\n");
 	i370_halt();
 	return 1;
 }

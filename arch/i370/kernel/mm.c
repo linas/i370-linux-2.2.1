@@ -1,6 +1,7 @@
 
 /* 
- * XXX some of what's in this file is very wrong ...
+ * XXX under construction ... what's in this file works for now,
+ * but some of what's in this file is very wrong ...
  */
 
 #include <linux/blk.h>
@@ -34,21 +35,23 @@ extern unsigned char CPUID[8];
 
 __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 {
-   unsigned long addr;
-   int lowpages = 0;
-   int codepages = 0;
-   int datapages = 0;
-   int initpages = 0;
-   int initrdpages = 0;
+	unsigned long addr;
+	int lowpages = 0;
+	int codepages = 0;
+	int datapages = 0;
+	int initpages = 0;
+	int initrdpages = 0;
+	int i;
+	pmd_t *pme;
 
-   printk ("enter mem init startmem=0x%x endmem=0x%x\n", start_mem, end_mem);
-   end_mem &= PAGE_MASK;
-   high_memory = (void *) end_mem;
-   max_mapnr = MAP_NR(high_memory);
+	printk ("enter mem init startmem=0x%x endmem=0x%x\n", start_mem, end_mem);
+	end_mem &= PAGE_MASK;
+	high_memory = (void *) end_mem;
+	max_mapnr = MAP_NR(high_memory);
 
-   /* mark usable pages in the mem_map[] */
-   start_mem = PAGE_ALIGN(start_mem);
-   num_physpages = max_mapnr;      /* RAM is assumed contiguous */
+	/* mark usable pages in the mem_map[] */
+	start_mem = PAGE_ALIGN(start_mem);
+	num_physpages = max_mapnr;      /* RAM is assumed contiguous */
  
 #ifdef CONFIG_BLK_DEV_INITRD
 #ifdef CONFIG_VM
@@ -82,77 +85,84 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 #endif /* CONFIG_VM */
 #endif /* CONFIG_BLK_DEV_INITRD */
 
-   /* mark the first page RO since all vectors have been set up by now */
-   _sske (KTEXT_STORAGE_KEY, 0x0);
+	/* mark the first page RO since all vectors have been set up by now */
+	_sske (KTEXT_STORAGE_KEY, 0x0);
 
-   for (addr = 0x0; addr < end_mem; addr += PAGE_SIZE) 
-   {
-      if (addr < (ulong) start_mem)
-      {
-         /* mark this page as in use by the kernel */
-         set_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);                
-         if (addr < (ulong) _text)
-         {
-            _sske (KTEXT_STORAGE_KEY, addr);
-            lowpages++;
-         }
-         else if (addr < (ulong) _etext)
-         {
-            _sske (KTEXT_STORAGE_KEY, addr);
-            codepages++;
-         }
-         else if (addr >= (ulong) __init_text_begin
-               && addr < (ulong) __init_text_end)
-         {
-            _sske (KTEXT_STORAGE_KEY, addr);
-            initpages++;
-         }
-         else if (addr >= (ulong) __init_data_begin
-               && addr < (ulong) __init_data_end)
-         {
-            _sske (KDATA_STORAGE_KEY, addr);
-            initpages++;
-         }
-         else 
-         {
-            _sske (KDATA_STORAGE_KEY, addr);
-            datapages++;
-         }
-      } else {
-         /* The reserved bit was set previously, in page_init
-          * by free_area_init, below.  Clear the bit now. */
-         clear_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);                
-         atomic_set(&mem_map[MAP_NR(addr)].count, 1);
+	for (addr = 0x0; addr < end_mem; addr += PAGE_SIZE) 
+	{
+		if (addr < (ulong) start_mem)
+		{
+			/* mark this page as in use by the kernel */
+			set_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);					 
+			if (addr < (ulong) _text)
+			{
+				_sske (KTEXT_STORAGE_KEY, addr);
+				lowpages++;
+			}
+			else if (addr < (ulong) _etext)
+			{
+				_sske (KTEXT_STORAGE_KEY, addr);
+				codepages++;
+			}
+			else if (addr >= (ulong) __init_text_begin
+					&& addr < (ulong) __init_text_end)
+			{
+				_sske (KTEXT_STORAGE_KEY, addr);
+				initpages++;
+			}
+			else if (addr >= (ulong) __init_data_begin
+					&& addr < (ulong) __init_data_end)
+			{
+				_sske (KDATA_STORAGE_KEY, addr);
+				initpages++;
+			}
+			else 
+			{
+				_sske (KDATA_STORAGE_KEY, addr);
+				datapages++;
+			}
+		} else {
+			/* The reserved bit was set previously, in page_init
+			 * by free_area_init, below.  Clear the bit now. */
+			clear_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);					 
+			atomic_set(&mem_map[MAP_NR(addr)].count, 1);
 #ifdef CONFIG_BLK_DEV_INITRD
-         if (!initrd_start ||
-              addr < (initrd_start & PAGE_MASK) || addr >= initrd_end) {
-             free_page(addr);
-          } else {
-             initrdpages ++;
-          }
+			if (!initrd_start ||
+				addr < (initrd_start & PAGE_MASK) || addr >= initrd_end) {
+				free_page(addr);
+			 } else {
+				initrdpages ++;
+			 }
 #else  /* CONFIG_BLK_DEV_INITRD */
-          free_page(addr);
+			 free_page(addr);
 #endif /* CONFIG_BLK_DEV_INITRD */
 
-          _sske (KDATA_STORAGE_KEY, addr);
-      }
-   }
+			 _sske (KDATA_STORAGE_KEY, addr);
+		}
+	}
 
-   /* take away write privledges from text pages. */
-   _spka (KDATA_STORAGE_KEY);
+	/* take away write privledges from text pages. */
+	_spka (KDATA_STORAGE_KEY);
 
-   printk("Memory: %luk available "
-          "(%dk code, %dk data, %dk init)\n",
-     (unsigned long) nr_free_pages << (PAGE_SHIFT-10),
-     codepages << (PAGE_SHIFT-10),
-     datapages << (PAGE_SHIFT-10),
-     initpages << (PAGE_SHIFT-10));
+	printk("Memory: %luk available "
+			 "(%dk code, %dk data, %dk init)\n",
+	  (unsigned long) nr_free_pages << (PAGE_SHIFT-10),
+	  codepages << (PAGE_SHIFT-10),
+	  datapages << (PAGE_SHIFT-10),
+	  initpages << (PAGE_SHIFT-10));
 
 #ifdef CONFIG_BLK_DEV_INITRD
-   printk("Init Ramdisk: %luk  [%08lx,%08lx]\n",
-     initrdpages << (PAGE_SHIFT-10),
-     initrd_start, initrd_end);
+	printk("Init Ramdisk: %luk  [%08lx,%08lx]\n",
+	  initrdpages << (PAGE_SHIFT-10),
+	  initrd_start, initrd_end);
 #endif /* CONFIG_BLK_DEV_INITRD */
+
+	/* initialize kernel address translation tables */
+	pme = (pmd_t *) swapper_pg_dir;  
+	for (i=0; i<PTRS_PER_PGD; i++) {
+		pmd_clear (pme);
+		pme ++;
+	}
 }
 
 __initfunc(void free_initmem(void))
@@ -374,7 +384,8 @@ void set_context(int context) {}
 int
 __copy_to_user (void * to, const void * from, unsigned long len)
 {
-	if (__kernel_ok) {
+	/* kernel page tables require no translation */
+	if (current->mm->pgd == swapper_pg_dir) {
 		memcpy (to,from,len);
 		return 0;
 	} else {
@@ -407,7 +418,8 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 int
 __copy_from_user (void * to, const void * from, unsigned long len)
 {
-	if (__kernel_ok) {
+	/* kernel page tables require no translation */
+	if (current->mm->pgd == swapper_pg_dir) {
 		memcpy (to,from,len);
 		return 0;
 	} else {
@@ -440,7 +452,8 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 int __strncpy_from_user(char *dst, const char *src, long count)
 {
 
-	if (__kernel_ok) {
+	/* kernel page tables require no translation */
+	if (current->mm->pgd == swapper_pg_dir) {
 		long  lcl_count;
 		lcl_count = strlen(src);
 		if (count < lcl_count) lcl_count = count;
@@ -497,11 +510,18 @@ int __strncpy_from_user(char *dst, const char *src, long count)
  * load_elf_binary() does the same ...
  */
 
-unsigned long __clear_user(void *addr, unsigned long len)
+/* clear_user(): set a block of bytes to zero */  
+unsigned long 
+__clear_user(void *addr, unsigned long len)
 {
-	/* set a block of bytes to zero */  
-	unsigned long va;
-	va = (unsigned long) addr;
+	unsigned long va = (unsigned long) addr;
+
+	/* if we are using the kernel page tables, 
+	 * there is no translation to be done */
+	if (current->mm->pgd == swapper_pg_dir) {
+		memset (addr, 0, len);
+		return len;
+	}
 	while (len > 0) {
 		pte_t *pte;
 		pte = find_pte (current->mm, va);
@@ -520,6 +540,7 @@ unsigned long __clear_user(void *addr, unsigned long len)
 			va += rlen;
 		}
 	}
+	return len;
 }
 
 /*
@@ -527,17 +548,23 @@ unsigned long __clear_user(void *addr, unsigned long len)
  * Return 0 for error.  
  */
 
-long strlen_user(const char *str)
+long 
+strlen_user(const char *str)
 {
-	unsigned long clen, va;
 	int notdone = 1;
-	clen = 0;
-	va = (unsigned long) str;
+	unsigned long clen = 0;
+	unsigned long va = (unsigned long) str;
+
+	/* if we are using the kernel page tables, 
+	 * there is no translation to be done */
+	if (current->mm->pgd == swapper_pg_dir) {
+		return (strlen(str) + 1);
+	}
 	while (notdone) {
 		pte_t *pte;
 		pte = find_pte (current->mm, va);
 		if (pte_none(*pte)) {
-			printk ("Error: strncpy_from_user: unmaped page \n");
+			printk ("Error: strlen_user: unmaped page \n");
 			i370_halt();
 		} else {
 			unsigned long off = va & ~PAGE_MASK;
@@ -568,6 +595,20 @@ put_user_data(long data, void *addr, long len)
 {
 	pte_t *pte;
 	unsigned long va, ra, off;
+
+	/* kernel page tables require no translation */
+	if (current->mm->pgd == swapper_pg_dir) {
+		if (1 == len) {
+			*((char *) addr) = (char) data;
+		} else
+		if (2 == len) {
+			*((short *) addr) = (short) data;
+		} else
+		if (4 == len) {
+			*((int *) addr) = (int) data;
+		}
+		return;
+	}
 
 	/* find the page table entry for the addr */
 /* XXX note we need to figure out some way of walking the 

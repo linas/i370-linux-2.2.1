@@ -480,7 +480,7 @@ i370_sys_clone (unsigned long clone_flags)
 	struct pt_regs *regs;
         int res;
 
-	printk ("i370_sys_clone \n");
+	printk ("i370_sys_clone flags=0x%x\n", clone_flags);
         lock_kernel();
 	regs = current->tss.regs;
 

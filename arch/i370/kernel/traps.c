@@ -319,10 +319,15 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 	/* clock ticks every 250 picoseconds (actually, every
 	 * microsecond/4K). We want an interrupt every HZ of 
 	 * a second */
-	/* XXX it is more correct to use stckc but on a really slow 
-         * VM day VM can be so overburdened that we never catch up... */
-	/* ticko = _stckc (); */
+
+	/* It is more correct to use stckc as this avoids clock skew.
+	 * However, on VM, if VM is very very overburdened, then we
+	 * risk never catching up.  So use stck for VM ... */
+#ifdef CONFIG_VM
 	ticko = _stck ();
+#else
+	ticko = _stckc (); 
+#endif
 	ticko += (1000000/HZ) << 12;
 	_sckc (ticko);
 	

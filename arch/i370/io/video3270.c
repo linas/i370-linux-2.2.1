@@ -103,10 +103,11 @@ vid3270_putcs(struct vc_data *conp, const unsigned short *s,
 		return;
 	}
 prt:
-	printk("vid3270_putcs %d chars at %d %d:\n", count, y, x);
+	printk("vid3270_putcs %d chars at (%d,%d): ", count, y, x);
 	for(i=0; i<count; i++) {
 		printk ("%c", 0xff & s[i]);
 	} 
+	printk ("\n");
 }
 
 /* ================================================================ */

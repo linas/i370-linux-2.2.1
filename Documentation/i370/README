@@ -27,6 +27,15 @@ Cross-compiling
   build the kernel (vmlinux).  A compressed image can be built by doing
   a 'make zImage' instead of 'make all'.
 
+Lisitngs
+--------
+
+To get an assembly listing w/ embedded source lines, for some c file,
+try, for example:
+
+      make init/main.clst
+      more init/main.clst
+
 
 Running
 -------

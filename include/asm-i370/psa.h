@@ -9,7 +9,7 @@
   is permitted under the obligations of the GNU General Public Licence.
   See file COPYRIGHT for details. There is NO warranty.
   
-  Date: $Id: psa.h,v 1.2 1999/10/07 05:15:14 linas Exp $
+  Date: $Id: psa.h,v 1.3 1999/10/19 07:23:19 linas Exp $
   Data Types:
   Special Variables:
   Known Bugs:
@@ -102,7 +102,7 @@ extern struct PSA _PSA_ ;	/* defined in head.S */
 
 #else  // __ASSEMBLY__
 
-#define _psa_current 0x224	/* 580 */
+#define _psa_current 0x244	/* 580 */
 
 
 #endif // __ASSEMBLY__

@@ -1,6 +1,7 @@
 #ifndef __ASM_SOFTIRQ_H
 #define __ASM_SOFTIRQ_H
 
+#include <linux/stddef.h>
 #include <linux/tasks.h>
 
 #include <asm/atomic.h>

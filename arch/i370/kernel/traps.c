@@ -238,7 +238,7 @@ extern void External (void);
 /*
  * we assume that we initialize traps while in real mode, i.e.
  * i.e. that the fixed storage locations (fsl) at low memory 
- * are hwere they're supposed to be.
+ * are where they're supposed to be.
  */
 
 __initfunc(void trap_init(void))
@@ -252,7 +252,7 @@ __initfunc(void trap_init(void))
 	 * external interrupt handler. Do this by setting the
          * clock comparator to -1.
 	 */
-	clock_reset = 0xffffffffffffffff;
+	clock_reset = 0xffffffffffffffffLL;
 	_sckc (clock_reset);
 
 	/* store the offset between the task struct and the kernel stack
@@ -274,14 +274,5 @@ __initfunc(void trap_init(void))
 	psw.addr = ((unsigned long) External) | (1<<31); 
 	*((psw_t *) EXTERN_PSW_NEW) = psw;
 }
-
-/* ================================================================ */
-
-int _disable_interrupts (void) { return 1;}
-void _enable_interrupts (int x) {}
-void __cli (void) {}
-void _hard_cli (void) {}
-void __sti (void) {}
-void _hard_sti (void) {}
 
 /* ===================== END OF FILE =================================== */

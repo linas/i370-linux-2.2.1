@@ -172,7 +172,7 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 {
 	struct thread_struct *new_tss, *old_tss;
 
-        int s = _disable_interrupts();
+        unsigned long s = __cli ();
 
 #ifdef CHECK_STACK
         check_stack(prev);
@@ -217,7 +217,7 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 
 	// note "s" is from a different stack ... 
-        _enable_interrupts(s);
+        __restore_flags (s);
 }
 
 

@@ -1,11 +1,9 @@
 
 i370 port of the Linux Kernel for the IBM ESA/390 Architecture Mainframes
 -------------------------------------------------------------------------
-This is a silly stupid stunt. Linux on a mainframe? Get real.
+By Linas Vepstas linas@linas.org & others ....
 
-By Linas Vepstas linas@linas.org
-
-Basically nothing works yet.  Never been loaded or run.
+Some things work. Most things don't.
 
 Cross-compiling
 ---------------
@@ -35,4 +33,3 @@ Running
 Load kernel in real mode, set PSW keys to 0.  
 (It will switch to PSW key 3 during boot).
 Kernel expects to load at address 0x10000.
-Traps not yet initialized, you must supply interrupt handlers.

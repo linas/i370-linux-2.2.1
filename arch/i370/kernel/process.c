@@ -489,6 +489,7 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
         // otherwise scheduling doesn't work.
         // pid = do_fork(flags, 0, current->tss.regs);
 	pid = clone (flags);
+	printk ("i370_kernel_thread(): return from clone, pid=%d\n",pid);
         if (pid) return pid;
 	fn (args);
 	while (1) {_exit (1); } 

@@ -10,7 +10,7 @@
  * and the use of r12 (rtca).  Both of these should be fixed,
  * however, if/when this is done, the code below will require
  * major tearup.  Sorry, my fault, but so it goes. --linas
- */
+*/
 
 #include <asm/errno.h>
 #include <asm/processor.h>
@@ -81,6 +81,8 @@ _cinit:
 	ST	r1,116(,rtca)		/* bogosity                       */
 	L	r15,=A(start_kernel)	/* load address of C routine      */
 	BASR	lr,r15			/* jump to C routine              */
+	.drop	.r15
+	.using	.,lr			/* re-establish addressing        */
 	HALT (INTERRUPT_BASE)		/* it's impossible to return here */
 
 	.balign	4			/* align literal pool             */

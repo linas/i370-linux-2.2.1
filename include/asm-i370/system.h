@@ -15,7 +15,7 @@
 #define rmb()  __asm__ __volatile__ ("BCR 15,0" : : : "memory")
 #define wmb()  __asm__ __volatile__ ("BCR 15,0" : : : "memory")
 
-/* XXX these are probably wrong */
+/* XXX some of these might be wrong */
 
 extern __inline__ unsigned long __cli (void)
 {
@@ -50,27 +50,6 @@ extern __inline__ void __restore_flags(unsigned long flags)
 	/* Set System Mask clobbers all maskbits including PER */
 	asm volatile ("SSM	%0" : : "m" (newval) : "memory");
 }
-
-extern void print_backtrace(unsigned long *);
-extern void show_regs(struct pt_regs * regs);
-extern void flush_instruction_cache(void);
-extern void hard_reset_now(void);
-extern void read_rtc_time(void);
-extern void giveup_fpu(void);
-extern void smp_giveup_fpu(struct task_struct *);
-
-struct device_node;
-extern void note_scsi_host(struct device_node *, void *);
-
-struct task_struct;
-extern void switch_to(struct task_struct *prev, struct task_struct *next);
-
-struct thread_struct;
-extern void _switch(struct thread_struct *prev, struct thread_struct *next,
-		    unsigned long context);
-
-struct pt_regs;
-extern void dump_regs(struct pt_regs *);
 
 #ifndef __SMP__
 
@@ -129,5 +108,18 @@ extern inline void * xchg_ptr(void * m, void * val)
 {
 	return (void *) xchg_u32(m, (unsigned long) val);
 }
+
+extern void print_backtrace(unsigned long *);
+extern void show_regs(struct pt_regs * regs);
+extern void giveup_fpu(void);
+extern void smp_giveup_fpu(struct task_struct *);
+
+struct task_struct;
+extern int i370_switch_to(struct task_struct *prev, struct task_struct *next);
+#define switch_to i370_switch_to
+
+
+struct pt_regs;
+extern void dump_regs(struct pt_regs *);
 
 #endif

@@ -172,7 +172,13 @@ void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 //     steps ...
 // ... modify the segment table CR1 and mabye CR3 key  ...
 // ... Purge TLB ...
-void
+//
+// NB switch_to() actually returns as copy_thread() to do_fork(),
+// although it was called in schedule().  This is because during the first
+// stack unwind, a new child process has the stack of its parent, and
+// forking/cloning is the only way to create a new process.  A non-zero
+// return value indicates an error.
+int
 switch_to(struct task_struct *prev, struct task_struct *new)
 {
 	struct thread_struct *new_tss, *old_tss;
@@ -223,6 +229,9 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 	// note "s" is from a different stack ... 
         __restore_flags (s);
+
+	// retuirn to do_fork()
+	return 0;
 }
 
 

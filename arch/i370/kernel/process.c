@@ -166,13 +166,13 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 #define SHOW_TASK_SWITCHES
 #ifdef SHOW_TASK_SWITCHES
 	printk("task switch ");
-        printk("%s/%d -> %s/%d PSW 0x%x 0x%x cpu %d lock %x root %x/%x\n",
+        printk("%s/%d -> %s/%d PSW 0x%x 0x%x cpu %d root %x/%x\n",
                prev->comm,prev->pid,
                new->comm,new->pid,
                new->tss.regs->psw.flags,
                new->tss.regs->psw.addr,
                new->processor,
-               scheduler_lock.lock,new->fs->root,prev->fs->root);
+               new->fs->root,prev->fs->root);
 #endif
 #ifdef __SMP__
         prev->last_processor = prev->processor;
@@ -246,7 +246,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 	printk("copy thread \n");
 
-	childregs = p->tss->regs;
+	childregs = p->tss.regs;
 	*childregs = *regs;
 
 	childregs->gpr[15] = 0;		/* result from 'fork' ??? */

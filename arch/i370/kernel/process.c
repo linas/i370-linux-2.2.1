@@ -163,7 +163,9 @@ switch_to(struct task_struct *prev, struct task_struct *new)
         check_stack(new);
 #endif /* CHECK_STACK */
 
+#define SHOW_TASK_SWITCHES
 #ifdef SHOW_TASK_SWITCHES
+	printk("task switch ");
         printk("%s/%d -> %s/%d PSW 0x%x 0x%x cpu %d lock %x root %x/%x\n",
                prev->comm,prev->pid,
                new->comm,new->pid,
@@ -229,13 +231,24 @@ release_thread(struct task_struct *t)
 
 /*
  * Copy a thread..
+ * mostly wrong .... but give it a shot
  */
 int
 copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
             struct task_struct * p, struct pt_regs * regs)
 {
-   /* XXX */
-   return 0;
+	struct pt_regs *childregs;
+
+	printk("copy thread \n");
+
+	childregs = p->tss->regs;
+	*childregs = *regs;
+
+	childregs->gpr[15] = 0;		/* result from 'fork' ??? */
+	childregs->gpr[13] = usp;	/* user-space stack pointer */
+
+	/* XXX what about page tables ?? */
+	return 0;
 }
 
 int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) { 

@@ -12,8 +12,6 @@
 #define VERIFY_READ	0
 #define VERIFY_WRITE	1
 
-extern	void put_user_data(long data, void *addr, long len);
-
 /*
  * The fs value determines whether argument validity checking should be
  * performed or not.  If get_fs() == USER_DS, checking is performed, with
@@ -131,6 +129,8 @@ extern long __put_user_bad(void);
 	__pu_err;						\
 })
 
+extern	void put_user_data(long data, void *addr, long len);
+
 #define __put_user_size(x,ptr,size,retval)			\
 do {								\
 	retval = 0;						\
@@ -177,9 +177,9 @@ extern long __get_user_bad(void);
 do {								\
 	retval = 0;						\
 	switch (size) {						\
-	  case 1: __get_user_asm(x,ptr,retval,"ic"); break;	\
-	  case 2: __get_user_asm(x,ptr,retval,"lh"); break;	\
-	  case 4: __get_user_asm(x,ptr,retval,"l"); break;	\
+	  case 1: __get_user_asm(x,ptr,retval,"IC"); break;	\
+	  case 2: __get_user_asm(x,ptr,retval,"LH"); break;	\
+	  case 4: __get_user_asm(x,ptr,retval,"L"); break;	\
 	  default: (x) = __get_user_bad();			\
 	}							\
 } while (0)
@@ -216,19 +216,8 @@ copy_to_user(void *to, const void *from, unsigned long n)
 #define __copy_to_user(to, from, size) \
 	__copy_tofrom_user((to), (from), (size))
 
-extern inline unsigned long
-__clear_user(void *addr, unsigned long size)
-{
-	/* set a block of bytes to zero */
-	memset (addr, 0, size);
-/*
-	*((int *)addr) = 0;
-	size --;
-	asm volatile ("MVC	1(4095,%0),0(%0)" : 
-			"=r" (addr) : : "memory");
-*/
-	return 0;
-}
+extern unsigned long
+__clear_user(void *addr, unsigned long size);
 
 extern inline unsigned long
 clear_user(void *addr, unsigned long size)

@@ -167,28 +167,28 @@ typedef struct
 } pc_handler;
  
 /*------------------------------------------------------------*/
+/* TASK_SIZE is the size of the effective address space for   */
+/* one task which is 2GB for the 31-bit 390/ESA arch.         */
+/* Note that userland binaries are loaded such that the       */
+/* stack appears at the top of this range, and the executable */
+/* at the bottom.                                             */
+/*------------------------------------------------------------*/
+#define TASK_SIZE	(0x80000000UL)
+
+/*------------------------------------------------------------*/
 /* XXX The rest of this file is sort of garbage user beware   */
 /*------------------------------------------------------------*/
  
+void i370_start_thread(struct pt_regs *regs, unsigned long pswa, unsigned long sp);
 struct task_struct;
-void start_thread(struct pt_regs *regs, unsigned long psw, unsigned long sp);
 void release_thread(struct task_struct *);
-
-/*------------------------------------------------------------*/
-/* TASK_SIZE is the size of the effective address space for   */
-/* one task which is 2GB for the 31-bit 390/ESA arch.         */
-/*------------------------------------------------------------*/
-#define TASK_SIZE	(0x80000000UL)
+#define start_thread(R,P,S)	i370_start_thread(R,P,S)
 
 /*------------------------------------------------------------*/
 /* This decides where the kernel will search for a free chunk */
 /* of vm space during mmap's.                                 */
 /*------------------------------------------------------------*/
 #define TASK_UNMAPPED_BASE	(TASK_SIZE / 3)
-
-typedef struct {
-	unsigned long seg;
-} mm_segment_t;
 
 /*--------------------------------------------------------------------*/
 /* The thread_struct is inlined into the arch-independent task_struct */
@@ -203,6 +203,10 @@ typedef struct {
 /* this process is currently executing (as it would otherwise have    */
 /* an interrupt context).                                             */
 /*--------------------------------------------------------------------*/
+typedef struct {
+	unsigned long seg;
+} mm_segment_t;
+
 struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer */
 	struct pt_regs *regs;		/* Pointer to saved interrupt state */

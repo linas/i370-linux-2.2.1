@@ -30,3 +30,10 @@ void *memset(void *s, int c, int n)
    }
    return s;
 }
+
+int
+__copy_tofrom_user (char * to, char * from, int len) 
+{
+
+/* bogus */
+}

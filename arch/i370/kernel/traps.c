@@ -289,16 +289,22 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 	 * microsecond/4K). We want an interrupt every HZ of 
 	 * a second */
 
-	/* It is more correct to use stckc as this avoids clock skew.
-	 * However, on VM, if VM is very very overburdened, then we
-	 * risk never catching up.  So use stck for VM ... */
 #ifdef CONFIG_VM
+	/* It is more correct to use stckc as this avoids clock skew.
+	 * However, on VM, if VM is overburdened, then we risk never
+	 * catching up.  So use stck for VM ... 
+	 * We're also going to make the clock tick 10 times a second, 
+	 * not 100, since that seems to be too often in some cases.
+	 * Gee, I wonder if we should #define HZ to 10 not 100??? 
+	 */
 	ticko = _stck ();
+	ticko += (10000000/HZ) << 12;
+	_sckc (ticko);
 #else
 	ticko = _stckc (); 
-#endif
 	ticko += (1000000/HZ) << 12;
 	_sckc (ticko);
+#endif
 	
 	/* let Linux do its timer thing */
 	do_timer (saved_regs);

@@ -335,6 +335,7 @@ extern __inline__ pgd_t *i370_pgd_alloc(void)
 		/* memset won't work, we need to set the invalid bit */
 		int i;
 		pmd_t *pme = (pmd_t *) ret;
+printk ("in pgd_alloc alloced 2 pages at %p\n", ret);
 		for (i=0; i<USER_PTRS_PER_PGD; i++) {
 			pmd_clear (pme);
 			pme ++;

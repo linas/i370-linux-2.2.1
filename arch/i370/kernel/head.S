@@ -63,7 +63,7 @@ _start:
 	ST	r1,INTERRUPT_BASE+4(,0)	/* store into prefix page         */
 	LPSW	INTERRUPT_BASE(0)	/* jump to label                  */
 	
-	/* perform initialization to call C routines
+	/* perform initialization to call C routines                      */
 _cinit:
 	L	sp,=A(init_ksp)		/* load addr of stackptr into r13 */
 	L	sp,0(,sp)		/* load address of stack into r13 */

@@ -44,6 +44,16 @@ void *memset(void *s, int c, size_t n)
    return s;
 }
 
+void *memchr(const void *s, int c, size_t n)
+{
+   const char *ss = (const char *)s;
+   int i=0;
+   for (i=0; i<n; i++) {
+      if (ss[i] == (char) c) return &(ss[i]);
+   }
+   return 0x0;
+}
+
 int strcmp(const char *s1, const char *s2)
 {
    int i=0;

@@ -198,7 +198,6 @@
 
 #define __NR(n)	#n
 
-
 /*
  * For system calls, we will pass arguments in registers.  This
  * should significantly ease the burden of memory management
@@ -208,8 +207,6 @@
  * we'll have to deal with this in a special way inside the handler.
  * But that shouldn't be a big deal.  --linas
  */
-
-extern int errno;
 
 #define __syscall_return(type) \
 	if (0 > __sc_ret) { errno = -__sc_ret; __sc_ret = -1; } \
@@ -369,6 +366,8 @@ type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
 }
 
 #ifdef __KERNEL_SYSCALLS__
+
+extern int errno;
 
 /*
  * Create a new kernel thread.

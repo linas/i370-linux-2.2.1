@@ -6,6 +6,7 @@
 
 #include <asm/errno.h>
 #include <asm/processor.h>
+#include <asm/psa.h>
 
 /* Stop the machine. Handy for debugging purposes, but also
  * used in a few "it can't possibly happen" situations.
@@ -42,7 +43,7 @@
 _stext:
 	.globl	_start
 _start:
-	STM	r0,r15,0x200(0)		/* command line passed in regs    */
+	STM	r0,r15,0x300(0)		/* command line passed in regs    */
 
 	BASR	r15,0			/* load r15 with PSW              */
 	.using	.,r15			/* use r15 as base register       */
@@ -185,7 +186,7 @@ _cinit:
 	MVC	SAVED_PSW(8,r13),oldpsw(0); /* save old psw on stack  */	\
 	MVC	SAVED_R11(64,r13),sav+IR_R11(0);	/* 16 regs=64 bytes  */	\
 	/* chain the interrupt state pointer into thread_struct      */	\
-	LA	r1,0(,r12);		/* addr of curr proc in r1   */	\
+	LR	r1,r12;			/* addr of curr proc in r1   */	\
         A       r1,OFFSET_KREGS(,0);    /* add offset to regs ptr    */ \
 	L	r2,0(,r1);		/* load regs ptr             */	\
 	ST	r2,SAVED_OLDREGS(,r13); /* save regs ptr to stack    */	\

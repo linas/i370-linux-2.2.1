@@ -194,14 +194,11 @@ typedef struct _i370_interrupt_state_s i370_interrupt_state_t;
 
 struct _i370_interrupt_state_s {
 	psw_t   	psw;	/* process status word */
-	irregs_t	irregs;	/* some of the GPR's */
-	cr0_t		cr0;	/* control register 0 */
-	cr1_t		cr1;	/* control register 1 */
+	irregs_t	irregs;	/* some but not all of the GPR's */
 	i370_interrupt_state_t *oldregs;	/* backchain */
 
 /* XXX all wrong for 370 but we need something like this? */
 //	unsigned long orig_gpr3; /* Used for restarting system calls */
-//	unsigned long trap;	/* XXXXX Reason for being here */
 //	unsigned long result;   /* Result of a system call */
 };
 
@@ -211,7 +208,6 @@ struct _i370_interrupt_state_s {
 	{0,0},	/* psw */ 		\
 	{0,0,0,0,0,0,0,0, /* irregs */	\
 	 0,0,0,0,0,0,0,0}, /* irregs */	\
-	0,0, /* cr */			\
 	0}
 #endif /* __ASSEMBLY__ */
 
@@ -237,9 +233,7 @@ struct _i370_interrupt_state_s {
 #define IR_R9           0x40
 #define IR_R10          0x44
  
-#define IR_CR0          0x48
-#define IR_CR1          0x4c
-#define IR_OLDREGS      0x50
+#define IR_OLDREGS      0x48
 
 #ifndef __ASSEMBLY__
 /* ---------------------------------------------------------------- */

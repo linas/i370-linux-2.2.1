@@ -194,10 +194,10 @@ extern unsigned long empty_zero_page[1024];
 /* tsk is a task_struct and pgdir is a pgd_t* */
 #define SET_PAGE_DIR(tsk,pgdir)  { 				\
 	(tsk)->tss.pg_tables = (unsigned long *)(pgdir);	\
-	(tsk)->tss.regs->cr1.raw = 0;				\
-	(tsk)->tss.regs->cr1.bits.psto = ((unsigned long) pgdir) >>12;		\
-	(tsk)->tss.regs->cr1.bits.pstl = 127;			\
-	_lctl_r1 ((tsk)->tss.regs->cr1.raw);			\
+	(tsk)->tss.cr1.raw = 0;					\
+	(tsk)->tss.cr1.bits.psto = ((unsigned long) pgdir) >>12;\
+	(tsk)->tss.cr1.bits.pstl = 127;				\
+	_lctl_r1 ((tsk)->tss.cr1.raw);				\
 }
      
 

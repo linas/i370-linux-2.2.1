@@ -271,10 +271,12 @@ typedef struct {
 struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer             */
 	struct pt_regs *regs;		/* Pointer to saved interrupt state */
+	unsigned long	*pg_tables;	/* Base of page-table tree          */
+	cr0_t		cr0;		/* control register 0               */
+	cr1_t		cr1;		/* control register 1               */
 	double		fpr[16];	/* Complete floating point set      */
 
-	/* XXX still not clear on the stuff below ... */
-	unsigned long	*pg_tables;	/* Base of page-table tree          */
+	/* XXX what the stuff below???? why do we needed it ??? see PowerPC */
 	unsigned long	wchan;		/* Event task is sleeping on        */
 	mm_segment_t	fs;		/* for get_fs() validation          */
 	signed long     last_syscall;
@@ -288,16 +290,19 @@ struct thread_struct {
 
 #define INIT_SP		init_stack
 
-#define INIT_TSS  { \
-	INIT_SP, /* ksp */ \
-	0, /* regs */ \
-	{0.0,0.0,0.0,0.0}, /* FPR's */ \
+#define INIT_TSS  { 						\
+	INIT_SP, /* ksp */ 					\
+	0, /* regs */ 						\
+	(unsigned long *) swapper_pg_dir, /* pg_tables */ 	\
+	{0.0, 0.0, 0.0, 0.0,   /* FPR's */ 			\
+	 0.0, 0.0, 0.0, 0.0,   /* FPR's */ 			\
+	 0.0, 0.0, 0.0, 0.0,   /* FPR's */ 			\
+	 0.0, 0.0, 0.0, 0.0,}, /* FPR's */ 			\
 					\
-	(unsigned long *) swapper_pg_dir, /* pg_tables */ \
-	0, /* wchan */ \
-	KERNEL_DS, /*fs*/ \
-	0, /* last_syscall */ \
-	0 \
+	0, /* wchan */ 						\
+	KERNEL_DS, /*fs*/ 					\
+	0, /* last_syscall */ 					\
+	0 							\
 }
 
 /*

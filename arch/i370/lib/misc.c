@@ -5,7 +5,10 @@
  * Copyright (c) 1999 Neale Fergusen 
  */
 
-/* XXX might be useful to move abs to some ehadr file and inline?
+#include <asm/asm.h>
+
+/* XXX might be useful to move abs to some ehadr file and inline? */
+
 int
 abs (int j)
 {

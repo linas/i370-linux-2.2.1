@@ -19,18 +19,6 @@ SECTIONS
   __stop___ksymtab = .;
   .kstrtab : { *(.kstrtab) }
 
-  /* Startup code; text and data get different storage keys */
-  . = ALIGN(4096);
-  __init_text_begin = .;
-  .text.init : { *(.text.init) }
-  __init_text_end = .;
-
-  . = ALIGN(4096);
-  __init_data_begin = .;
-  .data.init : { *(.data.init) }
-  . = ALIGN(8192);	/* Align double page for init_task_union */
-  __init_data_end = .;
-
   _data = .;
 
   /* The initial task and kernel stack */
@@ -48,6 +36,19 @@ SECTIONS
   .mdebug : { *(.mdebug) }
   .note : { *(.note) }
   .comment : { *(.comment) }
+
+  /* startup code wilkl be freed later on, place at end */
+  /* Startup code; text and data get different storage keys */
+  . = ALIGN(4096);
+  __init_text_begin = .;
+  .text.init : { *(.text.init) }
+  __init_text_end = .;
+
+  . = ALIGN(4096);
+  __init_data_begin = .;
+  .data.init : { *(.data.init) }
+  . = ALIGN(8192);	/* Align double page for init_task_union */
+  __init_data_end = .;
 
   . = ALIGN(4096);
   _end = .;

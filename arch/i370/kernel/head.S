@@ -255,20 +255,27 @@ tcaStackOverflow:
 	.using	.,lr;			/* use r14 to the end */	\
 
 
-#define EXCEPTION_EPILOG(sav)  						\
+#define EXCEPTION_UNCHAIN	 					\
 	/* chain the interrupt state pointer into thread_struct */	\
 	L	r11,=V(current);	/* addr of current pointer */	\
 	L	r11,0(,r11);		/* addr of current process */	\
 	A	r11,sav-8(,0);		/* add offset to regs ptr */	\
 	L	r2,SAVED_OLDREGS(,sp);	/* get old ptr from stack */	\
-	ST	r2,0(,r11);		/* restore regs ptr in proc */	\
+	ST	r2,0(,r11);		/* restore regs ptr in proc */
+
+
+#define EXCEPTION_RETURN(sav)  						\
 	/* get old PSW, restore registers, return from interrupt */	\
 	MVC	sav(8,0),SAVED_PSW(sp); /* restore old psw frm stack */	\
 	LM	r11,r12,SAVED_R11(sp);	/* restore r11, r12 */		\
 	LM	r14,r2,SAVED_R14(sp);	/* restore r14 to r2 */		\
 	L	r13,SAVED_R13(sp);	/* restore r13 */		\
-	LPSW	sav(0);			/* return from interrupt */	\
+	LPSW	sav(0);			/* return from interrupt */
 
+
+#define EXCEPTION_EPILOG(sav)  						\
+	EXCEPTION_UNCHAIN						\
+	EXCEPTION_RETURN(sav)
 
 /* Restart */
 	.globl Restart
@@ -312,6 +319,16 @@ SupervisorCall:
 	LA	r1,ARGP(,sp)		/* pointer to returned value */
 	BASR	lr,r15			/* jump to C routine */
 	.using	.,lr;			/* use r14 for remainder of the show */
+	EXCEPTION_UNCHAIN		/* unstack pointer chain */
+	/* get old PSW, restore registers, return from interrupt */
+	MVC	sav(8,0),SAVED_PSW(sp); /* restore old psw frm stack */	
+	LM	r11,r12,SAVED_R11(sp);	/* restore r11, r12 */	
+	L	r0,SAVED_R0(sp);	/* restore r0 */	
+	L	r2,SAVED_R2(sp);	/* restore r2 */	
+	L	r14,SAVED_R14(sp);	/* restore r14 */	
+	L	r13,SAVED_R13(sp);	/* restore r13 */
+	LPSW	sav(0);			/* return from interrupt */
+
 	EXCEPTION_EPILOG (INTERRUPT_BASE)	/* return from interrupt */
 
 

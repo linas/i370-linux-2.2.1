@@ -30,9 +30,9 @@ typedef struct psw_s psw_t;
  * at your own risk.
  */
 struct pt_regs {
+	psw_t         psw;	/* process status word */
 	unsigned long gpr[16];  /* general purpose regs */
 	double   fpr[4];        /* floating point regs */
-	psw_t         psw;	/* process status word */
 	unsigned long pad[2];
 /* XXX all wrong for 370 but we need something like this? */
 //	unsigned long orig_gpr3; /* Used for restarting system calls */

@@ -19,27 +19,26 @@ extern void i370_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr
 extern void i370_flush_tlb_range(struct mm_struct *mm, unsigned long start,
 			    unsigned long end);
 
-#define flush_tlb_all i370_flush_tlb_all
-#define flush_tlb_mm i370_flush_tlb_mm
-#define flush_tlb_page i370_flush_tlb_page
+#define flush_tlb_all   i370_flush_tlb_all
+#define flush_tlb_mm    i370_flush_tlb_mm
+#define flush_tlb_page  i370_flush_tlb_page
 #define flush_tlb_range i370_flush_tlb_range
 
 /*
- * No cache flushing is required 
+ * No cache flushing is required on i370 architecture
  */
 #define flush_cache_all()		do { } while (0)
 #define flush_cache_mm(mm)		do { } while (0)
 #define flush_cache_range(mm, a, b)	do { } while (0)
 #define flush_cache_page(vma, p)	do { } while (0)
 
-extern void flush_icache_range(unsigned long, unsigned long);
-extern void flush_page_to_ram(unsigned long);
+#define flush_icache_range(a,b)		do { } while (0)
+#define flush_page_to_ram(a)		do { } while (0)
 
 extern unsigned long va_to_phys(unsigned long address);
 extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 #endif /* __ASSEMBLY__ */
 
-/* XXX this is all wrong */
 /*
  * The ESA/390 MMU uses a page table containing PTEs, together with
  * a segment table containing pointers to page tables to define
@@ -113,10 +112,10 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 #define PAGE_KERNEL_CI	__pgprot(_PAGE_BASE | _PAGE_WRENABLE | _PAGE_SHARED )
 
 /*
- * The PowerPC can only do execute protection on a segment (256MB) basis,
- * not on a page basis.  So we consider execute permission the same as read.
+ * We consider execute permission the same as read.
  * Also, write permissions imply read permissions.
- * This is the closest we can get..
+ * If we go fancy, maybe we can do better but this will hold for now.
+ * P macros imply copy-on-write, S macros for shared access
  */
 #define __P000	PAGE_NONE
 #define __P001	PAGE_READONLY
@@ -160,7 +159,7 @@ extern unsigned long empty_zero_page[1024];
 #define PTR_MASK	(~(sizeof(void*)-1))
 
 /* sizeof(void*) == 1<<SIZEOF_PTR_LOG2 */
-/* 64-bit machines, beware!  SRB. XXX hack alert */
+/* 64-bit machines, beware!  XXX hack alert */
 #define SIZEOF_PTR_LOG2	2
 
 /* to set the page-dir */
@@ -319,18 +318,20 @@ extern __inline__ void i370_pte_free(pte_t *pte)
 
 extern void __bad_pte(pmd_t *pmd);
 
+#define pte_alloc(pmd,addr)     i370_pte_alloc(pmd,addr)
 #define pte_free_kernel(pte)    i370_pte_free(pte)
 #define pte_free(pte)           i370_pte_free(pte)
-#define pgd_free(pgd)           i370_pgd_free(pgd)
+
 #define pgd_alloc()             i370_pgd_alloc()
+#define pgd_free(pgd)           i370_pgd_free(pgd)
 
-extern pte_t *get_pte_slow(pmd_t *pmd, unsigned long address_preadjusted);
+extern pte_t *i370_get_pte(pmd_t *pmd, unsigned long address_preadjusted);
 
-extern inline pte_t * pte_alloc(pmd_t * pmd, unsigned long address)
+extern inline pte_t * i370_pte_alloc(pmd_t * pmd, unsigned long address)
 {
 	address = (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
 	if (pmd_none(*pmd)) {
-		return get_pte_slow(pmd, address);
+		return i370_get_pte(pmd, address);
 	}
 	if (pmd_bad(*pmd)) {
 		__bad_pte(pmd);

@@ -82,10 +82,10 @@ extern unsigned long search_exception_table(unsigned long);
  * do not verify the address space, that must have been done previously
  * with a separate "access_ok()" call (this is used when we do multiple
  * accesses to the same area of user memory).
- *
- * As we use the same address space for kernel and user data on the
- * PowerPC, we can just do these as direct assignments.  (Of course, the
- * exception handling means that it's no longer "just"...)
+ * 
+ * ??? XXX hack alert. I think the 'check' routines are a broken and 
+ * a waste of time, I think that the way errors are handled here are 
+ * completely buggy.  This needs review, overhaul and performance tuning.
  */
 #define get_user(x,ptr) \
   __get_user_check((x),(ptr),sizeof(*(ptr)))
@@ -150,12 +150,22 @@ do {								\
 struct __large_struct { unsigned long buf[100]; };
 #define __m(x) (*(struct __large_struct *)(x))
 
-/* XXX */
-#define __put_user_asm(x, addr, err, op)		\
-	__asm__ __volatile__(				\
-		" "op" %1,%0"				\
-		: "=m"(*addr)				\
-		: "r"(x))				
+#if 0
+/* XXX There is some appeal to letting LRA do the work for us;
+ * Unfortunately,  when it fails, it sets condition codes instead 
+ * of generating an exception.  That complicates the algorithm
+ * enough to make it not very appealing as opposed to the plain algo.
+ */
+/* Use load-real-address to convert virtual-to-real, and then put byte(s) */
+#define __put_user_asm(x, addr, err, op) {			\
+	unsigned long ra;					\
+	__asm__ __volatile__(					\
+		"	LRA	%1,%2"				\
+		"	"op"	%0,%1"				\
+		: "=m"(*addr), "=r"(ra)				\
+		: "r"(x))					\
+	}
+#endif
 
 
 #define __get_user_nocheck(x,ptr,size)				\
@@ -178,6 +188,10 @@ struct __large_struct { unsigned long buf[100]; };
 
 extern long __get_user_bad(void);
 
+#if 0
+/* bad attempt at use of LRA.  Need to check CC after the LRA.
+ * If this is fixed, it'll be faster than the current impl.
+ */
 #define __get_user_size(x,ptr,size,retval)			\
 do {								\
 	retval = 0;						\
@@ -189,12 +203,25 @@ do {								\
 	}							\
 } while (0)
 
-/* XXX */
-#define __get_user_asm(x, addr, err, op)		\
-	__asm__ __volatile__(				\
-		" "op" %0,%1"				\
-		: "=r"(x)				\
-		: "m"(*addr))
+/* Use load-real-address to convert virtual-to-real, and then get byte(s) */
+#define __get_user_asm(x, vaddr, err, op) {			\
+	unsigned long ra;					\
+	__asm__ __volatile__(					\
+		"	LRA	%1,%2"				\
+		"	"op"	%0,%3"				\
+		: "=r"(x), "=r"(ra)				\
+		: "m"(*addr), "m"(*ra));			\
+	}
+#endif
+
+#define __get_user_size(x,ptr,size,retval)			\
+do {								\
+	if (__copy_from_user (&x, ptr, size)) {			\
+		(x) = __get_user_bad();				\
+	} else {						\
+		retval = 0;					\
+	}							\
+} while (0)
 
 /* more complex routines */
 

@@ -109,7 +109,7 @@ extern inline void * xchg_ptr(void * m, void * val)
 	return (void *) xchg_u32(m, (unsigned long) val);
 }
 
-extern void print_backtrace(unsigned long *);
+extern void print_backtrace(unsigned long stack_pointer);
 extern void show_regs(struct pt_regs * regs);
 extern void giveup_fpu(void);
 extern void smp_giveup_fpu(struct task_struct *);
@@ -118,8 +118,6 @@ struct task_struct;
 extern int i370_switch_to(struct task_struct *prev, struct task_struct *next);
 #define switch_to i370_switch_to
 
-
-struct pt_regs;
 extern void dump_regs(struct pt_regs *);
 
 #endif

@@ -182,4 +182,84 @@ typedef struct _iorb {
 	irb_t           irb;            /* Intrp Resp block                 */
 } iorb_t;
 	
+/* ---------------------------------------------------------------- */
+/* I/O utilities */
+
+/* *	Issue SSCH 	*/
+
+extern inline int     
+_ssch(int sid, orb_t *orb) 
+{
+	int     rc;
+
+        __asm__ __volatile__
+        ("l     r1,%1;		"
+         "ssch %2;		"
+         "ipm   r1;		"
+         "la    %0,0(0,r1);	"
+        : "=r" (rc)
+        : "m" (sid), "m"(*orb)
+        :"r1","memory");
+
+        return(rc & 0x30000000); /* just send the CC back in R15 */
+}
+
+/* *	Issue MSCH 	*/
+
+extern inline int     
+_msch(int sid, schib_t *schib) 
+{
+	int     rc;
+
+        __asm__ __volatile__
+        ("l     r1,%1;		"
+         "msch %2;		"
+         "ipm   r1;		"
+         "la    %0,0(0,r1);	"
+        : "=r" (rc)
+        : "m" (sid), "m"(*schib)
+        :"r1","memory");
+
+        return(rc & 0x30000000);
+}
+
+/* *	Issue TSCH 	*/
+
+extern inline int     
+_tsch(int sid, irb_t *irb) 
+{
+	int     rc;
+
+        __asm__ __volatile__
+        ("l     r1,%1;		"
+         "tsch %2;		"
+         "ipm   r1;		"
+         "la    %0,0(0,r1);	"
+        : "=r" (rc)
+        : "m" (sid), "m"(*irb)
+        :"r1","memory");
+
+        return(rc & 0x30000000);
+}
+
+/* *	Issue STSCH 	*/
+
+extern inline int     
+_stsch(int sid, schib_t *schib) 
+{
+	int     rc;
+
+        __asm__ __volatile__
+        ("l     r1,%1;		"
+         "stsch %2;		"
+         "ipm   r1;		"
+         "la    %0,0(0,r1);	"
+        : "=r" (rc)
+        : "m" (sid), "m"(*schib)
+        :"r1","memory");
+
+        return(rc & 0x30000000);
+}
+
+
 #endif /* I370_IORB_H_ */

@@ -214,5 +214,7 @@ extern inline void i370_halt (void)
 	: "+m" (*psw) : : "r1", "memory");
 }
 
+/* -------------------------------------------------------- */
+
 #endif /* __ASSEMBLY__ */
 #endif /* __I370_ASM_H__ */

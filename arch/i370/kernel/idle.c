@@ -22,6 +22,7 @@
 #include <linux/stddef.h>
 #include <linux/unistd.h>
 
+#include <asm/asm.h>
 #include <asm/cache.h>
 #include <asm/current.h>
 #include <asm/io.h>
@@ -43,7 +44,7 @@ int idled(void *unused)
 	{
 		__sti();
 		
-		check_pgt_cache();
+		/* check_pgt_cache(); */
 
 /*
  * It might be interesting to copy the zero_paged code from 
@@ -54,7 +55,11 @@ int idled(void *unused)
 #ifdef __SMP__
 		if (current->need_resched)
 #endif
-			schedule();
+		schedule();
+
+		/* if we came back here, then load an enabled wait */
+		i370_enabled_wait();
+
 	}
 	return 0;
 }
@@ -72,7 +77,7 @@ int cpu_idle(void *unused)
 #endif /* __SMP__ */
 
 /*
- * Syscall entry into the idle task. -- Cort
+ * Syscall entry into the idle task.
  */
 asmlinkage int i370_sys_idle(void)
 {

@@ -179,6 +179,42 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 }
 
 /* ================================================================ */
+/* do SLIH intrerrupt handling (the bottom half) */
+/* pseudocode:  */
+
+#ifdef LATER
+
+void ret_from_syscall (void) 
+{
+	int do_it_again = 1;
+
+	while (do_it_again) {
+		cli();
+		do_it_again = 0:
+
+		/* bitwise and */
+		if (bh_mask & bh_active) {
+			do_bottom_half ();  // handle_bottom_half()
+			do_it_again = 1;
+		}
+		if (return_to_user) {
+			if (need_reschedule) {
+				schedlue ();
+				do_it_again = 1;
+				continue;
+			}
+			if (sig_pending) {
+				do_signal ();
+				do_it_again = 1;
+				continue;
+			}
+		}
+		cli ();
+	}
+}
+#endif
+
+/* ================================================================ */
 
 
 void

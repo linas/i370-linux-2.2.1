@@ -400,6 +400,7 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 			if (!pte || pte_none(*pte)) {
 				printk ("cpy_to_user make_pages_present at va=%lx\n", va);
 				make_pages_present (va, va+len);
+				pte = find_pte (current->mm, va);
 			} 
 
 			if (len < rlen) rlen = len;
@@ -435,6 +436,7 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 			if (!pte || pte_none(*pte)) {
 				printk ("cpy_from_user make_pages_present at va=%lx\n", va);
 				make_pages_present (va, va+len);
+				pte = find_pte (current->mm, va);
 			} 
 
 			if (len < rlen) rlen = len;
@@ -476,6 +478,7 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 			if (!pte || pte_none(*pte)) {
 				printk ("strncpy_from_user make_pages_present at va=%lx\n", va);
 				make_pages_present (va, va+count);
+				pte = find_pte (current->mm, va);
 			}
 			if (len < rlen) rlen = len;
 			ra = pte_page (*pte) | off;
@@ -532,6 +535,7 @@ __clear_user(void *addr, unsigned long len)
 		if (!pte || pte_none(*pte)) {
 			printk ("clear_user make_pages_present at va=%lx\n", va);
 			make_pages_present (va, va+len);
+			pte = find_pte (current->mm, va);
 		}
 		if (len < rlen) rlen = len;
 		ra = pte_page (*pte) | off;
@@ -571,6 +575,7 @@ strlen_user(const char *str)
 		if (!pte || pte_none(*pte)) {
 			printk ("strlen_user make_pages_present at va=%lx\n", va);
 			make_pages_present (va,va);
+			pte = find_pte (current->mm, va);
 		}
 		ra = pte_page (*pte) | off;
 		printk ("strlen_user va=%lx ra=%lx\n", va, ra);
@@ -622,6 +627,7 @@ put_user_data(long data, void *addr, long len)
 	if (!pte || pte_none(*pte)) {
 		printk ("put_user_data make_pages_present at va=%lx\n", va);
 		make_pages_present (va, va+len);
+		pte = find_pte (current->mm, va);
 	}
 	printk ("put_user_data: va=%lx pte=%p pteval=%lx\n", va, pte, pte_val(*pte));
 

@@ -96,15 +96,28 @@ print_backtrace (unsigned long stackp)
 	i370_elf_stack_t *sp;
 
         printk("Call Backtrace:\n");
-	sp = (i370_elf_stack_t *) stackp;
 
-        while (sp &&  (cnt < 6)) 
+	do 
 	{
+		/* If the stack is at a very high address, assume 
+		 * that its a user-space stack pointer and that 
+		 * it needs address trnslation. 
+		 */
+		if (0x7f000000 < stackp) {
+			pte_t *pte = find_pte (current->mm, stackp);
+			if (!pte || pte_none(*pte)) {
+				make_pages_present (stackp, 0x7fffffff);
+				pte = find_pte (current->mm, stackp);
+			}
+			stackp = pte_page (*pte) | (stackp & ~PAGE_MASK);
+		}
+		sp = (i370_elf_stack_t *) stackp;
+
 		printk ("   %02d   base=0x%lx link=0x%lx stack=%p\n", 
 			cnt, sp->caller_r3, sp->caller_r14, sp);
-		sp = (i370_elf_stack_t *) sp->caller_sp;
+		stackp = sp->caller_sp;
 		cnt ++;
-        }
+        } while (stackp &&  (cnt < 6)) ;
         printk("\n");
 }
 

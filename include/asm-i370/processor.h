@@ -72,6 +72,10 @@ typedef struct {
 } mm_segment_t;
 
 /* the thread_struct is inlined into the arch-independent task_struct */
+/* ??? Its not at all clear to me when things should go here, and when thry
+ * should go into pt_regs ... 
+ * for example, the control regs ... here or in pt_regs ??
+ */
 struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer */
 	unsigned long	*pg_tables;	/* Base of page-table tree */

@@ -41,18 +41,10 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 
 /* XXX this is all wrong */
 /*
- * The PowerPC MMU uses a hash table containing PTEs, together with
- * a set of 16 segment registers (on 32-bit implementations), to define
- * the virtual to physical address mapping.
- *
- * We use the hash table as an extended TLB, i.e. a cache of currently
- * active mappings.  We maintain a two-level page table tree, much like
- * that used by the i386, for the sake of the Linux memory management code.
- * Low-level assembler code in head.S (procedure hash_page) is responsible
- * for extracting ptes from the tree and putting them into the hash table
- * when necessary, and updating the accessed and modified bits in the
- * page table tree.
- *
+ * The ESA/390 MMU uses a page table containing PTEs, together with
+ * a segment table containing pointers to page tables to define
+ * the virtual to physical address mapping. We map the linux pgd to
+ * the segment table.
  */
 
 /* PMD_SHIFT determines the size of the area mapped by the second-level
@@ -76,58 +68,49 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 #define PTRS_PER_PGD	1024
 #define USER_PTRS_PER_PGD	(TASK_SIZE / PGDIR_SIZE)
 
-/* Just any arbitrary offset to the start of the vmalloc VM area: the
- * current 1GB value just means that there will be a 1GB "hole" after the
- * physical memory until the kernel virtual memory starts.  That means that
- * any out-of-bounds memory accesses will hopefully be caught.
+/* VMALLOC_OFFSET is an (arbitrary) offset to the start of the vmalloc 
+ * kernel VM area: the current 1GB value means that all kernel vm addresses
+ * will have a "1" in bit position 30.  
+ * We do this to catch out-of-bounds real memory accesses.
+ * It also means that we have imposed a practical limit of max of 1GB 
+ * a real memory.  This limit can be raised, although it will decrease 
+ * the amount of virtual memory available to the kernel.
+ * 
  * The vmalloc() routines leaves a hole of 4kB between each vmalloced
  * area for the same reason. ;)
  *
- * The vmalloc_offset MUST be larger than the gap between the bat2 mapping
- * and the size of physical ram.  Since the bat2 mapping can be larger than
- * the amount of ram we have vmalloc_offset must ensure that we don't try
- * to allocate areas that don't exist! This value of 64M will only cause
- * problems when we have >128M -- Cort
  */
 #define VMALLOC_OFFSET	(0x40000000) /* 1GB */
-#define VMALLOC_START ((((long)high_memory + VMALLOC_OFFSET) & ~(VMALLOC_OFFSET-1)))
+#define VMALLOC_START ((VMALLOC_OFFSET & ~(VMALLOC_OFFSET-1)))
 #define VMALLOC_VMADDR(x) ((unsigned long)(x))
-#define VMALLOC_END	0x7f000000
+#define VMALLOC_END	0x7fffe000
 
 /*
- * Bits in a linux-style PTE.  These match the bits in the
- * (hardware-defined) PowerPC PTE as closely as possible.
+ * Bits in a linux-style PTE.  Two bits match the hardware
+ * PTE, the other bits are software-only thingies that inhabit 
+ * low byte of the pte and hopefull won't hurt anybody.
  */
-#define _PAGE_PRESENT	0x001	/* software: pte contains a translation */
-#define _PAGE_USER	0x002	/* matches one of the PP bits */
-#define _PAGE_RW	0x004	/* software: user write access allowed */
-#define _PAGE_GUARDED	0x008
-#define _PAGE_COHERENT	0x010	/* M: enforce memory coherence (SMP systems) */
-#define _PAGE_NO_CACHE	0x020	/* I: cache inhibit */
-// #define _PAGE_WRITETHRU	0x040	/* W: cache write-through */
-#define _PAGE_DIRTY	0x080	/* C: page changed */
-#define _PAGE_ACCESSED	0x100	/* R: page referenced */
-#define _PAGE_HWWRITE	0x200	/* software: _PAGE_RW & _PAGE_DIRTY */
-#define _PAGE_SHARED	0
+#define _PAGE_INVALID	0x400	/* pte contains a translation */
+#define _PAGE_RW	0x200	/* write access allowed */
+#define _PAGE_DIRTY	0x002	/* storage key C: page changed */
+#define _PAGE_ACCESSED	0x004	/* storage key R: page referenced */
+#define _PAGE_USER	0x001	/* software: user-mode */
+#define _PAGE_HWWRITE	0x008	/* software: _PAGE_RW & _PAGE_DIRTY */
+#define _PAGE_SHARED	0x010
 
 #define _PAGE_CHG_MASK	(PAGE_MASK | _PAGE_ACCESSED | _PAGE_DIRTY)
 
-#ifdef __SMP__
-#define _PAGE_BASE	_PAGE_PRESENT | _PAGE_ACCESSED | _PAGE_COHERENT
-#else
-#define _PAGE_BASE	_PAGE_PRESENT | _PAGE_ACCESSED
-#endif
+#define _PAGE_BASE	 _PAGE_ACCESSED
 #define _PAGE_WRENABLE	_PAGE_RW | _PAGE_DIRTY | _PAGE_HWWRITE
 
-#define PAGE_NONE	__pgprot(_PAGE_PRESENT | _PAGE_ACCESSED)
+#define PAGE_NONE	__pgprot(_PAGE_INVALID | _PAGE_ACCESSED)
 
 #define PAGE_SHARED	__pgprot(_PAGE_BASE | _PAGE_RW | _PAGE_USER | \
 				 _PAGE_SHARED)
 #define PAGE_COPY	__pgprot(_PAGE_BASE | _PAGE_USER)
 #define PAGE_READONLY	__pgprot(_PAGE_BASE | _PAGE_USER)
 #define PAGE_KERNEL	__pgprot(_PAGE_BASE | _PAGE_WRENABLE | _PAGE_SHARED)
-#define PAGE_KERNEL_CI	__pgprot(_PAGE_BASE | _PAGE_WRENABLE | _PAGE_SHARED | \
-				 _PAGE_NO_CACHE )
+#define PAGE_KERNEL_CI	__pgprot(_PAGE_BASE | _PAGE_WRENABLE | _PAGE_SHARED )
 
 /*
  * The PowerPC can only do execute protection on a segment (256MB) basis,
@@ -182,12 +165,16 @@ extern unsigned long empty_zero_page[1024];
 
 /* to set the page-dir */
 /* tsk is a task_struct and pgdir is a pte_t */
-#define SET_PAGE_DIR(tsk,pgdir)  \
-	((tsk)->tss.pg_tables = (unsigned long *)(pgdir))
+#define SET_PAGE_DIR(tsk,pgdir)  { 				\
+	(tsk)->tss.pg_tables = (unsigned long *)(pgdir);	\
+	(tsk)->tss.regs->cr1.raw = 0;				\
+	(tsk)->tss.regs->cr1.bits.psto = ((unsigned long) pgdir) >>12;		\
+	(tsk)->tss.regs->cr1.bits.pstl = 63;			\
+}
      
 #ifndef __ASSEMBLY__
 extern inline int pte_none(pte_t pte)		{ return !pte_val(pte); }
-extern inline int pte_present(pte_t pte)	{ return pte_val(pte) & _PAGE_PRESENT; }
+extern inline int pte_present(pte_t pte)	{ return !(pte_val(pte) & _PAGE_INVALID); }
 extern inline void pte_clear(pte_t *ptep)	{ pte_val(*ptep) = 0; }
 
 extern inline int pmd_none(pmd_t pmd)		{ return !pmd_val(pmd); }
@@ -216,8 +203,8 @@ extern inline int pte_exec(pte_t pte)		{ return pte_val(pte) & _PAGE_USER; }
 extern inline int pte_dirty(pte_t pte)		{ return pte_val(pte) & _PAGE_DIRTY; }
 extern inline int pte_young(pte_t pte)		{ return pte_val(pte) & _PAGE_ACCESSED; }
 
-extern inline void pte_uncache(pte_t pte)       { pte_val(pte) |= _PAGE_NO_CACHE; }
-extern inline void pte_cache(pte_t pte)         { pte_val(pte) &= ~_PAGE_NO_CACHE; }
+extern inline void pte_uncache(pte_t pte)       { }
+extern inline void pte_cache(pte_t pte)         { }
 
 extern inline pte_t pte_rdprotect(pte_t pte) {
 	pte_val(pte) &= ~_PAGE_USER; return pte; }
@@ -255,22 +242,7 @@ extern inline pte_t pte_mkyoung(pte_t pte) {
  * within a page table are directly modified.  Thus, the following
  * hook is made available.
  */
-#if 1
 #define set_pte(pteptr, pteval)	((*(pteptr)) = (pteval))
-#else
-extern inline void set_pte(pte_t *pteptr, pte_t pteval)
-{
-	unsigned long val = pte_val(pteval);
-	extern void xmon(void *);
-
-	if ((val & _PAGE_PRESENT) && ((val < 0x111000 || (val & 0x800)
-	    || ((val & _PAGE_HWWRITE) && (~val & (_PAGE_RW|_PAGE_DIRTY)))) {
-		printk("bad pte val %lx ptr=%p\n", val, pteptr);
-		xmon(0);
-	}
-	*pteptr = pteval;
-}
-#endif
 
 /*
  * Conversion functions: convert a page and protection to a page entry,
@@ -278,13 +250,19 @@ extern inline void set_pte(pte_t *pteptr, pte_t pteval)
  */
 
 static inline pte_t mk_pte_phys(unsigned long page, pgprot_t pgprot)
-{ pte_t pte; pte_val(pte) = (page) | pgprot_val(pgprot); return pte; }
+{ pte_t pte; 
+printk ("mk_pte_phys %lx %lx\n",page,pgprot);
+pte_val(pte) = (page) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t mk_pte(unsigned long page, pgprot_t pgprot)
-{ pte_t pte; pte_val(pte) = __pa(page) | pgprot_val(pgprot); return pte; }
+{ pte_t pte; 
+printk ("mk_pte %lx %lx\n",page,pgprot);
+pte_val(pte) = __pa(page) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
-{ pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot); return pte; }
+{ pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot); 
+printk ("pte_modify %lx %lx\n",pte,newprot);
+return pte; }
 
 extern inline unsigned long pte_page(pte_t pte)
 { return (unsigned long) __va(pte_val(pte) & PAGE_MASK); }
@@ -317,7 +295,7 @@ extern inline pte_t * pte_offset(pmd_t * dir, unsigned long address)
 
 /*
  * XXX ??? 
- * This is handled very differently since out page tables
+ * This is handled very differently since our page tables
  * are all 0's and I want to be able to use these zero'd pages elsewhere
  * as well - it gives us quite a speedup.
  *

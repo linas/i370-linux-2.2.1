@@ -296,6 +296,10 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
  * do_fork will call copy_thread, passing sp and regs to it
  */
 
+asmlinkage int 
+i370_sys_fork (void) {
+return 0;
+}
 
 asmlinkage int 
 i370_sys_clone (unsigned long clone_flags,

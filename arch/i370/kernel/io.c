@@ -19,11 +19,6 @@ __initfunc(void init_IRQ(void))
 	}
 }
 
-void
-check_bugs(void)
-{
-}
-
 int get_irq_list(char *buf)
 {
         int len = 0;

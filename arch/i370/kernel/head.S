@@ -1,5 +1,6 @@
 /*
  * Implementation of startup code and FLIH entry/exit for ESA/390
+ * Copyright (c) 1999 Linas Vepstas (linas@linas.org)
  */
 
 #include <asm/errno.h>
@@ -283,18 +284,20 @@ swapper_pg_dir:
 cmd_line:
 	.space	512
 
-/* The syscall table is copied from the powerpc code; it should match
+/* The syscall table is in the text section; making it RO.
+ *
+ * The syscall table is copied from the powerpc code; it should match
  * the table in <asm/unistd.h> which was copied from powerpc code 
  * XXX might be a better deal to use the alpha syscall table... ??? XXX
  * XXX it needs to be hammered into shape for the i370
  */
-	.data
+	.text
 	.align 4
 	.globl	sys_call_table
 sys_call_table:
 	.long sys_ni_syscall	/* 0  -  old "setup()" system call */
 	.long sys_exit
-//	.long sys_fork
+	.long i370_sys_fork
 	.long sys_read
 	.long sys_write
 	.long sys_open		/* 5 */
@@ -303,7 +306,7 @@ sys_call_table:
 	.long sys_creat
 	.long sys_link
 	.long sys_unlink	/* 10 */
-//	.long sys_execve
+	.long i370_sys_execve
 	.long sys_chdir
 	.long sys_time
 	.long sys_mknod
@@ -318,10 +321,10 @@ sys_call_table:
 	.long sys_setuid
 	.long sys_getuid
 	.long sys_stime		/* 25 */
-//	.long sys_ptrace
+	.long i370_sys_ptrace
 	.long sys_alarm
 	.long sys_fstat
-//	.long sys_pause
+	.long i370_sys_pause
 	.long sys_utime		/* 30 */
 	.long sys_ni_syscall			/* old stty syscall holder */
 	.long sys_ni_syscall			/* old gtty syscall holder */
@@ -334,7 +337,7 @@ sys_call_table:
 	.long sys_mkdir
 	.long sys_rmdir		/* 40 */
 	.long sys_dup
-//	.long sys_pipe
+	.long i370_sys_pipe
 	.long sys_times
 	.long sys_ni_syscall			/* old prof syscall holder */
 	.long sys_brk		/* 45 */
@@ -351,7 +354,7 @@ sys_call_table:
 	.long sys_ni_syscall			/* old mpx syscall holder */
 	.long sys_setpgid
 	.long sys_ni_syscall			/* old ulimit syscall holder */
-//	.long sys_olduname
+	.long i370_sys_olduname
 	.long sys_umask		/* 60 */
 	.long sys_chroot
 	.long sys_ustat
@@ -359,12 +362,12 @@ sys_call_table:
 	.long sys_getppid
 	.long sys_getpgrp	/* 65 */
 	.long sys_setsid
-//	.long sys_sigaction
+	.long i370_sys_sigaction
 	.long sys_sgetmask
 	.long sys_ssetmask
 	.long sys_setreuid	/* 70 */
 	.long sys_setregid
-//	.long sys_sigsuspend
+	.long i370_sys_sigsuspend
 	.long sys_sigpending
 	.long sys_sethostname
 	.long sys_setrlimit	/* 75 */
@@ -374,8 +377,7 @@ sys_call_table:
 	.long sys_settimeofday
 	.long sys_getgroups	/* 80 */
 	.long sys_setgroups
-//	.long ppc_select
-	.long sys_ni_syscall
+	.long sys_select
 	.long sys_symlink
 	.long sys_lstat
 	.long sys_readlink	/* 85 */
@@ -383,7 +385,7 @@ sys_call_table:
 	.long sys_swapon
 	.long sys_reboot
 	.long old_readdir
-//	.long sys_mmap		/* 90 */
+	.long i370_sys_mmap		/* 90 */
 	.long sys_munmap
 	.long sys_truncate
 	.long sys_ftruncate
@@ -394,7 +396,7 @@ sys_call_table:
 	.long sys_ni_syscall			/* old profil syscall holder */
 	.long sys_statfs
 	.long sys_fstatfs	/* 100 */
-//	.long sys_ioperm
+	.long i370_sys_ioperm
 	.long sys_socketcall
 	.long sys_syslog
 	.long sys_setitimer
@@ -402,21 +404,21 @@ sys_call_table:
 	.long sys_newstat
 	.long sys_newlstat
 	.long sys_newfstat
-//	.long sys_uname
-//	.long sys_iopl		/* 110 */
+	.long i370_sys_uname
+	.long i370_sys_iopl		/* 110 */
 	.long sys_vhangup
 	.long sys_idle
-//	.long sys_vm86
+	.long i370_sys_vm86
 	.long sys_wait4
 	.long sys_swapoff	/* 115 */
 	.long sys_sysinfo
-//	.long sys_ipc
+	.long i370_sys_ipc
 	.long sys_fsync
-//	.long sys_sigreturn
-//	.long sys_clone		/* 120 */
+	.long i370_sys_sigreturn
+	.long i370_sys_clone		/* 120 */
 	.long sys_setdomainname
 	.long sys_newuname
-//	.long sys_modify_ldt
+	.long i370_sys_modify_ldt
 	.long sys_adjtimex
 	.long sys_mprotect	/* 125 */
 	.long sys_sigprocmask
@@ -435,8 +437,7 @@ sys_call_table:
 	.long sys_setfsgid
 	.long sys_llseek	/* 140 */
         .long sys_getdents
-//	.long ppc_select
-	.long sys_ni_syscall
+	.long sys_select
 	.long sys_flock
 	.long sys_msync
 	.long sys_readv		/* 145 */
@@ -466,20 +467,20 @@ sys_call_table:
 	.long sys_setresgid
 	.long sys_getresgid	/* 170 */
 	.long sys_prctl
-//	.long sys_rt_sigreturn
+	.long i370_sys_rt_sigreturn
 	.long sys_rt_sigaction
 	.long sys_rt_sigprocmask	
 	.long sys_rt_sigpending	/* 175 */
 	.long sys_rt_sigtimedwait
 	.long sys_rt_sigqueueinfo
-//	.long sys_rt_sigsuspend
+	.long i370_sys_rt_sigsuspend
 	.long sys_pread
 	.long sys_pwrite	/* 180 */
 	.long sys_chown
 	.long sys_getcwd
 	.long sys_capget
 	.long sys_capset
-//	.long sys_sigaltstack	/* 185 */
+	.long i370_sys_sigaltstack	/* 185 */
 	.long sys_sendfile
 	.long sys_ni_syscall		/* streams1 */
 	.long sys_ni_syscall		/* streams2 */

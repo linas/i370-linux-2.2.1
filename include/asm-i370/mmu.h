@@ -48,13 +48,6 @@ typedef struct _pte {
 #define PT_MASK  0x02FF
 #define PG_SHIFT (12)			/* Page Entry */
  
-
-/* MMU context */
-
-typedef struct _MMU_context {
-	pte	**pmap;		/* Two-level page-map structure */
-} MMU_context;
-
 #endif /* __ASSEMBLY__ */
 
 #endif /* _I370_MMU_H_ */

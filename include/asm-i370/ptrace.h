@@ -78,6 +78,71 @@ union _i370_cr1_u {
 typedef union _i370_cr1_u cr1_t;
 
 /* ---------------------------------------------------------------- */
+/* The current i370-elf stack entry.  This corresponds to 
+ * what the current gcc/egcs generates, but is subject to 
+ * change (!?).  Currently, it appears to be largely MVS 
+ * compatible.  We could save 64 bytes by chopping out the 
+ * unused x's between 80 and 140.
+ *
+ * Function args immediately follow the stack; upon
+ * subroutine entry, r11 is pointing at this area.
+ *
+ * If the subroutine returns by value something larger
+ * then 4 bytes, then the caller should reserve space
+ * for the returned value; upon entry, r1 points at
+ * the this area. Returned values 4 bytes or smaller
+ * are returned in r15, else r15 set to point at the '
+ * returned value.
+ *
+ * r13 is the stack pointer
+ * r12 is the tca pointer
+ * r10 is the static chain (trampoline) register
+ * r3  is the base register
+ * r4  is base table origin pointer
+ */
+
+struct _i370_elf_stack_s {
+	unsigned long	eyecatcher;		/* 0 */
+	unsigned long	caller_sp;		/* 4 */
+	unsigned long	callee_sp;		/* 8 */
+	unsigned long	caller_r14;		/* 12 */
+	unsigned long	caller_r15;		/* 16 */
+	unsigned long	caller_r0;		/* 20 */
+	unsigned long	caller_r1;		/* 24 */
+	unsigned long	caller_r2;		/* 28 */
+	unsigned long	caller_r3;		/* 32 */
+	unsigned long	caller_r4;		/* 36 */
+	unsigned long	caller_r5;		/* 40 */
+	unsigned long	caller_r6;		/* 44 */
+	unsigned long	caller_r7;		/* 48 */
+	unsigned long	caller_r8;		/* 52 */
+	unsigned long	caller_r9;		/* 56 */
+	unsigned long	caller_r10;		/* 60 */
+	unsigned long	caller_r11;		/* 64 */
+	unsigned long	caller_r12;		/* 68 */
+	unsigned long	stack_base;	 	/* 72 */ 
+	unsigned long	stack_top;		/* 76 */
+	unsigned long	x1;			/* 80 */
+	unsigned long	x2;			/* 84 */
+	unsigned long	x3;			/* 88 */
+	unsigned long	x4;			/* 92 */
+	unsigned long	x5;			/* 96 */
+	unsigned long	x6;			/* 100 */
+	unsigned long	x7;			/* 104 */
+	unsigned long	x8;			/* 108 */
+	unsigned long	x9;			/* 112 */
+	unsigned long	x10;			/* 116 */
+	unsigned long	x11;			/* 120 */
+	unsigned long	x12;			/* 124 */
+	unsigned long	x13;			/* 128 */
+	unsigned long	x14;			/* 132 */
+	unsigned long	x15;			/* 136 */
+	unsigned long	x16;			/* 140 */
+	unsigned long	p_ret_val;	/* ptr return by value */ /* 144 */
+};
+typedef struct _i370_elf_stack_s i370_elf_stack_t;
+
+/* ---------------------------------------------------------------- */
 
 struct _i370_irregs_s {
 	unsigned long	r11;

@@ -240,7 +240,16 @@ copy_to_user(void *to, const void *from, unsigned long n)
 #define __copy_to_user(to, from, size) \
 	__copy_tofrom_user((to), (from), (size))
 
-extern unsigned long __clear_user(void *addr, unsigned long size);
+extern inline unsigned long
+__clear_user(void *addr, unsigned long size)
+{
+	/* set a block of bytes to zero */
+	*((int *)addr) = 0;
+	size --;
+	asm volatile ("MVC	1(%1,%0),0(%0)" : 
+			"=r" (addr) : "r" (size) : "memory");
+	return 0;
+}
 
 extern inline unsigned long
 clear_user(void *addr, unsigned long size)

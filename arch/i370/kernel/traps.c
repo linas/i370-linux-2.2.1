@@ -441,6 +441,9 @@ __initfunc(void i370_trap_init (int key))
 		*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.regs);
 	}
 
+	key >>= 4;
+	key &= 0xf;
+
 	/* note that all interrupts will run in execution key 6 ... */
 	// install the SVC handler
 	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts

@@ -20,6 +20,13 @@ CFLAGS          := $(CFLAGS) -D__i370__ -fsigned-char -pipe \
                 -fno-builtin -Wno-uninitialized 
 CPP             = $(CC) -E $(CFLAGS)
 
+HEAD := arch/i370/kernel/head.o
+
+ARCH_SUBDIRS = arch/i370/kernel arch/i370/lib
+SUBDIRS := $(SUBDIRS) $(ARCH_SUBDIRS)
+ARCHIVES := arch/i370/kernel/kernel.o arch/i370/lib/lib.o $(ARCHIVES)
+CORE_FILES := arch/i370/kernel/kernel.o arch/i370/lib/lib.o $(CORE_FILES)
+
 MAKEBOOT = $(MAKE) -C arch/$(ARCH)/boot 
 
 BOOT_TARGETS = netboot znetboot zImage \
@@ -40,4 +47,3 @@ archmrproper:
 archdep:
 	$(MAKEBOOT) fastdep
 
- 

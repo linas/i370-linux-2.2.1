@@ -309,6 +309,7 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 
 /* ================================================================ */
 /* do SLIH intrerrupt handling (the bottom half) */
+int check_stack(struct task_struct *tsk) ;
 
 void 
 ret_from_syscall (void) 
@@ -321,7 +322,10 @@ ret_from_syscall (void)
 	 */
 	if (current->tss.in_slih) return;
 	current->tss.in_slih = 1;
-
+#define CHECK_STACK
+#ifdef CHECK_STACK
+	check_stack(current);
+#endif
 	/* When we enable interrupts with sti(), we'll get a shower 
 	 * of interrupts here. The in_lsih flag will keep them 
 	 * returning to here quickly enough.  Handle them, and 
@@ -330,6 +334,9 @@ ret_from_syscall (void)
 	while (do_it_again) {
 		sti();    /* enable interrupts */
 		do_it_again = 0;
+#ifdef CHECK_STACK
+		check_stack(current);
+#endif
 
 		/* bitwise and */
 		if (bh_mask & bh_active) {

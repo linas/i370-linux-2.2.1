@@ -260,7 +260,7 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 // it were do_fork() to anyone who had called do_fork(), (even
 // though switch_to() was called in schedule()).  This is because when 
 // the stack unwinds during the subr return, it unwinds into a copy 
-// of it's parent's stack (minux one stackframe).  And the last thing 
+// of it's parent's stack (minus one stackframe).  And the last thing 
 // the parent had done was a fork, ergo, that's were we return to.
 // 
 // A non-zero return value indicates an error.
@@ -269,8 +269,8 @@ int
 switch_to(struct task_struct *prev, struct task_struct *next)
 {
 	struct thread_struct *new_tss, *old_tss;
-
-        unsigned long s = __cli ();
+	unsigned long thunk;
+        __cli ();
 
 #ifdef CHECK_STACK
         check_stack(prev);
@@ -297,7 +297,7 @@ switch_to(struct task_struct *prev, struct task_struct *next)
         old_tss = &prev->tss;
         new_tss = &next->tss;
 
-	/* save and restore flt point regs.  We do this here because 
+	/* Save and restore flt point regs.  We do this here because 
 	 * it is NOT done at return from interrupt (in order to save
 	 * some overhead) */
 	_store_fpregs (old_tss->fpr);
@@ -305,19 +305,23 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 
 	current = next;
 
-	/* switch control registers */
+	/* Switch control registers */
 	/* cr1 contains the segment table origin */
 	_lctl_r1 (new_tss->cr1.raw);
 
-	/* switch kernel stack pointers */
+	/* Switch kernel stack pointers. Note that as son as we enable 
+	 * interrupts below, we'll probably get hit by one, so make sure 
+	 * the stack-top is valid as well. */
 	old_tss->ksp = _get_SP();
+	thunk = _get_STP() - _get_SP();
+	_set_STP (new_tss->ksp + thunk);
 	_set_SP (new_tss->ksp);
 
 	/* purge TLB (XXX is this really needed here ???) */
 	_ptlb();
 
-	/* note "s" is from a different stack ...  */
-        __restore_flags (s);
+	/* enable intrerupts */
+        __sti ();
 
 	/* return as if from do_fork() */
 	return 0;

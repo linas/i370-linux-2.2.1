@@ -203,7 +203,7 @@ bad_area:
  
 printk(" sending SEGV to user proc: here's the reg dump & backtrace:\n");
 show_regs(regs);
-print_backtrace (regs->irregs.r13, user_mode(regs));
+print_backtrace (regs->irregs.r13);
 
        info.si_signo = SIGSEGV;
        info.si_code  = SEGV_MAPERR;

@@ -284,13 +284,11 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 void exit_thread(void)
 {
 	printk ("exit_thread(): not implemented \n");
-	i370_halt();
 }
 
 void flush_thread(void)
 {
 	printk ("flush_thread(): not implemented \n");
-	i370_halt();
 }
 
 void

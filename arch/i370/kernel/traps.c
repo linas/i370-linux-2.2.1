@@ -348,8 +348,17 @@ ret_from_syscall (void)
 {
 	int do_it_again = 1;
 
+	/* if we are already in the bottom half on this stack,
+	 * then return. We don't want to blow out the stack
+	 * by piling a million interrupts on it.
+	 */
+	if (current->tss.in_slih) return;
+	current->tss.in_slih = 1;
+
+	/* keep looping until there are no more pending 
+	 * interrupts. */
 	while (do_it_again) {
-		cli();
+		sti();
 		do_it_again = 0:
 
 		/* bitwise and */
@@ -358,19 +367,23 @@ ret_from_syscall (void)
 			do_it_again = 1;
 		}
 		if (return_to_user) {
+			/* reschedule before delivering signals */
 			if (need_reschedule) {
 				schedule ();
 				do_it_again = 1;
 				continue;
 			}
+			/* if we are here, we weren't scheduled away. 
+                         * So deliver any pending signals before returning. */
 			if (sig_pending) {
 				do_signal ();
 				do_it_again = 1;
 				continue;
 			}
 		}
-		cli ();
 	}
+	cli ();
+	current->tss.in_slih = 0;
 }
 #endif
 

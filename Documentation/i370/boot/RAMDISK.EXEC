@@ -1,0 +1,30 @@
+/* */
+/* Handy utilitfy for loading a ramdisk */
+parse upper arg RAM_Start .
+parse value RAM_Start '200' with RAM_Start .
+'PIPE (name GET_RAMDISK)',
+   '| bfs /home/neale/fd0.dsk',
+   '| fblock 4096',
+   '| stem Page.',
+   '| count bytes',
+   '| var Size'
+Meg       = 1024*1024
+RAM_Pages = ((Size + Meg - 1) % Meg) * 256
+RAM_End   = D2X(X2D(RAM_Start) + RAM_Pages - 1)
+'CP DEFSEG RAMDISK' RAM_Start'-'RAM_End 'EW'
+'SEGMENT RESERVE RAMDISK'
+if Rc = 0 then
+do
+   CPRc = DIAG(64,'F','RAMDISK')
+   parse var CPRc 1 Start 5 End 9 .
+   RAM_Addr  = C2X(Start)
+   do I_Page = 1 to Page.0
+      X = STORAGE(RAM_Addr,4096,Page.I_Page)
+      RAM_Addr = D2X(X2D(RAM_Addr) + 4096)
+   end
+   'SETKEY 0 RAMDISK'
+   'CP SAVESEG RAMDISK'
+end
+'SEGMENT RELEASE RAMDISK'
+exit
+

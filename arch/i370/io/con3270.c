@@ -301,7 +301,7 @@ console_write_3270(struct console *c, const char *s,
 	rc = _ssch(dev_cons->unitsid,&orb);     /* issue Start Subchannel */
 
 	while (1) {
-		rc = _tsch(cons_sid,&irb);	
+		rc = _tsch(dev_cons->unitsid,&irb); 
 		if (!(irb.scsw.status & 0x1)) {
 			udelay (100);	/* spin 100 microseconds */
 			continue;
@@ -374,7 +374,7 @@ console_write_3210(struct console *c, const char *s,
 			rc = _ssch(dev_cons->unitsid,&orb);  /* issue Start Subchannel */
 
 			while (1) {
-				rc = _tsch(cons_sid,&irb);	
+				rc = _tsch(dev_cons->unitsid,&irb);
 				if (!(irb.scsw.status & 0x1)) {
 					udelay (100);	/* spin 100 microseconds */
 					continue;

@@ -41,6 +41,17 @@ _stext:
 _start:
 	BASR	r15,0			// load r15 with PSW 
 	.using	.,r15			// use r15 as base register
+
+	// make sure AMODE is 31, interrupts disabled
+	L	r1,=X'00080000'		// everything disabled
+	ST	r1,INTERRUPT_BASE(,0)	// store into prefex page
+	L	r1,=A(_cinit)		// jump to cinit next
+	O	r1,=X'80000000'		// AMODE 31
+	ST	r1,INTERRUPT_BASE+4(,0)	// store into prefix page
+	LPSW	INTERRUPT_BASE(0)	// jump to label
+	
+	// perform initialization to call C routines
+_cinit:
 	L	sp,=A(init_ksp)		// load address of stack pointer into r13
 	L	sp,0(,sp)		// load address of stack into r13
 	LA	sp,7(,sp)		// doubleword align

@@ -181,6 +181,7 @@ extern unsigned long empty_zero_page[1024];
 	(tsk)->tss.regs->cr1.raw = 0;				\
 	(tsk)->tss.regs->cr1.bits.psto = ((unsigned long) pgdir) >>12;		\
 	(tsk)->tss.regs->cr1.bits.pstl = 127;			\
+	_lctl_r1 ((tsk)->tss.regs->cr1.raw);			\
 }
      
 #ifndef __ASSEMBLY__

@@ -80,7 +80,7 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
  int write;
  unsigned short *ilc;
  
-printk ("do_page_fault addr=0x%x, pic=%x\n", address, pic_code);
+printk ("do_page_fault addr=0x%lx, pic=%x\n", address, pic_code);
   /*------------------------------------------------------------*/
   /* If we're in an interrupt or have no user                   */
   /* context, we must not take the fault..                      */
@@ -98,17 +98,26 @@ printk ("do_page_fault addr=0x%x, pic=%x\n", address, pic_code);
   if (vma->vm_start <= address)
        goto good_area;
 
-  /* If we are here, then the address was below the vma start.
-   * In that case, we better be dealing with the stack.
-   * The current i370 ELF stack grows up.
-   */
-printk ("do_page_fault stack fault addr=0x%x\n", address);
-  if (!(vma->vm_flags & VM_GROWSUP))
+  if ((pic_code == PIC_PROTECTION) && address < 0x200) {
+printk ("do_page_fault null pointer deref ptr=0x%lx\n", address);
        goto bad_area;
+  }
+  /* If we are here, then the address was below the vma start.
+   * It might be a null-pointer deref ...
+   *
+   * Note clear on what's going on here. This can happen for the 
+   * user process stack, although note that that grows up, not down.
+   * Note also, it should stact a 7fc00000 but sometimes starts at
+   * 7fbfff00 which I think is wrong, but .. anyway, this are needs
+   * work both here and in the elf loader.
+   */
+printk ("do_page_fault addr=0x%lx is below vma start=0x%lx\n", address, vma->vm_start);
+  /* if (!(vma->vm_flags & VM_GROWSUP)) goto bad_area; */
+
   if (user_mode(regs)) {
        /*-----------------------------------------------------*/
        /*-----------------------------------------------------*/
-printk ("do_page_fault usermode stack fault addr=0x%x, frame=%x\n", address, regs->irregs.r13);
+printk ("do_page_fault user stack fault addr=0x%lx, frame=%lx\n", address, regs->irregs.r13);
        /* XXX hack alert see the corresponding stack XXXX in i370_start_thread() */
        /* XXX basically this is a really piss-poor attempt at stack verification */
        if (address < ((TASK_SIZE-I370_STACK_SIZE)-0x1000))
@@ -138,6 +147,7 @@ good_area:
      if (vma->vm_flags & VM_WRITE)
         write = 1;
   }
+  printk(" handling mm fault on good page \n");
  
   /*----------------------------------------------------------*/
   /* If for any reason at all we couldn't handle the fault,   */
@@ -159,7 +169,7 @@ bad_area:
   if (user_mode(regs)) {
        siginfo_t info;
  
-printk("sending SEGV to user proc: bad access to 0x%x pic=%x\n", address, pic_code);
+printk("sending SEGV to user proc: bad access to 0x%lx pic=%x\n", address, pic_code);
 show_regs(regs);
 print_backtrace (regs->irregs.r13);
 

@@ -32,7 +32,7 @@ SECTIONS
   init_task : { *(init_task) }
 
   /* Global data */
-  . = ALIGN(4096);
+  . = ALIGN(8192);	/* Alllow at least double page for init_task_union */
   _data = .;
   .rodata : { *(.rodata) }
   .data : { *(.data) CONSTRUCTORS }

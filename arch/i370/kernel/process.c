@@ -97,7 +97,7 @@ print_backtrace (unsigned long stackp)
         printk("Call Backtrace:\n");
 	sp = (i370_elf_stack_t *) stackp;
 
-        while (sp && (cnt < 8)) 
+        while (sp &&  (cnt < 8)) 
 	{
 		printk ("   %02d   base=0x%lx link=0x%lx stack=%p\n", 
 			cnt, sp->caller_r3, sp->caller_r14, sp);
@@ -330,8 +330,13 @@ i370_sys_exit (void)
  * -- Copy PSW flags (in particular, the DAT flag) ???
  *
  * argument p is the copy_to_proc;  copy_from is "current"
- * usp and regs are what was pass to do_fork below ...
- * return 0 if success, non-zero if not
+ * usp and regs are exactly what was passed to do_fork.
+ * It is assumed that usp is the stack pointer before
+ * the svc took place.
+ *
+ * Return 0 if success, non-zero if not
+ *
+ * XXX we gotta copy the user-space thread, as wel ... 
  *
  * XXX we need to check to see if usp is indeed a user-space
  * stack pointer, and if so, set irregs.r13 to it.  We do not
@@ -347,28 +352,26 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 {
 	unsigned long srctop, dsttop;
 	i370_elf_stack_t *srcsp, *dstsp, *this_frame;
+	i370_elf_stack_t *lastsrc, *lastdst;
 	void *srcbase, *dstbase;
 	unsigned long delta;
 	i370_interrupt_state_t *srcregs, **dstregs;
 
-	printk("i370 copy_thread\n");
+	printk("i370_copy_thread, usp=0x%lx\n", usp);
 
-	/* copy the kernel stack, and fix up the entries in it,
-	 * so that it unwinds properly in the copied thread.
+	/* Copy the kernel stack, and fix up the entries in it.
+	 * Don't copy the current frame: we want the new stack
+	 * to unwinds is if it were do_fork(), and not to do_fork().
 	 */
 	srctop = kernel_stack_top (current);
 	dsttop = kernel_stack_top (p);
 
-        /* unwind one frame; don't copy this frame */
 	this_frame = (i370_elf_stack_t *) _get_SP();
         this_frame = (i370_elf_stack_t *) (this_frame->caller_sp);
 	srcsp = this_frame;
 
 	delta = srctop - dsttop;
 
-	/* Don't copy the last frame, otherwise do_fork() will
-	 * not work right becasue we return to the wrong place.
-         */
 	srcbase = (void *) task_top (current);
 	dstbase = (void *) task_top (p);
 	memcpy (dstbase, srcbase, 8192-sizeof(struct task_struct));
@@ -376,14 +379,17 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	do {
 		dstsp -> caller_sp = srcsp->caller_sp - delta;
 		dstsp -> callee_sp = srcsp->callee_sp - delta;
+		lastsrc = srcsp;
+		lastdst = dstsp;
 		srcsp = (i370_elf_stack_t *) (srcsp -> caller_sp);
 		dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
-	} while (srcsp <= srctop);
+	} while (srcsp);
+	lastdst -> caller_sp = 0;
 
-	/* switch_to grabs the current ksp out of tss.ksp */
+	/* Switch_to grabs the current ksp out of tss.ksp */
 	p->tss.ksp = ((unsigned long) this_frame) - delta;
 
-	/* interrupt regs are stored on stack as well */
+	/* Interrupt regs are stored on stack as well */
 	srcregs = current->tss.regs;
 	dstregs = &(p->tss.regs);
 	do {
@@ -394,6 +400,37 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		srcregs = srcregs->oldregs;
 		dstregs = &((*dstregs)->oldregs);
 	} while (srcregs);
+
+	/* Now copy the 'far side' of the stack, the part that lies
+	 * on the other side of the SVC that go us here.  There are
+	 * two possibilities here: that we came from user-land,
+	 * or that we came from the kernel. If we came from the 
+	 * kernel, then in fact we are on the same stack frame.  
+	 */
+	if (regs->psw.flags & PSW_PROB) {
+		printk("i370_copy_thread, copy of user stack not yet supported\n");
+		i370_halt();
+	} else {
+		/* validate expected location of the stack */
+		if ((usp < (unsigned long) lastsrc) || (usp > srctop)) {
+			printk("i370_copy_thread, bad usp=0x%lx, "
+				"lastsrc=%p, stcktop=0x%lx \n",
+				usp, lastsrc, srctop);
+			i370_halt();
+		}
+
+		/* Same kernel stack, just fix up entries. */
+		srcsp = (i370_elf_stack_t *) usp;
+		dstsp = (i370_elf_stack_t *) (usp - delta);
+		do {
+			dstsp -> caller_sp = srcsp->caller_sp - delta;
+			dstsp -> callee_sp = srcsp->callee_sp - delta;
+			lastdst = dstsp;
+			srcsp = (i370_elf_stack_t *) (srcsp -> caller_sp);
+			dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
+		} while (srcsp);
+		lastdst -> caller_sp = 0;
+	}
 
 #ifdef __SMP__
         if ( (p->pid != 0) || !(clone_flags & CLONE_PID) )

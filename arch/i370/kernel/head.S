@@ -70,6 +70,8 @@ _cinit:
 	LA	sp,7(,sp)		/* doubleword align               */
 	SRL	sp,3
 	SLL	sp,3
+	SLR	r3,r3
+	ST	r3,4(,sp)		/* terminate stack backchain      */
 	L	r15,=A(start_kernel)	/* load address of C routine      */
 	BASR	lr,r15			/* jump to C routine              */
 	.drop	r15
@@ -205,6 +207,8 @@ _cinit:
 1:					/* branch here if kernel     */	\
 	/* we have a valid stack pointer; build a stackframe         */	\
 	SL	sp,SF_SIZE_LIT;		/* subtract stackframe size  */	\
+	SLR	r3,r3;			/* zero                      */	\
+	ST	r3,4(,sp);		/* terminate stack backchain */	\
 	/* move saved regs out of prefix page to stackframe          */	\
 	MVC	SAVED_PSW(8,sp),oldpsw(0); /* save old psw on stack  */	\
 	MVC	SAVED_R11(64,sp),sav+IR_R11(0);	/* 16 regs=64 bytes  */	\
@@ -293,7 +297,7 @@ MachineCheck:
 SupervisorCall:
 	SAVE_REGS (INTERRUPT_BASE)
 	EXCEPTION_TRACE (SVC_TRC_ID, 0, PFX_SVC_CODE, SVC_PSW_OLD)
-	EXCEPTION_PROLOG (INTERRUPT_BASE,  SVC_PSW_OLD) 
+	EXCEPTION_PROLOG (INTERRUPT_BASE, SVC_PSW_OLD) 
 
 	SLR	r2,r2			/* put zero in r2 */
 	LH	r2,138(,0)		/* load interruption code from pfx */

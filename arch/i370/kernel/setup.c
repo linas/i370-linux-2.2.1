@@ -116,10 +116,12 @@ __initfunc(void setup_arch(char **cmdline_p,
 	extern char _bss[], _ebss[];
 	extern struct consw video3270_con;
 
-	/* Hack around bug in 3CARD boot loader which doesn't clear
+	/* XXX Hack around bug in 3CARD boot loader which doesn't clear
 	 * the BSS but instead puts the elf symbol table there yuck. 
+	 * Actually, we can't do it here, we have to do it in init/main.c,
+	 * start_kernel(), before the first printk.  Got to fix the loader.
 	 */
-	memset (_bss, 0, ((unsigned long) _ebss) - ((unsigned long)_bss));
+	/* memset (_bss, 0, ((unsigned long) _ebss) - ((unsigned long)_bss)); */
 
 	/* XXX XXX XXX Serious bug alert.
 	 * gcc version egcs-2.91.66 19990314 (egcs-1.1.2 release)

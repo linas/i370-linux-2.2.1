@@ -18,7 +18,6 @@ __initfunc(void setup_arch(char **cmdline_p,
 {
 	extern int panic_timeout;
 	extern char _etext[], _edata[], _end[];
-//	extern char *klimit;
 //	extern unsigned long find_available_memory(void);
 // 	extern unsigned long *end_of_DRAM;
 
@@ -28,7 +27,8 @@ __initfunc(void setup_arch(char **cmdline_p,
 	init_task.mm->start_code = PAGE_OFFSET;
 	init_task.mm->end_code = (unsigned long) _etext;
 	init_task.mm->end_data = (unsigned long) _edata;
-//  	init_task.mm->brk = (unsigned long) klimit;	
+//  	init_task.mm->brk = (unsigned long) _end;
+  	init_task.mm->brk = (unsigned long) -1;
 
 	/* Save unparsed command line copy for /proc/cmdline */
 	strcpy(saved_command_line, cmd_line);
@@ -36,7 +36,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 
  	*memory_start_p = _end;
 //	*memory_end_p = (unsigned long) end_of_DRAM;
-	*memory_end_p = 0x1000000;  // 16M
+	*memory_end_p = 0x2000000;  // 32M
 
 }
 

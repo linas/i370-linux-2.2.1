@@ -9,6 +9,7 @@
  * --linas Oct 1999
  */
 
+#include <linux/config.h>
 #include <linux/types.h>
 #include <linux/init.h>
 #include <linux/kdev_t.h>
@@ -16,7 +17,10 @@
 #include <linux/selection.h>
 #include <linux/console.h>
 #include <linux/console_struct.h>
+#include <linux/vt_kern.h>
 
+
+static unsigned long vid3270_uni_pagedir[2] = {0,0};
 
 /* ================================================================ */
 
@@ -30,13 +34,26 @@ __initfunc(static const char *vid3270_startup(void))
 static void
 vid3270_init(struct vc_data *conp, int init)
 {
+	unsigned long p;
+
 	conp->vc_can_do_color = 0;
 	if (init) {
 		conp->vc_cols = 80;
 		conp->vc_rows = 24;
 	}
-	conp->vc_uni_pagedir_loc = 0;
 
+	/* beats the heck out of me wht this code does, but
+	 * both the VGA and the promcon do this.  If we don't
+	 * do this, cuhhh-rash. */
+	p = *conp->vc_uni_pagedir_loc;
+	if (conp->vc_uni_pagedir_loc == &conp->vc_uni_pagedir ||
+	    !--conp->vc_uni_pagedir_loc[1])
+		con_free_unimap(conp->vc_num);
+	conp->vc_uni_pagedir_loc = vid3270_uni_pagedir;
+	vid3270_uni_pagedir[1]++;
+	if (!vid3270_uni_pagedir[0] && p) {
+		con_set_default_unimap(conp->vc_num);
+	}
 }
 
 /* ================================================================ */
@@ -44,6 +61,11 @@ vid3270_init(struct vc_data *conp, int init)
 static void
 vid3270_deinit(struct vc_data *conp)
 {
+	if (!--vid3270_uni_pagedir[1]) {
+		con_free_unimap(conp->vc_num);
+	}
+	conp->vc_uni_pagedir_loc = &conp->vc_uni_pagedir;
+	con_set_default_unimap(conp->vc_num);
 }
 
 /* ================================================================ */

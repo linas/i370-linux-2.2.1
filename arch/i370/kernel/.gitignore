@@ -1,2 +1,3 @@
 *.flags
 .depend
+*.lst

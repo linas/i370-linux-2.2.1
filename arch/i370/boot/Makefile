@@ -1,5 +1,7 @@
 
 # empty
 
+clean:
+
 fastdep:
 

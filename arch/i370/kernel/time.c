@@ -17,16 +17,19 @@ __initfunc(void time_init(void))
 	unsigned long long tod;
 	printk ("enter time init\n");
 
+	/* enable interrupts */
+	__sti();
+
 	/* hack alert XXX I suppose that we should check that the
 	 * system TOD clock is not in the stopped state, and if it is, 
 	 * set it running again... 
 	 */
-	/* grab the system time of day clock, add 10 milliseconds,
+	/* grab the system time of day clock, add 50 milliseconds,
 	 * and store that in the clock comparator.  That should start 
 	 * the interupts going. 
 	 */
 	tod = _stck();
-	tod += (1000000/HZ) << 12;
+	tod += 5 * (1000000/HZ) << 12;
 	_sckc (tod);
 
 	/* wait for an interrupt */

@@ -67,7 +67,8 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) {
 	return 0;
 }
 
-void show_regs(struct pt_regs * regs)
+void 
+show_regs(struct pt_regs * regs)
 {
 	printk("PSW flags: %08lX PSW addr: %08lX \n",
 		regs->psw.flags, regs->psw.addr);
@@ -97,7 +98,7 @@ print_backtrace (unsigned long stackp)
         printk("Call Backtrace:\n");
 	sp = (i370_elf_stack_t *) stackp;
 
-        while (sp &&  (cnt < 8)) 
+        while (sp &&  (cnt < 6)) 
 	{
 		printk ("   %02d   base=0x%lx link=0x%lx stack=%p\n", 
 			cnt, sp->caller_r3, sp->caller_r14, sp);

@@ -194,7 +194,10 @@ bad_area:
   if (user_mode(regs)) {
        siginfo_t info;
  
-printk(" sending SEGV to user proc\n");
+printk(" sending SEGV to user proc: here's the reg dump & backtrace:\n");
+show_regs(regs);
+print_backtrace (regs->irregs.r13);
+
        info.si_signo = SIGSEGV;
        info.si_code  = SEGV_MAPERR;
        info.si_addr  = (void *) address;

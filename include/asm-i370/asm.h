@@ -142,30 +142,33 @@ extern inline void _lpsw (unsigned long long psw)
 
 /* -------------------------------------------------------- */
 /* load control registers */
-#define _lctl(REGNO)						\
-extern inline void _lctl##REGNO (unsigned int value)		\
+
+#define _lctl(REGNO,val) _lctl_r##REGNO (val)
+
+#define def_lctl(REGNO)						\
+extern inline void _lctl_r##REGNO (unsigned int value)		\
 {								\
    /* be sure to serialize memory access around this instruction */\
    asm volatile ("LCTL  " #REGNO "," #REGNO ",%0"  		\
                    : : "m" (value) : "memory");			\
 }
 
-_lctl(0)
-_lctl(1)
-_lctl(2)
-_lctl(3)
-_lctl(4)
-_lctl(5)
-_lctl(6)
-_lctl(7)
-_lctl(8)
-_lctl(9)
-_lctl(10)
-_lctl(11)
-_lctl(12)
-_lctl(13)
-_lctl(14)
-_lctl(15)
+def_lctl(0)
+def_lctl(1)
+def_lctl(2)
+def_lctl(3)
+def_lctl(4)
+def_lctl(5)
+def_lctl(6)
+def_lctl(7)
+def_lctl(8)
+def_lctl(9)
+def_lctl(10)
+def_lctl(11)
+def_lctl(12)
+def_lctl(13)
+def_lctl(14)
+def_lctl(15)
 
 /* -------------------------------------------------------- */
 /* Store Processor Address */

@@ -36,7 +36,7 @@ struct pt_regs {
 /* Size of stack frame allocated when calling signal handler. */
 #define __SIGNAL_FRAMESIZE	64   /* XXX whoa all wrong */
 
-#define instruction_pointer(regs) ((regs)->psw_ia) & 0x7fffffff)
+#define instruction_pointer(regs) (((regs)->psw_ia) & 0x7fffffff)
 #define user_mode(regs) ((regs)->psw_bits & 0x10000)
 
 /*

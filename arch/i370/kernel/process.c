@@ -69,7 +69,7 @@ show_regs(struct pt_regs * regs)
 {
 	printk("PSW flags: %08lX PSW addr: %08lX \n",
 		regs->psw.flags, regs->psw.addr);
-	printk (" cr0: %08lX  cr1: %08lX \n", regs->cr0.raw, regs->cr1.raw);
+	// printk (" cr0: %08lX  cr1: %08lX \n", regs->cr0.raw, regs->cr1.raw);
 
         /* Note: if debugging disabled, r5-r10 may not be valid */
         printk ("  r0: %08lX   r1: %08lX   r2: %08lX   r3: %08lX \n", 
@@ -110,7 +110,7 @@ print_backtrace (unsigned long stackp)
 		}
 		sp = (i370_elf_stack_t *) stackp;
 
-		printk ("   %02d   base=0x%lx link=0x%lx stack=%p\n", 
+		printk ("   %02d   base[r3]=0x%lx link[r14]=0x%lx stack=%p\n", 
 			cnt, sp->caller_r3, sp->caller_r14, stackp);
 		stackp = sp->caller_sp;
 		cnt ++;
@@ -294,7 +294,7 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 	/* switch control registers */
 	/* cr1 contains the segment table origin */
-	_lctl_r1 (new_tss->regs->cr1.raw);
+	_lctl_r1 (new_tss->cr1.raw);
 
 	/* switch kernel stack pointers */
 	old_tss->ksp = _get_SP();

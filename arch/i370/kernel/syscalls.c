@@ -38,7 +38,6 @@
 #include <linux/utsname.h>
 
 #include <asm/uaccess.h>
-// #include <asm/ipc.h>
 
 void
 check_bugs(void)
@@ -46,15 +45,15 @@ check_bugs(void)
 }
 
 asmlinkage int i370_sys_execve(unsigned long a0, unsigned long a1,
-			       unsigned long a2,unsigned long a3,
-			       unsigned long a4, unsigned long a5,
-			       struct pt_regs *regs)
+			       unsigned long a2)
 {
 	int error;
 	char * filename;
+        struct pt_regs *regs;
 
-	printk("i370_sys_execve: name = %s\n",a0);
+	printk("i370_sys_execve: name = %s\n", a0);
 	lock_kernel();
+	regs = current->tss.regs; 
 	filename = getname((char *) a0);
 	error = PTR_ERR(filename);
 	if (IS_ERR(filename)) {
@@ -64,10 +63,12 @@ asmlinkage int i370_sys_execve(unsigned long a0, unsigned long a1,
 		putname(filename);
 	}
 	unlock_kernel();
+	printk("i370_sys_execve: hello problem state DAT\n");
 	return error;
 }
 
-asmlinkage int i370_sys_ptrace (void) { 
+asmlinkage int i370_sys_ptrace (void) 
+{ 
 	i370_halt();
 	return 1;
 }

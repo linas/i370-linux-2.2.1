@@ -511,7 +511,7 @@ unsigned long __clear_user(void *addr, unsigned long len)
 			unsigned long ra;
 			if (len < rlen) rlen = len;
 			ra = pte_page (*pte) | off;
-			printk ("clear_user va=%x ra=%x\n", va, ra);
+			printk ("clear_user va=%x ra=%x len=%d\n", va, ra, len);
 			memset ((void *)ra, 0, rlen);
 			len -= rlen;
 			va += rlen;

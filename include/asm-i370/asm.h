@@ -28,23 +28,6 @@ extern inline void _set_SP (unsigned long newsp)
 }
 
 /* -------------------------------------------------------- */
-/* get the current value of the tca pointer */
-/* since this inlines, it will basically copy r12 to where-ever */
-extern inline unsigned long _get_TCA(void)
-{
-        unsigned long rc;
-        asm volatile ("LR	%0,rtca" : "=r" (rc) : );
-        return rc;
-}
-
-/* set the current value of the tca pointer */
-/* use with caution */
-extern inline void _set_TCA (unsigned long newtca)
-{
-        asm volatile ("LR	rtca,%0" : : "r" (newtca) : "memory");
-}
-
-/* -------------------------------------------------------- */
 /* copy fpregs to memory */
 extern inline void _store_fpregs (double *memy)
 {

@@ -245,31 +245,28 @@ typedef struct {
 } mm_segment_t;
 
 struct thread_struct {
-	unsigned long	ksp;		/* Kernel stack pointer */
+	unsigned long	ksp;		/* Kernel stack pointer             */
 	struct pt_regs *regs;		/* Pointer to saved interrupt state */
-	unsigned long	tca[32];	/* mostly wasted, empty space ... */
-	double		fpr[16];	/* Complete floating point set */
+	double		fpr[16];	/* Complete floating point set      */
 
 	/* XXX still not clear on the stuff below ... */
-	unsigned long	*pg_tables;	/* Base of page-table tree */
-	unsigned long	wchan;		/* Event task is sleeping on */
-	mm_segment_t	fs;		/* for get_fs() validation */
+	unsigned long	*pg_tables;	/* Base of page-table tree          */
+	unsigned long	wchan;		/* Event task is sleeping on        */
+	mm_segment_t	fs;		/* for get_fs() validation          */
 	signed long     last_syscall;
 	unsigned long	smp_fork_ret;
 };
 
-/* the kernel stack starts immediately after the end of the task struct */
 #define init_task	(init_task_union.task)
-#define init_stack	((unsigned long) (((char *) &init_task_union.stack) \
-			+ sizeof(init_task)))
+
+/* the initial stack pointer is 160 bytes down from top of stack */
+#define init_stack	(&init_task_union.stack[2048-40])
 
 #define INIT_SP		init_stack
 
 #define INIT_TSS  { \
 	INIT_SP, /* ksp */ \
 	0, /* regs */ \
-	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* tca */ \
-	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, /* tca */ \
 	{0.0,0.0,0.0,0.0}, /* FPR's */ \
 					\
 	(unsigned long *) swapper_pg_dir, /* pg_tables */ \

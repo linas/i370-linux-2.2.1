@@ -95,9 +95,9 @@ typedef union _i370_cr1_u cr1_t;
  * returned value.
  *
  * r13 is the stack pointer
- * r12 is the tca pointer
- * r10 is the static chain (trampoline) register
- * r3  is the base register
+ * r10 is the static chain register
+ * r12 is the .data address literal base pointer
+ * r3  is the .text address literal (branch) base register
  * r4  is base table origin pointer
  */
 
@@ -120,8 +120,8 @@ struct _i370_elf_stack_s {
 	unsigned long	caller_r10;		/* 60 */
 	unsigned long	caller_r11;		/* 64 */
 	unsigned long	caller_r12;		/* 68 */
-	unsigned long	stack_base;	 	/* 72 */ 
-	unsigned long	stack_top;		/* 76 */
+	unsigned long	unused;		 	/* 72 */ 
+	unsigned long	x0;			/* 76 */
 	unsigned long	x1;			/* 80 */
 	unsigned long	x2;			/* 84 */
 	unsigned long	x3;			/* 88 */

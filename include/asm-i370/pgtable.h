@@ -204,7 +204,7 @@ extern unsigned long empty_zero_page[1024];
  * contain 'true' ptes, but instead contain swapfile info.
  */
 extern inline int 
-	pte_none(pte_t pte)	{ return !((pte_val(pte) & ~(_PAGE_INVVALID |_PAGE_RO))); }
+	pte_none(pte_t pte)	{ return !((pte_val(pte) & ~(_PAGE_INVALID |_PAGE_RO))); }
 extern inline int 
 	pte_present(pte_t pte)	{ return !((pte_val(pte) & _PAGE_INVALID)); }
 extern inline void 
@@ -288,12 +288,12 @@ extern inline pte_t
  * (grep for set_pte (__pte(0));
  */
 extern inline void 
-set_pte (pte_t * pteptr, pte_t pteval)	 
+set_pte (pte_t * ptep, pte_t val)	 
 {
-	if (pteval) { 
-		((*(pteptr)) = (pteval));
+	if (pte_val(val)) { 
+		*ptep = val;
 	} else {
-		pte_clear (pteptr));
+		pte_clear (ptep);
 	}
 }
 

@@ -8,6 +8,8 @@
 #include <linux/kernel.h>
 #include <linux/tasks.h>
 #include <linux/string.h>
+
+#include <asm/delay.h>
 #include <asm/iorb.h>
 #include <asm/unitblk.h>
 

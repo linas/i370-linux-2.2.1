@@ -30,7 +30,7 @@ print_backtrace(unsigned long *sp)
 //        int cnt = 0;
 //        unsigned long i;
 
-        printk("Call backtrace: ");
+        printk("Call backtrace:\n");
 #ifdef BOGUS_XXX
         while (sp) {
                 if (__get_user( i, &sp[1] ))
@@ -46,3 +46,36 @@ print_backtrace(unsigned long *sp)
         printk("\n");
 }
 
+void
+switch_to(struct task_struct *prev, struct task_struct *new)
+{
+        printk("swith_to\n");
+}
+
+void exit_thread(void)
+{
+//        if (last_task_used_math == current)
+//                 last_task_used_math = NULL;
+}
+
+void flush_thread(void)
+{
+ //       if (last_task_used_math == current)
+//                last_task_used_math = NULL;
+}
+
+void
+release_thread(struct task_struct *t)
+{
+}
+
+/*
+ * Copy a thread..
+ */
+int
+copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
+            struct task_struct * p, struct pt_regs * regs)
+{
+   /* XXX */
+   return 0;
+}

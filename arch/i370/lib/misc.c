@@ -21,3 +21,12 @@ void atomic_clear_mask(unsigned long mask, unsigned long *addr) {}
 void atomic_set_mask(unsigned long mask, unsigned long *addr) {}
 
 
+/*
+ * Atomic [test&set] exchange
+ *
+ *      void *xchg_u32(void *ptr, unsigned long val)
+ * Changes the memory location '*ptr' to be val and returns
+ * the previous value stored there.
+ */
+void *xchg_u32(void *ptr, unsigned long val) { return ptr;}
+

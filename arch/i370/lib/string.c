@@ -3,11 +3,29 @@
  * quickie hacks; could probably be made much more efficient 
  */
 
-int strlen (const char *head) 
+typedef int size_t;
+
+void* memcpy (void *dest, const void *src, size_t n)
 {
-   char * tail = head;
-   while (*tail) tail ++;
-   return (tail - head);
+   int i=0;
+   char *d, *s;
+   d = (char *)dest;
+   s = (char *) src;
+   // rewrite to inline MVCL
+   for (i=0; i<n; i++) {
+      d[i] = s[i];
+   }
+   return dest;
+}
+
+void *memset(void *s, int c, size_t n)
+{
+   char *ss = (char *)s;
+   int i=0;
+   for (i=0; i<n; i++) {
+      ss[i] = (char) c;
+   }
+   return s;
 }
 
 int strcmp(const char *s1, const char *s2)
@@ -21,19 +39,40 @@ int strcmp(const char *s1, const char *s2)
    return 0;
 }
 
-void *memset(void *s, int c, int n)
+char* strcpy (char *dest, const char *src)
 {
-   char *ss = (char *)s;
-   int i=0;
-   for (i=0; i<n; i++) {
-      ss[i] = (char) c;
-   }
-   return s;
+   int i=-1;
+   do {
+      i++;
+      dest[i] = src[i];
+   } while (src[i]);
+   return dest;
 }
+
+int strlen (const char *head) 
+{
+   char * tail = (char *) head;
+   while (*tail) tail ++;
+   return (tail - head);
+}
+
+char* strncpy (char *dest, const char *src, size_t n)
+{
+   int i=-1;
+   n --;
+   do {
+      i++;
+      dest[i] = src[i];
+   } while (src[i] && (i<n));
+   return dest;
+}
+
 
 int
 __copy_tofrom_user (char * to, char * from, int len) 
 {
-
 /* bogus */
+  return 0;
 }
+int __strncpy_from_user(char *dst, const char *src, long count)
+{ return 0; }

@@ -40,3 +40,14 @@ __initfunc(void setup_arch(char **cmdline_p,
 		printk("Unknown machine %d in setup_arch()\n", _machine);
 	}
 }
+
+void machine_restart(char *cmd)
+{
+}
+
+void machine_halt(void)
+{
+}
+void machine_power_off(void)
+{
+}

@@ -11,11 +11,6 @@
 #include <asm/iorb.h>
 #include <asm/unitblk.h>
 
-int     stsch(int, schib_t *);
-int     tsch(int, irb_t *);
-int     ssch(int, orb_t *);
-
-
 /*
  *	Issue a Read Device Characteristics to a specific subchannel
  */
@@ -51,7 +46,7 @@ int     i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
 	orb.lpm = 0xff;	/* Logical Path Mask */
 	orb.ptrccw = &ioccw[0];
 
-	rc = ssch(sid,&orb);	/* issue Start Subchannel */
+	rc = _ssch(sid,&orb);	/* issue Start Subchannel */
 
 	if (rc) {
 		return(rc); /* we lost the subchannel - tell caller */
@@ -63,17 +58,18 @@ int     i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
 	 */
 
 	while(1) {
-		rc = stsch(sid,schib);
+		rc = _stsch(sid,schib);
 
 		if (rc) {
 			break; /* lost subchannel - tell caller */
 		}
 
 		if (!(schib->scsw.status & 0x1)) {
+			udelay (100);	/* busy spin for 100 microsecs */
 			continue;
 		}
 
-		rc = tsch(sid,&irb);
+		rc = _tsch(sid,&irb);
 
 		if (rc) {
 			break; /* lost subchannel - tell caller */
@@ -167,7 +163,7 @@ int     i370_getvol(int sid, schib_t *schib, devchar_t *rdc)
 	orb.lpm = 0xff;	/* Logical Path Mask */
 	orb.ptrccw = &ioccw[0];
 
-	rc = ssch(sid,&orb);	/* issue Start Subchannel */
+	rc = _ssch(sid,&orb);	/* issue Start Subchannel */
 
 	if (rc) {
 		return(rc); /* we lost the subchannel - tell caller */
@@ -181,16 +177,17 @@ int     i370_getvol(int sid, schib_t *schib, devchar_t *rdc)
 	while(1) {
 		memset(&rdc->devvol[0],0xff,6);
 
-		rc = stsch(sid,schib);
+		rc = _stsch(sid,schib);
 		if (rc) {
 			break; /* lost subchannel - tell caller */
 		}
 
 		if (!(schib->scsw.status & 0x1)) {
+			udelay (100);	/* busy spin for 100 microsecs */
 			continue;
 		}
 
-		rc = tsch(sid,&irb);
+		rc = _tsch(sid,&irb);
 		if (rc) {
 			break; /* lost subchannel - tell caller */
 		}
@@ -217,96 +214,6 @@ int     i370_getvol(int sid, schib_t *schib, devchar_t *rdc)
         return rc;
 
 }
-
-/*
- *	Issue SSCH 	
- */
-
-int     
-ssch(int sid, orb_t *orb) 
-{
-	int     rc;
-
-        __asm__ __volatile__
-
-        ("l     r1,%1;"
-         "ssch %2;"
-         "ipm   r1;"
-         "la    %0,0(0,r1);"
-        : "=r" (rc)
-        : "m" (sid), "m"(*orb)
-        :"r1","memory");
-
-        return(rc & 0x30000000); /* just send the CC back in R15 */
-}
-
-/*
- *	Issue MSCH 	
- */
-
-int     
-msch(int sid, schib_t *schib) 
-{
-	int     rc;
-
-        __asm__ __volatile__
-
-        ("l     r1,%1;"
-         "msch %2;"
-         "ipm   r1;"
-         "la    %0,0(0,r1);"
-        : "=r" (rc)
-        : "m" (sid), "m"(*schib)
-        :"r1","memory");
-
-        return(rc & 0x30000000);
-}
-
-/*
- *	Issue TSCH 	
- */
-
-int     
-tsch(int sid, irb_t *irb) 
-{
-	int     rc;
-
-        __asm__ __volatile__
-
-        ("l     r1,%1;"
-         "tsch %2;"
-         "ipm   r1;"
-         "la    %0,0(0,r1);"
-        : "=r" (rc)
-        : "m" (sid), "m"(*irb)
-        :"r1","memory");
-
-        return(rc & 0x30000000);
-}
-
-/*
- *	Issue STSCH 	
- */
-
-int     
-stsch(int sid, schib_t *schib) 
-{
-	int     rc;
-
-        __asm__ __volatile__
-
-        ("l     r1,%1;"
-         "stsch %2;"
-         "ipm   r1;"
-         "la    %0,0(0,r1);"
-        : "=r" (rc)
-        : "m" (sid), "m"(*schib)
-        :"r1","memory");
-
-        return(rc & 0x30000000);
-
-}
-
 
 
 #define	ON	1
@@ -339,7 +246,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	unit_base = (unitblk_t *)*memory_start; 
 
 	while(1) {
-		rc = stsch(sid,&schib);	
+		rc = _stsch(sid,&schib);	
 		if (rc == 0) {
 			if (schib.dval) {
 				sid_count++;
@@ -363,7 +270,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 
 	while(1) {
 
-		rc = stsch(sid,&schib);	/* store a schib */
+		rc = _stsch(sid,&schib);	/* store a schib */
 
 		if (rc != 0) {	
 			break;		/* drop out of loop on CC3 */
@@ -378,7 +285,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 
 				schib.enabl = ON;
 				schib.interrupt_parm = (int)devices;
-				rc = msch(sid,&schib);
+				rc = _msch(sid,&schib);
 					
 				rc = i370_getrdc(sid,&schib,&rdc);	
 
@@ -415,3 +322,4 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	return;
 }
 
+/* ============================== END OF FILE ==================== */

@@ -21,10 +21,10 @@
 #include <linux/init.h>
 #include <linux/delay.h>
 #include <linux/console.h>
-#include <asm/atomic.h>
-
 
 #include <asm/3270.h>
+#include <asm/atomic.h>
+#include <asm/delay.h>
 #include <asm/iorb.h>
 #include <asm/unitblk.h>
 
@@ -155,9 +155,6 @@ unsigned char ebcasc[256] =
 
 /* ===================================================== */
 
-int     ssch(int, orb_t *);
-int     tsch(int, irb_t *);
-
 static void console_write_3270(struct console *, const char *, unsigned);
 static int console_setup_3270(struct console *, char *);
 static kdev_t console_device_3270(struct console *);
@@ -279,11 +276,12 @@ console_write_3270(struct console *c, const char *s,
 	orb.lpm = 0xff;			/* Logical Path Mask */
 	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
 
-	rc = tsch(cons_sid,&irb);     /* hack for unsolicited DE */
-        rc = ssch(cons_sid,&orb);    /* issue Start Subchannel */
+	rc = _tsch(cons_sid,&irb);     /* hack for unsolicited DE */
+        rc = _ssch(cons_sid,&orb);    /* issue Start Subchannel */
 	while (1) {
-		rc = tsch(cons_sid,&irb);	
+		rc = _tsch(cons_sid,&irb);	
 		if (!(irb.scsw.status & 0x1)) {
+			udelay (100);	/* spin 100 microseconds */
 			continue;
 		}
 		else {
@@ -298,7 +296,7 @@ console_write_3270(struct console *c, const char *s,
 
 	lastline->attribute = ATTRSKIP;
 	spin_unlock_irqrestore(NULL,flags);
-	//sti();
+//	sti();
 }  
 
 /* ===================================================== */

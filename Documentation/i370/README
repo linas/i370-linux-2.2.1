@@ -34,7 +34,6 @@ Cross-compiling
 
 Lisitngs
 --------
-
 To get an assembly listing w/ embedded source lines, for some c file,
 try, for example:
 
@@ -42,11 +41,12 @@ try, for example:
       more init/main.clst
 
 
-Running
+Booting
 -------
-Load kernel in real mode, set PSW keys to 0.  
-(It will switch to PSW key 3 during boot).
-Kernel expects to load at address 0x10000.
+The directory 'boot' contains some handy scripts and a readme file that
+will help you boot.  The rexx script will read the ELF header and punch 
+a card deck, the exec will put the card deck into the spool queue and 
+boot from the queue.  See that readme for further debugging info.
 
 
 Tracing 

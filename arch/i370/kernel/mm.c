@@ -351,7 +351,7 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 			ra = (pte_val(*pte) & PAGE_MASK) | off;
 			printk ("cpy_from_user va=%x ra=%x\n", va, ra);
 		}
-		printk (" copy_tofrom_user %x %x %d\n", to,from,len);
+		printk (" copy_from_user %x %x %d\n", to,from,len);
 		i370_halt();
 	}
 	return 1;

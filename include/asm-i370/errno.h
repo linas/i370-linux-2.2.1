@@ -128,6 +128,7 @@
 #define	EMEDIUMTYPE	124	/* Wrong medium type */
 
 /* Should never be seen by user programs */
+#define ENOSYSCALL	511	/* invalid syscall number */
 #define ERESTARTSYS	512
 #define ERESTARTNOINTR	513
 #define ERESTARTNOHAND	514	/* restart if no handler.. */

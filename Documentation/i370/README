@@ -23,7 +23,7 @@ Cross-compiling
         to
     CROSS_COMPILE=<your-path-to-your-compiler-without-gcc>
         eg.
-    CROSS_COMPILE=/usr/bin/i370-ibm-linux-gcc
+    CROSS_COMPILE=/usr/bin/i370-ibm-linux-
 
   Do a 'make config', followed by 'make dep', and finally 'make all' to
   build the kernel (vmlinux).  A compressed image can be built by doing

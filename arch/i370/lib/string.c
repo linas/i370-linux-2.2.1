@@ -1,6 +1,9 @@
 
 /*
- * quickie hacks; these need to be seriously performance tuned.
+ * quickie hacks that allow kernel to compile & function;
+ * these need to be seriously performance tuned, as they
+ * make up a significant amount of the cycles spent in the 
+ * kernel.
  */
 
 typedef int size_t;
@@ -93,45 +96,4 @@ char* strncpy (char *dest, const char *src, size_t n)
    return dest;
 }
 
-
-int
-__copy_tofrom_user (char * to, char * from, int len) 
-{
-	/* XXX bogus  only works for KENREL_DS */
-	memcpy (to,from,len);
-	return 0;
-}
-int __strncpy_from_user(char *dst, const char *src, long count)
-{ 
-
-int	lclcount;
-
-	/* XXX bogus  only works for KENREL_DS */
-	
-	lclcount = strlen(src);
-
-	strncpy (dst,src,count);
-	
-	return lclcount;
-}
-
- unsigned long __clear_user(void *addr, unsigned long size)
-{
-	/* XXX bogus  only works for KENREL_DS */
-	memset (addr, 0, size);
-	return 0;
-}
-
-long strlen_user(const char *str) 
-{ 
-	/* XXX bogus  only works for KENREL_DS */
-	return strlen (str);
-}
-
-void put_user_data(long data, void *addr, long len)
-{
-
-       // pte= find_pte(current->mm,addr);
-       //  printk("put user pte = %x\n",pte);
-
-}                                                                                    
+/* ============================== END OF FILE ====================== */

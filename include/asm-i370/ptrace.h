@@ -80,6 +80,8 @@ typedef union _i370_cr1_u cr1_t;
 /* ---------------------------------------------------------------- */
 
 struct _i370_irregs_s {
+	unsigned long	r11;
+	unsigned long	r12;
 	unsigned long	r13;
 	unsigned long	r14;
 	unsigned long	r15;
@@ -116,7 +118,7 @@ struct _i370_interrupt_state_s {
 
 #define INIT_REGS { 			\
 	{0,0},	/* psw */ 		\
-	{0,0,0,0,0,0}, /* irregs */	\
+	{0,0,0,0,0,0,0,0}, /* irregs */	\
 	0,0, /* cr */			\
 	0}
 

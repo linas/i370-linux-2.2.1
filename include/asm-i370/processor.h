@@ -92,31 +92,36 @@ typedef struct {
 struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer */
 	struct pt_regs *regs;		/* Pointer to saved register state */
+	double		fpr[4];		/* Complete floating point set */
+	unsigned long	tca[32];	/* mostly wasted, empty space ... */
 
 	/* XXX still not clear on the stuff below ... */
 	unsigned long	*pg_tables;	/* Base of page-table tree */
 	unsigned long	wchan;		/* Event task is sleeping on */
 	mm_segment_t	fs;		/* for get_fs() validation */
 	signed long     last_syscall;
-	double		fpr[4];		/* Complete floating point set */
 	unsigned long	smp_fork_ret;
 };
 
 /* the kernel stack starts immediately after the end of the task struct */
 #define init_task	(init_task_union.task)
-#define init_stack	((unsigned long) &(init_task_union.stack) \
-			+ (sizeof(init_task)))
+#define init_stack	((unsigned long) (((char *) &init_task_union.stack) \
+			+ sizeof(init_task)))
 
 #define INIT_SP		init_stack
 
 #define INIT_TSS  { \
 	INIT_SP, /* ksp */ \
 	0, /* regs */ \
+	{0.0,0.0,0.0,0.0}, /* FPR's */ \
+	{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  /* tca */ \
+	 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}, /* tca */ \
+					\
 	(unsigned long *) swapper_pg_dir, /* pg_tables */ \
 	0, /* wchan */ \
 	KERNEL_DS, /*fs*/ \
 	0, /* last_syscall */ \
-	{0.0,0.0,0.0,0.0},  0 \
+	0 \
 }
 
 /*

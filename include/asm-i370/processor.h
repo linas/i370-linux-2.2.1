@@ -59,21 +59,22 @@
 /*------------------------------------------------------------*/
 /* Bit encodings in the PSW */
 /*------------------------------------------------------------*/
-#define PSW_PER		0x40000000	/* Program Event Recording Mask */
-#define PSW_DAT		0x04000000	/* Address Translation Mode */
-#define PSW_IO		0x02000000	/* Input/Output Mask */
-#define	PSW_EXTERN	0x01000000	/* External Mask */
-#define PSW_KEY_MASK	0x00f00000	/* PSW Protection Key Mask */
-#define PSW_KEY(key)	((key&0xf)<<(31-11))	/* PSW Protection Key */
+#define PSW_31BIT	0x80000000	/* 31-bit Addressing Mode    */
+#define PSW_PER		0x40000000	/* Program Event Record Mask */
+#define PSW_DAT		0x04000000	/* Address Translation Mode  */
+#define PSW_IO		0x02000000	/* Input/Output Mask         */
+#define	PSW_EXTERN	0x01000000	/* External Mask             */
+#define PSW_KEY_MASK	0x00f00000	/* PSW Protection Key Mask   */
+#define PSW_KEY(key)	((key&0xf)<<(31-11))   /* PSW Protection Key */
 #define PSW_VALID	0x00080000	/* Must be set to one always */
-#define PSW_MACH	0x00400000	/* Machine Check Mask */
-#define PSW_WAIT	0x00200000	/* Wait State */
-#define PSW_PROB	0x00100000	/* Problem State (User Mode) */
-#define PSW_SPACE_MASK  0x000c0000	/* Space Mode Mask Bits */
-#define PSW_PRIMARY	0x00000000	/* Primary Space Mode */
-#define PSW_AR		0x00040000	/* Access Register Mode */
-#define PSW_SECONDARY	0x00080000	/* Secondary Space Mode */
-#define PSW_HOME	0x000c0000	/* Home Space Mode */
+#define PSW_MACH	0x00040000	/* Machine Check Mask        */
+#define PSW_WAIT	0x00020000	/* Wait State                */
+#define PSW_PROB	0x00010000	/* Problem State (User Mode) */
+#define PSW_SPACE_MASK  0x0000c000	/* Space Mode Mask Bits      */
+#define PSW_PRIMARY	0x00000000	/* Primary Space Mode        */
+#define PSW_AR		0x00004000	/* Access Register Mode      */
+#define PSW_SECONDARY	0x00008000	/* Secondary Space Mode      */
+#define PSW_HOME	0x0000c000	/* Home Space Mode           */
 
 
 /*------------------------------------------------------------*/

@@ -296,9 +296,12 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 	 * We're also going to make the clock tick 10 times a second, 
 	 * not 100, since that seems to be too often in some cases.
 	 * Gee, I wonder if we should #define HZ to 10 not 100??? 
+	 * Actually, while debugging, we set this to four interrupts 
+	 * a second.
 	 */
 	ticko = _stck ();
-	ticko += (10000000/HZ) << 12;
+	// ticko += (10000000/HZ) << 12;   // effective HZ =10 per second
+	ticko += (25000000/HZ) << 12;      // effective HZ = 4 per second
 	_sckc (ticko);
 #else
 	ticko = _stckc (); 

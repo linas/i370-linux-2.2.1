@@ -11,6 +11,7 @@
 #include <linux/reboot.h>
 #include <linux/delay.h>
 #include <linux/blk.h>
+#include <linux/console.h>
 
 #include <asm/asm.h>
 #include <asm/pgtable.h>
@@ -113,6 +114,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 	extern int panic_timeout;
 	extern char _etext[], _edata[], _end[];
 	extern char _bss[], _ebss[];
+	extern struct consw video3270_con;
 
 	/* Hack around bug in 3CARD boot loader which doesn't clear
 	 * the BSS but instead puts the elf symbol table there yuck. 
@@ -197,7 +199,9 @@ __initfunc(void setup_arch(char **cmdline_p,
 	
 	memset(&page_hash_table,0x0,(PAGE_HASH_SIZE * sizeof(void *)));
 
-
+#ifdef CONFIG_VT
+	conswitchp = &video3270_con;
+#endif
 }
 
 void 

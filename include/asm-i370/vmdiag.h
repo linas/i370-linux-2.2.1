@@ -1,9 +1,9 @@
 #ifndef  _I370_ASM_VMDIAG_H
 #define  _I370_ASM_VMDIAG_H
 
-//#include <linux/autoconf.h>
+#include <linux/autoconf.h>
 
-//#ifdef CONFIG_VM_GUEST
+#ifdef CONFIG_VM
 
 #include <asm/ebcdic.h>
 #include <asm/errno.h>
@@ -232,7 +232,7 @@ int    VM_Diagnose_Code_64(const enum VM_DIAGNOSE_64_FUNCTION  subfunction,
              LR   %0,r0;
       1:    "
        :    "=r"(rc), "+m"(hcpsxibk.namei), "+m"(name)
-       :    "m"(ascii_to_ebcdic), "m"(ebcdic_to_ascii),
+       :    "m"(tables_ascii_to_ebcdic), "m"(tables_ebcdic_to_ascii),
 	   "r"(aaddr1), "r"(aaddr2));
     *addr1 = aaddr1;
     *addr2 = aaddr2;
@@ -548,5 +548,5 @@ extern inline int VM_Diagnose_Code_274(void)
         return -ENOSYS;
 }
 
-//#endif   // CONFIG_VM_GUEST
-#endif   // _I370_ASM_VMDIAG_H
+#endif   /* CONFIG_VM */
+#endif   /* _I370_ASM_VMDIAG_H */

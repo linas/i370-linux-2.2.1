@@ -128,33 +128,9 @@ _cinit:
  * sav+36  saved r2
  */
 
-/* these defines map the struct _i370_interrupt_state_s in <asm/ptrace.h> */
-#define IR_PSW		0x0
-#define IR_R11		0x8
-#define IR_R12		0xc
-#define IR_R13		0x10
-#define IR_R14		0x14
-#define IR_R15		0x18
-#define IR_R0		0x1c
-#define IR_R1		0x20
-#define IR_R2		0x24
-#define IR_R3		0x28	
-#define IR_R4		0x2c
-
-#define IR_R5		0x30
-#define IR_R6		0x34
-#define IR_R7		0x38
-#define IR_R8		0x3c
-#define IR_R9		0x40
-#define IR_R10		0x44
-
-#define IR_CR0		0x48
-#define IR_CR1		0x4c
-#define IR_OLDREGS	0x50
-
 /* -------------------------------------------------------- */
-
 /* stack related offsets; have nothing to do with the above */
+/* -------------------------------------------------------- */
 #define STACK_SIZE	0x94	/* stack size */
 #define ARGS_BASE	STACK_SIZE
 #define ARGS_SIZE	0x4	/* args size */
@@ -163,7 +139,9 @@ _cinit:
 #define SF_SIZE		STACK_SIZE + ARGS_SIZE + FRAME_SIZE
 #define SF_SIZE_LIT	=XL4'000000F8'
 
+/* -------------------------------------------------------- */
 /* location of saved registers on stack */
+/* -------------------------------------------------------- */
 #define ARGP		ARGS_BASE
 #define SAVED_PSW	FRAME_BASE + IR_PSW
 #define SAVED_R11	FRAME_BASE + IR_R11
@@ -202,7 +180,7 @@ _cinit:
 	BZ	1f;			/* sp is already ok if kern  */	\
 	/* interrupted user proc, so need to find a kernel stack     */	\
 	LA	sp,0(,r11);		/* addr of curr proc in r13  */	\
-	A	sp,sav-4(,0);		/* add offset to ksp         */	\
+        A       sp,OFFSET_KSP(,0);              /* add offset to ksp         */ \
 	L	sp,0(,sp);		/* load kernel sp            */	\
 1:					/* branch here if kernel     */	\
 	/* we have a valid stack pointer; build a stackframe         */	\
@@ -214,7 +192,7 @@ _cinit:
 	MVC	SAVED_R11(64,sp),sav+IR_R11(0);	/* 16 regs=64 bytes  */	\
 	/* chain the interrupt state pointer into thread_struct      */	\
 	LA	r1,0(,r11);		/* addr of curr proc in r1   */	\
-	A	r1,sav-8(,0);		/* add offset to regs ptr    */	\
+        A       r1,OFFSET_KREGS(,0);            /* add offset to regs ptr    */ \
 	L	r2,0(,r1);		/* load regs ptr             */	\
 	ST	r2,SAVED_OLDREGS(,sp);	/* save regs ptr to stack    */	\
 	LA	r2,SAVED_PSW(,sp);	/* put addr of newregs in r2 */	\
@@ -235,7 +213,7 @@ _cinit:
 	/* chain the interrupt state pointer into thread_struct      */	\
 	L	r11,=V(current);	/* addr of current pointer   */	\
 	L	r11,0(,r11);		/* addr of current process   */	\
-	A	r11,sav-8(,0);		/* add offset to regs ptr    */	\
+        A       r11,OFFSET_KREGS(,0);           /* add offset to regs ptr    */ \
 	L	r2,SAVED_OLDREGS(,sp);	/* get old ptr from stack    */	\
 	ST	r2,0(,r11);		/* restore regs ptr in proc  */
 
@@ -343,16 +321,45 @@ ProgramCheck:
 	/*--------------------------------------------------------------*/
 	/* If this is a trace table related program check then we'd     */
 	/* better not generate a trace record or we could get ourselves */
-	/* in a rather tight loop                                       */
+	/* in a rather tight loop. In fact, we bypass nearly all proc-  */
+	/* essing for the TRACE TABLE condition.                        */
 	/*--------------------------------------------------------------*/
 	L	r0,PFX_PRG_CODE(0)
 	LA	r14,0x7f(0)
 	NR	r0,r14
 	LA	r14,PIC_TRACE_TABLE(0)
 	CR	r0,r14
-	BE	.SkipPCTrace
+	BNE	.DoPC
+	STCTL	r12,r12,PRG_SAVE_CTX_C12(0)
+	L	r8,PRG_SAVE_CTX_C12(0)
+	N	r8,=X'7FFFF000'
+	L	r8,4088(,r8)
+	LA	r9,1(,0)
+	OR	r8,r9
+	ST	r8,PRG_SAVE_CTX_C12(0)
+	LCTL	r12,r12,PRG_SAVE_CTX_C12(0)
+	LM	r11,r4,PC_INTERRUPT_BASE+IR_R11(0)
+	LM	r5,r10,PC_INTERRUPT_BASE+IR_R5(0)
+	LPSW	PROG_PSW_OLD(0)
+
+.DoPC:
+	/*--------------------------------------------------------------*/
+	/* We had better take a copy of the current context information */
+	/* just in case the TRACE does cause a program check and we	*/
+	/* lose all our previous information (PSW, registers...).       */
+	/*--------------------------------------------------------------*/
+	MVC	PRG_SAVE_CTX_REGS(64,0),PC_INTERRUPT_BASE(0)
+	MVC	PRG_SAVE_CTX_PSW(8,0),PROG_PSW_OLD(0)
+	MVC	PRG_SAVE_CTX_CODE(4,0),PFX_PRG_CODE(0)
+	MVC	PRG_SAVE_CTX_TRANS(4,0),PFX_PRG_TRANS(0)
 	EXCEPTION_TRACE (PRG_TRC_ID, PFX_PRG_TRANS, PFX_PRG_CODE, PROG_PSW_OLD)
-.SkipPCTrace:
+	CLC	PRG_SAVE_CTX_PSW(8,0),PROG_PSW_OLD(0)
+	BE	.SkipRestore
+	MVC	PC_INTERRUPT_BASE(64,0),PRG_SAVE_CTX_REGS(0)
+	MVC	PROG_PSW_OLD(8,0),PRG_SAVE_CTX_PSW(0)
+	MVC	PFX_PRG_CODE(4,0),PRG_SAVE_CTX_CODE(0)
+	MVC	PFX_PRG_TRANS(4,0),PRG_SAVE_CTX_TRANS(0)
+.SkipRestore:
 	.drop	r15
 	EXCEPTION_PROLOG (PC_INTERRUPT_BASE, PROG_PSW_OLD)
 	EXCEPTION_CALL_C (ProgramCheckException)
@@ -381,7 +388,7 @@ InputOutput:
 	.ltorg;				/* dump literal pool */	
 
 /* ===================================================================== */
-/* Miscellaneous stuff in the data segement */
+/* Miscellaneous stuff in the data segment */
 /* p2align 12  aligns to a page boundry (2^12) */
 
 	.data

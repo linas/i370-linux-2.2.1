@@ -105,23 +105,19 @@ MachineCheckException(i370_interrupt_state_t *saved_regs)
 /* Program Check Handling                                         */
 /*----------------------------------------------------------------*/
    
-static void ei_time_slice(i370_interrupt_state_t *, unsigned short);
-static void pc_reset_trace(i370_interrupt_state_t *,
-                           unsigned short,
-                           unsigned long);
-static void pc_monitor(i370_interrupt_state_t *,
-                       unsigned short,
-                       unsigned long);
-static void pc_unsupported(i370_interrupt_state_t *,
-                           unsigned short,
-                           unsigned long);
+static int pc_monitor(i370_interrupt_state_t *, unsigned long,
+                       unsigned short);
+static int pc_unsupported(i370_interrupt_state_t *,  unsigned long,
+                       unsigned short);
+int do_page_fault(i370_interrupt_state_t *,  unsigned long,
+                  unsigned short);
  
 static pc_handler pc_table[] = {
 	{-1,                   pc_unsupported},
 	{PIC_OPERATION,        pc_unsupported},
 	{PIC_PRIVLEDGED,       pc_unsupported},
 	{PIC_EXECUTE,          pc_unsupported},
-	{PIC_PROTECTION,       pc_unsupported},
+        {PIC_PROTECTION,       do_page_fault},
 	{PIC_ADDRESSING,       pc_unsupported},
 	{PIC_SPECIFICATION,    pc_unsupported},
 	{PIC_DATA,             pc_unsupported},
@@ -133,13 +129,13 @@ static pc_handler pc_table[] = {
 	{PIC_EXP_UNDERFLOW,    pc_unsupported},
 	{PIC_SIGNIFICANCE,     pc_unsupported},
 	{PIC_FP_DIVIDE,        pc_unsupported},
-	{PIC_SEGEMENT_TRANS,   pc_unsupported},
-	{PIC_PAGE_TRANS,       pc_unsupported},
+        {PIC_SEGEMENT_TRANS,   do_page_fault},
+        {PIC_PAGE_TRANS,       do_page_fault},
 	{PIC_TRANSLATION,      pc_unsupported},
 	{PIC_SPECIAL_OP,       pc_unsupported},
 	{PIC_PAGEX,            pc_unsupported},
 	{PIC_OPERAND,          pc_unsupported},
-	{PIC_TRACE_TABLE,      pc_reset_trace},
+        {PIC_TRACE_TABLE,      pc_unsupported}, /* Handled in head.S */
 	{PIC_ASN_TRANS,        pc_unsupported},
 	{-1,                   pc_unsupported},
 	{PIC_VECTOR_OP,        pc_unsupported},
@@ -201,43 +197,29 @@ ProgramCheckException(i370_interrupt_state_t *saved_regs)
 	if (per_event) {
 		printk("PER event triggered\n");
 	}
-	pc_table[pic_code].pc_flih(saved_regs, pic_code, pfx_prg_trans);
+        pc_table[pic_code].pc_flih(saved_regs, pfx_prg_trans, pic_code);
 }
 
-extern trc_page_t	*trace_base;
-
-static void
-pc_reset_trace(i370_interrupt_state_t *saved_regs,
-               unsigned short code,
-               unsigned long  trans)
-{
-	unsigned long cr12;
- 
-	trace_base = (trc_page_t *) trace_base->trc_next;
-	cr12 = (unsigned long) trace_base;
-	cr12 |= 0x1;
-	_lctl_r12 (cr12);
-	printk ("Trace table reset\n");
-}
-
-static void
+static int
 pc_monitor(i370_interrupt_state_t *saved_regs,
-           unsigned short code,
-           unsigned long  trans)
+           unsigned long  trans,
+           unsigned short code)
 {
 	printk ("Monitor Event Triggered\n");
+        return(0);
 }
  
-static void
+static int
 pc_unsupported(i370_interrupt_state_t *saved_regs,
-               unsigned short code,
-               unsigned long  trans)
+           unsigned long  trans,
+           unsigned short code)
 {
 	printk ("Program Check Unsupported code=0x%x trans=0x%lx\n",
 		code, trans);
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
 	i370_halt(); 
+        return(1);
 }
 
 /*----------------------------------------------------------------*/
@@ -254,6 +236,7 @@ RestartException(i370_interrupt_state_t *saved_regs)
 /* Input and Output Interrupt Handling                            */
 /*----------------------------------------------------------------*/
 
+void do_IRQ(int, struct pt_regs *, unitblk_t *);
 
 void
 InputOutputException(i370_interrupt_state_t *saved_regs)
@@ -279,6 +262,7 @@ InputOutputException(i370_interrupt_state_t *saved_regs)
 /* External Interrupt Handling                                    */
 /*----------------------------------------------------------------*/
 static void ei_time_slice(i370_interrupt_state_t *, unsigned short);
+static void ei_iucv(i370_interrupt_state_t *, unsigned short);
 static void ei_unsupported(i370_interrupt_state_t *, unsigned short);
  
 static ei_handler ei_table[] = {
@@ -290,7 +274,7 @@ static ei_handler ei_table[] = {
  {EI_EMERGENCY,      ei_unsupported},
  {EI_CALL,           ei_unsupported},
  {EI_SERVICE,        ei_unsupported},
- {EI_IUCV,           ei_unsupported},
+ {EI_IUCV,           ei_iucv},
  {0,                 ei_unsupported},
 };
  
@@ -308,6 +292,14 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 		if (code == ei_table[i_ei].ei_code) break;
 	}
 	ei_table[i_ei].ei_flih(saved_regs, code);
+}
+ 
+static void
+ei_iucv(i370_interrupt_state_t *saved_regs,
+        unsigned short code)
+{
+        printk ("IUCV external exception code=0x%x\n", code);
+        return;
 }
  
 static void

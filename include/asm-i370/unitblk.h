@@ -7,7 +7,6 @@
 
 #include <linux/fs.h>
 #include <linux/major.h>
-
 #include <asm/iorb.h>
 
 /*
@@ -20,17 +19,22 @@ typedef struct _unitblk {
 	long		unitsid;	/* Subchannel Identifier */
 	irb_t		unitirb;	/* Interrupt Request Block */
 	void           *unitaction;	/* Pointer to irq action element */
+    struct wait_queue *unitinq;    /* Input wait queue */
+    struct wait_queue *unitoutq;   /* Output wait queue */
+    struct wait_queue *unitexpq;   /* Exception wait queue */
+    struct fasync_struct *unitasyq;/* Asynchronous reader queue */
+    unsigned  long   unitnread;    /* Number of readers */
+    unsigned  long   unitnwrit;    /* Number of writers */
 	unsigned  int   unitmajor;	/* Major device number */
 	unsigned  int   unitminor;	/* Minor device number */
 	int             unitisc;	/* Device interrupt subclass */
 	void           *unitirqh;	/* Interrupt handler     */
 	unsigned  char  unitname[8];	/* Device name */
-
 	unsigned char   unitflg1;	/* flag byte */
 	unsigned char   unitflg2;	/* Flag byte */
 	unsigned char   unitid;		/* Unit ID */
 	unsigned char   unitstat;	/* Device Status */
-	unsigned 	unitdtyp:16;	/* Device type from RDC */
+    u16          unitdtyp;      /* Device type from RDC */
 	unsigned short  unitdev;	/* Device Number */
 	unsigned char   unitmodl;	/* Device Model from RDC */
 	unsigned char   unitclas;	/* Device Class code from RDC */
@@ -50,9 +54,9 @@ typedef struct _unitblk {
 typedef	struct _idchar
 {
 	unsigned char	idctrl;	/* Function control byte */
-	unsigned 	idcuid:16;	/* Control unit ID */
+    u16            idcuid;      /* Control unit ID */
 	unsigned char	idcumdl;	/* Control unit model */
-	unsigned 	iddevid:16;	/* Device ID */
+    u16            iddevid;     /* Device ID */
 	unsigned char	iddevmdl;	/* Device Model */
 	unsigned char	idxxxx;		/* Unused */
 	unsigned char	idextid;	/* Extended ID entry type */
@@ -64,10 +68,7 @@ typedef	struct _idchar
 	/* Device Type Information...                              */
 	/*---------------------------------------------------------*/
 
-#define t3270 0x04
-#define t3210 0x00
-
-} idchar_t;
+} idchar_t __attribute__ ((packed));
 
 /*
  *	Read Device Characteristics Structure
@@ -76,7 +77,7 @@ typedef	struct _idchar
 typedef	struct _devchar {
 	unsigned short	devcutyp;	/* Control Unit Type */
 	unsigned char   devcumod;	/* Control Unit Model */
-	unsigned 	devtype:16;	/* Device type */
+    u16          devtype;       /* Device type */
 	unsigned char	devmodel;	/* Device Model */
 	unsigned char	devfeat[3];	/* Reserved */
 	unsigned char   devsubfe;	/* Subsystem Features */
@@ -86,7 +87,7 @@ typedef	struct _devchar {
 	short 		devtrk;		/* number of tracks/cylinder */
 	unsigned char	devsect;        /* number of sectors */
 	unsigned char	devtrkln[3];	/* Total usable track length */
-	unsigned 	devhar0:16;	/* Length for HA and R0 */
+    u16          devhar0;       /* Length for HA and R0 */
 	unsigned char	devmode;	/* Track Capacity Mode */
 	unsigned char	devmodr;	/* Track Capacity Mode changed */
 	short		devnkey;	/* Non-Keyed Record Overhead */
@@ -109,9 +110,9 @@ typedef	struct _devchar {
 /* Maps the device info. returned by Sense ID to a major no.  */
 /*------------------------------------------------------------*/
 typedef struct {
-	unsigned short 	cuid;		/* Control unit ID (idcuid)	*/
+    unsigned short int cuid;   /* Control unit ID (idcuid)    */
 	unsigned char	model;		/* Control unit model		*/
-	unsigned 	dev:16;		/* Device ID (iddevid)		*/
+    u16           dev;         /* Device ID (iddevid)         */
 	int      	i_s390dev;	/* Index into s390dev table	*/
 } S390map_t;
 
@@ -163,6 +164,4 @@ typedef struct {
 
 #define MOSAD 0xe0
 #define MCTCA 0x66
-
-
 #endif /* I370_UNITB_H_ */

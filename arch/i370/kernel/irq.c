@@ -101,11 +101,11 @@ atomic_t __i370_bh_counter;
 /*============== End of Variable Declarations ==============*/
 
 /************************************************************/
-/*							  */
-/* Name       - init_IRQ.				   */
-/*							  */
-/* Function   - Initialize IRQ processing.		  */
-/*							  */
+/*							    */
+/* Name       - init_IRQ.				    */
+/*							    */
+/* Function   - Initialize IRQ processing.		    */
+/*							    */
 /************************************************************/
 
 __initfunc (void
@@ -127,11 +127,11 @@ init_IRQ(void))
 /*===================== End of Function ====================*/
 
 /************************************************************/
-/*							  */
-/* Name       - disable_irq.				*/
-/*							  */
-/* Function   - Disable an interrupt subclass.	      */
-/*							  */
+/*							    */
+/* Name       - irq_init.				    */
+/*							    */
+/* Function   - preform remainder of irq initilialization.  */
+/*							    */
 /************************************************************/
 
 void
@@ -158,11 +158,11 @@ irq_init (void)
 /*===================== End of Function ====================*/
 
 /************************************************************/
-/*							  */
-/* Name       - disable_irq.				*/
-/*							  */
-/* Function   - Disable an interrupt subclass.	      */
-/*							  */
+/*							    */
+/* Name       - disable_irq.				    */
+/*							    */
+/* Function   - Disable an interrupt subclass.	            */
+/*							    */
 /************************************************************/
 
 void
@@ -180,11 +180,11 @@ disable_irq(unsigned int irq_nr)
 /*===================== End of Function ====================*/
 
 /************************************************************/
-/*							  */
-/* Name       - enable_irq.				 */
-/*							  */
-/* Function   - Enable an interrupt subclass.	       */
-/*							  */
+/*							    */
+/* Name       - enable_irq.				    */
+/*							    */
+/* Function   - Enable an interrupt subclass.	            */
+/*							    */
 /************************************************************/
 
 void

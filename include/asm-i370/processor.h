@@ -38,10 +38,44 @@
 #define PFX_SUBSYS_ID	0xb8	/* Subsystem id word (subchannel) */
 #define PFX_IO_PARM	0xbc	/* IO interruption paramter */
 
-/* the rest of this scratch area is defined in head.S but should be
- * probably be moved here */
+/*-----------------------------------------------------------------*/
+/* Interrupt Scratch Areas...                                      */
+/*-----------------------------------------------------------------*/
+#define PRG_SAVE_CTX_REGS       0xe00   /* PC Context Save Area */
+#define PRG_SAVE_CTX_PSW        0xe40
+#define PRG_SAVE_CTX_CODE       0xe48
+#define PRG_SAVE_CTX_TRANS      0xe4c
+#define PRG_SAVE_CTX_C12        0xe50
+ 
+#define OFFSET_KREGS    0xef8   /* Offset to kernel register pointer */
+#define OFFSET_KSP      0xefc   /* Offset to kernel stack pointer */
 #define INTERRUPT_BASE	0xf00	/* Interrupt scratch area */
-#define PC_INTERRUPT_BASE	0xf80	/* PC scratch area */
+ 
+#define PC_INTERRUPT_BASE       0xf80   /* PC Interrupt scratch area */
+ 
+/* these defines map the struct _i370_interrupt_state_s in <asm/ptrace.h> */
+#define IR_PSW          0x0
+#define IR_R11          0x8
+#define IR_R12          0xc
+#define IR_R13          0x10
+#define IR_R14          0x14
+#define IR_R15          0x18
+#define IR_R0           0x1c
+#define IR_R1           0x20
+#define IR_R2           0x24
+#define IR_R3           0x28    
+#define IR_R4           0x2c
+ 
+#define IR_R5           0x30
+#define IR_R6           0x34
+#define IR_R7           0x38
+#define IR_R8           0x3c
+#define IR_R9           0x40
+#define IR_R10          0x44
+ 
+#define IR_CR0          0x48
+#define IR_CR1          0x4c
+#define IR_OLDREGS      0x50
 
 /*------------------------------------------------------------*/
 /* External Interruption Codes */
@@ -138,6 +172,9 @@
 #define PIC_MONITOR		0x40
 #define PIC_PER			0x80
 
+#define MASK_TRXADDR  0x7ffff000
+#define MASK_TRXVALID 0x00000004
+ 
 #ifndef __ASSEMBLY__
 
 /*------------------------------------------------------------*/
@@ -164,7 +201,7 @@ typedef struct
 typedef struct
 {
  short int pc_code;
- void (*pc_flih)(i370_interrupt_state_t *, unsigned short, unsigned long);
+ void (*pc_flih)(i370_interrupt_state_t *, unsigned long, unsigned short);
 } pc_handler;
  
 /*------------------------------------------------------------*/

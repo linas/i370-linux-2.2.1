@@ -157,7 +157,10 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 
 __initfunc(void free_initmem(void))
 {
-  printk ("do da free_initmem ding \n");
+	printk ("do da free_initmem ding \n");
+
+	/* XXX hack alert I don't think init_irq belongs here */
+	irq_init();
 } 
 
 void si_meminfo(struct sysinfo *val)

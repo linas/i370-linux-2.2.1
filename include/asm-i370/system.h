@@ -46,8 +46,9 @@ extern __inline__ unsigned long __get_save_flags (void)
 
 extern __inline__ void __restore_flags(unsigned long flags)
 {
+	unsigned char newval = flags;
 	/* Set System Mask clobbers all maskbits including PER */
-	asm volatile ("SSM	%0" : : "m" (flags) : "memory");
+	asm volatile ("SSM	%0" : : "m" (newval) : "memory");
 }
 
 extern void print_backtrace(unsigned long *);

@@ -25,7 +25,7 @@
 #define spin_unlock_irq(lock)	sti()
 
 #define spin_lock_irqsave(lock, flags) \
-	do { save_flags(flags); cli(); } while (0)
+	do { flags = cli(); } while (0)
 #define spin_unlock_irqrestore(lock, flags) \
 	restore_flags(flags)
 
@@ -59,11 +59,11 @@
 #define write_unlock_irq(lock)	sti()
 
 #define read_lock_irqsave(lock, flags)	\
-	do { save_flags(flags); cli(); } while (0)
+	do { flags = cli(); } while (0)
 #define read_unlock_irqrestore(lock, flags) \
 	restore_flags(flags)
 #define write_lock_irqsave(lock, flags)	\
-	do { save_flags(flags); cli(); } while (0)
+	do { flags = cli(); } while (0)
 #define write_unlock_irqrestore(lock, flags) \
 	restore_flags(flags)
 
@@ -98,7 +98,7 @@ extern int spin_trylock(spinlock_t *lock);
 	do { spin_unlock(lock); __sti(); } while (0)
 
 #define spin_lock_irqsave(lock, flags) \
-	do { __save_flags(flags); __cli(); spin_lock(lock); } while (0)
+	do { flags = __cli(); spin_lock(lock); } while (0)
 #define spin_unlock_irqrestore(lock, flags) \
 	do { spin_unlock(lock); __restore_flags(flags); } while (0)
 
@@ -135,11 +135,11 @@ extern void _write_unlock(rwlock_t *rw);
 #define write_unlock_irq(lock)	do { write_unlock(lock); __sti(); } while (0)
 
 #define read_lock_irqsave(lock, flags)	\
-	do { __save_flags(flags); __cli(); read_lock(lock); } while (0)
+	do { flags = __cli(); read_lock(lock); } while (0)
 #define read_unlock_irqrestore(lock, flags) \
 	do { read_unlock(lock); __restore_flags(flags); } while (0)
 #define write_lock_irqsave(lock, flags)	\
-	do { __save_flags(flags); __cli(); write_lock(lock); } while (0)
+	do { flags = __cli(); write_lock(lock); } while (0)
 #define write_unlock_irqrestore(lock, flags) \
 	do { write_unlock(lock); __restore_flags(flags); } while (0)
 

@@ -7,9 +7,9 @@
  * XXX These should probably be moved to the header file and made inline.
  * They are here right now for debugging & convenience purposes.
  * 
- * XXX I don't understand why some of these need to be atomic,
- * such as set bit and clear bit ... it doesn't make sense since 
- * no one is testing before setting ... 
+ * These bitops are implmented in an atomic SMP-safe fashion so that we don't
+ * have to worry about multiple setters accidentally clobbering different
+ * bits in the same byte.
  */
 #include <linux/kernel.h>
 #include <asm/bitops.h>

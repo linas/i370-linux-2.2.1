@@ -41,9 +41,14 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 
 /*
  * The ESA/390 MMU uses a page table containing PTEs, together with
- * a segment table containing pointers to page tables to define
- * the virtual to physical address mapping. We map the linux pgd to
- * the segment table.
+ * a segment table containing STE's (pointers to page tables) to define
+ * the virtual to physical address mapping. We collapse the linux pgd 
+ * and pmd to be the same thing, and map them to the 390 segment table.
+ *
+ * Implementation note: Although conceptually, the pgd and pmd are collapsed
+ * into one, the actual implementation is oddly split.  This is because many
+ * important functions (such as i370_pte_alloc) get only the pmd as an argument, 
+ * and must still 'do the right thing'.
  */
 
 /* PMD_SHIFT determines the size of the area mapped by the second-level
@@ -446,6 +451,7 @@ printk ("find_pte got pgd for dir=%p\n", dir);
 		if (pmd && pmd_present(*pmd))
 		{
 			pte = pte_offset(pmd, va);
+/* XXX the power pc impl flushes the  tlb here, shoudl we ?? */
 printk ("find_pte got pmd for va=%lx pte=%p\n", va, pte);
 		}
 	}

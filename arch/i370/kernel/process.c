@@ -111,7 +111,7 @@ print_backtrace (unsigned long stackp)
 		sp = (i370_elf_stack_t *) stackp;
 
 		printk ("   %02d   base[r3]=0x%lx link[r14]=0x%lx stack=%p\n", 
-			cnt, sp->caller_r3, sp->caller_r14, stackp);
+			cnt, sp->caller_r3, sp->caller_r14, sp);
 		stackp = sp->caller_sp;
 		cnt ++;
         } while (stackp &&  (cnt < 6)) ;
@@ -500,7 +500,7 @@ i370_sys_clone (unsigned long clone_flags)
 	struct pt_regs *regs;
         int res;
 
-	printk ("i370_sys_clone flags=0x%x\n", clone_flags);
+	printk ("i370_sys_clone flags=0x%lx\n", clone_flags);
         lock_kernel();
 	regs = current->tss.regs;
 

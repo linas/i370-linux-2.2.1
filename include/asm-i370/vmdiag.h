@@ -232,7 +232,7 @@ int    VM_Diagnose_Code_64(const enum VM_DIAGNOSE_64_FUNCTION  subfunction,
              LR   %0,r0;
       1:    "
        :    "=r"(rc), "+m"(hcpsxibk.namei), "+m"(name)
-       :    "m"(tables_ascii_to_ebcdic), "m"(tables_ebcdic_to_ascii),
+       :    "m"(ascii_to_ebcdic), "m"(ebcdic_to_ascii),
 	   "r"(aaddr1), "r"(aaddr2));
     *addr1 = aaddr1;
     *addr2 = aaddr2;

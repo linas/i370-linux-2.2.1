@@ -27,7 +27,8 @@ union task_union init_task_union = { INIT_TASK };
 
 struct task_struct *current = &init_task;
 
-/* init_ksp and init_tca are used only in head.S during startup */
+/* init_ksp and init_tca are used only in head.S during startup 
+ * to set up the inital stack */
 const unsigned long init_ksp __initdata = init_stack;
 const unsigned long init_kstend __initdata = (unsigned long) (((char *) &init_task)+4096);
 const unsigned long init_tca __initdata = (unsigned long) (&init_task.tss.tca[0]);
@@ -146,6 +147,7 @@ int check_stack(struct task_struct *tsk)
  */
 void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 {
+/* XXX this is all wrong */
 	printk ("start thread\n");
         set_fs(USER_DS);
         regs->psw.flags = USER_PSW;
@@ -169,9 +171,8 @@ void
 switch_to(struct task_struct *prev, struct task_struct *new)
 {
 	struct thread_struct *new_tss, *old_tss;
-	i370_interrupt_state_t *oldregs, *newregs;
 
-//        int s = _disable_interrupts();
+        int s = _disable_interrupts();
 
 #ifdef CHECK_STACK
         check_stack(prev);
@@ -197,6 +198,12 @@ switch_to(struct task_struct *prev, struct task_struct *new)
         old_tss = &current->tss;
         new_tss = &new->tss;
 
+	/* save and restore flt point regs.  We do this here because 
+	 * it is NOT done at return from interrupt (in order to save
+	 * some overhead) */
+	_store_fpregs (old_tss->fpr);
+	_load_fpregs (new_tss->fpr);
+
 	current = new;
 
 	/* switch control registers */
@@ -204,34 +211,13 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 	_lctl1 (new_tss->regs->cr1.raw);
 
 	/* switch kernel stack pointers */
+	_set_TCA ((unsigned long) &(new_tss->tca[0]));
 	old_tss->ksp = _get_SP();
 	_set_SP (new_tss->ksp);
 
-#if 0
-	oldregs = old_tss->regs;
-	newregs = new_tss->regs;
 
-	/* I'm going to try to do this inline, and see if I can
-         * pull this off. It might be too hard ...
-	* BTW, this code is totally and completely wrong .... 
-	 */
-	asm volatile (
-	"bcr	15,0;"		/* sync */
-	"stm	r0,r15,%0;"	/* save all registers */
-
-	"lm	r0,r15,%1;"	/* restore all registers */
-	"bcr	15,0;"		/* sync */
-	: "=m" (oldregs)
-	: "m" (newregs)
-	: "memory",		/* disable optimization around this */ 
-	  "r0"			/* we blow r0 for psw */
-
-	);
-#endif
-
-
-//        _switch(old_tss, new_tss, new->mm->context);
-//        _enable_interrupts(s);
+	// note "s" is from a different stack ... 
+        _enable_interrupts(s);
 }
 
 
@@ -251,7 +237,7 @@ release_thread(struct task_struct *t)
 void 
 i370_sys_exit (void) 
 {
-	{ int *x = 0x7fffffff; *x = 23; /* fault on purpose */ }
+	asm volatile ("SVC	23"); /* fault on purpose */
 }
 
 /*
@@ -297,7 +283,7 @@ i370_sys_clone (unsigned long clone_flags,
 {
         int res;
 	printk ("sys clone \n");
-	{ int *x = 0x7fffffff; *x = 23; /* fault on purpose */ }
+	asm volatile ("SVC	66"); /* fault on purpose */
         lock_kernel();
         res = do_fork(clone_flags, regs->irregs.r13, regs);
 
@@ -335,7 +321,7 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
 	printk ("create kernel_thread\n");
-	{ int *x = 0x7fffffff; *x = 23; /* fault on purpose */ }
+	asm volatile ("SVC	67"); /* fault on purpose */
 	pid = i370_sys_clone (flags, current->tss.regs);
         if (pid) return pid;
 	fn (args);

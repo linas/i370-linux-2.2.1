@@ -1,5 +1,5 @@
 /*
- * implementation of startup code for ESA/390
+ * Implementation of startup code and FLIH entry/exit for ESA/390
  */
 
 #include <asm/processor.h>
@@ -57,7 +57,7 @@ tcaStackOverflow:
 /* ================================================================ */
 /*
  * Exception vectors.
- * XXX currently sorta bogus code
+ * XXX currently sorta works, sometimes
  */
 
 /*
@@ -112,6 +112,7 @@ tcaStackOverflow:
 	LA	rtca,0(,r11);		/* copy r12 to r13 */		\
 	A	rtca,sav-8(,0);		/* add offset to tca */		\
 	/* XXX the following 6 insns can be chopped out later */	\
+	/* do this by having a ready-to-run stackframe initialized */	\
 	LA	r15,148(,sp);		/* load 15 with top of stack */	\
 	ST	r15,76(,sp);		/* store top of stack at 76 */	\
 	LA	r1,4092(,r11);		/* r1 == end of stack */	\

@@ -6,8 +6,8 @@
 #include <linux/reboot.h>
 #include <linux/delay.h>
 
-#include <asm/processor.h>
 #include <asm/pgtable.h>
+#include <asm/processor.h>
 
 __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long * memory_start_p, unsigned long * memory_end_p))

@@ -201,9 +201,8 @@
 	return (__sc_err & 0x10000000 ? errno = __sc_ret, __sc_ret = -1 : 0), \
 	       (type) __sc_ret
 
-/* the register layout that gcc uses is kooky and needs fixing ... */
 #define __syscall_clobbers \
-	"r0", "r1", "r3", "r4", "r6", "r7", "r11", "r12", "r13", "r14", "r15"
+	"r0", "r1", "r3", "r4", "r11", "r12", "r13", "r14", "r15"
 
 /* XXX THIS IS ALL WRONG FIXME */
 #define _syscall0(type,name)						\

@@ -438,11 +438,11 @@ type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
 /*
  * Create a new kernel thread.
  */
-extern long __kernel_thread(unsigned long, int (*)(void *), void *);
+extern long i370_kernel_thread(unsigned long, int (*)(void *), void *);
 
 static inline long kernel_thread(int (*fn)(void *), void * arg, unsigned long flags)
 {
-	return __kernel_thread(flags | CLONE_VM, fn, arg);
+	return i370_kernel_thread(flags | CLONE_VM, fn, arg);
 }
 
 /*

@@ -211,7 +211,7 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 	/* switch control registers */
 	/* cr1 contains the segment table origin */
-	_lctl1 (new_tss->regs->cr1.raw);
+	// _lctl1 (new_tss->regs->cr1.raw);
 
 	/* switch kernel stack pointers */
 	_set_TCA ((unsigned long) &(new_tss->tca[0]));

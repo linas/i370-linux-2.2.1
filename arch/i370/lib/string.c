@@ -1,6 +1,6 @@
 
 /*
- * quickie hacks; could probably be made much more efficient 
+ * quickie hacks; these need to be seriously performance tuned.
  */
 
 typedef int size_t;
@@ -87,13 +87,26 @@ char* strncpy (char *dest, const char *src, size_t n)
 int
 __copy_tofrom_user (char * to, char * from, int len) 
 {
-/* bogus */
-  return 0;
+	/* XXX bogus  only works for KENREL_DS */
+	memcpy (to,from,len);
+	return 0;
 }
 int __strncpy_from_user(char *dst, const char *src, long count)
-{ return 0; }
+{ 
+	/* XXX bogus  only works for KENREL_DS */
+	strncpy (dst,src,count);
+	return 0;
+}
 
  unsigned long __clear_user(void *addr, unsigned long size)
-{ return 0; }
+{
+	/* XXX bogus  only works for KENREL_DS */
+	memset (addr, 0, size);
+	return 0;
+}
 
-long strlen_user(const char *str) { return 0;}
+long strlen_user(const char *str) 
+{ 
+	/* XXX bogus  only works for KENREL_DS */
+	return strlen (str);
+}

@@ -15,6 +15,7 @@
 #include <asm/mmu.h>
 #include <asm/mmu_context.h>
 #include <asm/pgtable.h>
+#include <asm/uaccess.h>
 
 atomic_t next_mmu_context; 
 struct pgtable_cache_struct quicklists;
@@ -148,7 +149,7 @@ mmu_context_overflow(void)
 void
 i370_flush_tlb_all(void)
 {
- //        asm volatile ("tlbia" : : );
+   asm volatile ("PTLB" : : : "memory");
 }
 
 

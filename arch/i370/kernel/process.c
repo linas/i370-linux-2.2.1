@@ -1,9 +1,12 @@
 
 /*
- * XXX this is mostly all wrong for the 370
+ * mostly copied from the ppc implementation
+ * XXX this is fairly broken for the 370
  */
 
 #include <linux/sched.h>
+
+#include <asm/asm.h>
 #include <asm/elf.h>
 #include <asm/pgtable.h>
 #include <asm/uaccess.h>
@@ -20,6 +23,17 @@ union task_union init_task_union = { INIT_TASK };
 /* only used to get secondary processor up */
 // struct task_struct *current_set[NR_CPUS] = {&init_task, };
 
+unsigned long
+kernel_stack_top(struct task_struct *tsk)
+{
+        return ((unsigned long)tsk) + sizeof(union task_union);
+}
+
+unsigned long
+task_top(struct task_struct *tsk)
+{
+        return ((unsigned long)tsk) + sizeof(struct task_struct);
+}
 
 void show_regs(struct pt_regs * regs)
 {
@@ -56,12 +70,77 @@ print_backtrace(unsigned long *sp)
         printk("\n");
 }
 
+
+#define CHECK_STACK
+#ifdef CHECK_STACK
+
+/* check to make sure the kernel stack is healthy */
+/* check_stack copied raw from from the ppc implementation */
+int check_stack(struct task_struct *tsk)
+{
+	unsigned long stack_top = kernel_stack_top(tsk);
+	unsigned long tsk_top = task_top(tsk);
+	int ret = 0;
+	unsigned long *i=0;
+
+	if ( !tsk )
+		printk("check_stack(): tsk bad tsk %p\n",tsk);
+	
+	/* check if stored ksp is bad */
+	if ( (tsk->tss.ksp > stack_top) || (tsk->tss.ksp < tsk_top) )
+	{
+		printk("stack out of bounds: %s/%d\n"
+		       " tsk_top %08lx ksp %08lx stack_top %08lx\n",
+		       tsk->comm,tsk->pid,
+		       tsk_top, tsk->tss.ksp, stack_top);
+		ret |= 2;
+	}
+	
+	/* check if stack ptr RIGHT NOW is bad */
+	if ( (tsk == current) && ((_get_SP() > stack_top ) || (_get_SP() < tsk_top)) )
+	{
+		printk("current stack ptr out of bounds: %s/%d\n"
+		       " tsk_top %08lx sp %08lx stack_top %08lx\n",
+		       current->comm,current->pid,
+		       tsk_top, _get_SP(), stack_top);
+		ret |= 4;
+	}
+
+#if 1	
+	/* check amount of free stack */
+	for ( i = (unsigned long *)task_top(tsk) ; i < kernel_stack_top(tsk) ; i++ )
+	{
+		if ( !i )
+			printk("check_stack(): i = %p\n", i);
+		if ( *i != 0 )
+		{
+			/* only notify if it's less than 900 bytes */
+			if ( (i - (unsigned long *)task_top(tsk))  < 900 )
+				printk("%d bytes free on stack\n",
+				       i - task_top(tsk));
+			break;
+		}
+	}
+#endif
+
+	if (ret)
+	{
+		panic("bad kernel stack");
+	}
+	return(ret);
+}
+#endif /* CHECK_STACK */
+
 /*
  * Set up a thread for executing a new program
  */
 void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 {
 	printk ("start thread\n");
+        set_fs(USER_DS);
+        regs->psw.flags = USER_PSW;
+        regs->psw.addr = nip;
+        regs->gpr[13] = sp;
 }
 
 // switch_to does the task switching.  
@@ -71,20 +150,40 @@ void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 void
 switch_to(struct task_struct *prev, struct task_struct *new)
 {
-	printk("swith_to\n");
+//         struct thread_struct *new_tss, *old_tss;
+//        int s = _disable_interrupts();
+
+#ifdef CHECK_STACK
+        check_stack(prev);
+        check_stack(new);
+#endif /* CHECK_STACK */
+
+#ifdef SHOW_TASK_SWITCHES
+        printk("%s/%d -> %s/%d PSW 0x%x 0x%x cpu %d lock %x root %x/%x\n",
+               prev->comm,prev->pid,
+               new->comm,new->pid,
+               new->tss.regs->psw.flags,
+               new->tss.regs->psw.addr,
+               new->processor,
+               scheduler_lock.lock,new->fs->root,prev->fs->root);
+#endif
+#ifdef __SMP__
+        prev->last_processor = prev->processor;
+        current_set[smp_processor_id()] = new;
+#endif /* __SMP__ */
+//        new_tss = &new->tss;
+//        old_tss = &current->tss;
+//        _switch(old_tss, new_tss, new->mm->context);
+//        _enable_interrupts(s);
 }
 
 
 void exit_thread(void)
 {
-//        if (last_task_used_math == current)
-//                 last_task_used_math = NULL;
 }
 
 void flush_thread(void)
 {
- //       if (last_task_used_math == current)
-//                last_task_used_math = NULL;
 }
 
 void
@@ -103,4 +202,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
    return 0;
 }
 
-int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) { return 0;}
+int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) { 
+	printk ("dump fpu \n");
+	return 0;
+}

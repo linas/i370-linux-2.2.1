@@ -11,6 +11,7 @@
 
 // cmd_line is array of 512 in head.S
 extern char *cmd_line;
+char saved_command_line[512];
 
 __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long * memory_start_p, unsigned long * memory_end_p))
@@ -30,7 +31,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 //  	init_task.mm->brk = (unsigned long) klimit;	
 
 	/* Save unparsed command line copy for /proc/cmdline */
-	// strcpy(saved_command_line, cmd_line);
+	strcpy(saved_command_line, cmd_line);
 	*cmdline_p = cmd_line;
 
  	*memory_start_p = _end;
@@ -52,3 +53,13 @@ void machine_power_off(void)
 {
    printk("machine pwer off\n");
 }
+
+int get_cpuinfo(char *buffer)
+{
+	unsigned long len = 0;
+
+	len += sprintf(len+buffer,"XXX cpuinfo not implemented");
+	return len;
+}
+
+

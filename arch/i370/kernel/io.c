@@ -18,3 +18,10 @@ check_bugs(void)
 {
 }
 
+int get_irq_list(char *buf)
+{
+        int len = 0, j;
+        len += sprintf(buf+len, "No irqs XXX not implemented\n");
+	return len;
+}
+

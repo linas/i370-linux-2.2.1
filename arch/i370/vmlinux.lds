@@ -8,7 +8,7 @@ SECTIONS
    .text : { *(.text) }
    _etext = .;
 
-  /* Kernel symbol table */
+  /* Kernel symbol & string table */
   . = ALIGN(8);
   __start___ksymtab = .;
   __ksymtab : { *(__ksymtab) }
@@ -20,6 +20,7 @@ SECTIONS
   __init_text_begin = .;
   .text.init : { *(.text.init) }
   __init_text_end = .;
+
   . = ALIGN(4096);
   __init_data_begin = .;
   .data.init : { *(.data.init) }
@@ -35,10 +36,8 @@ SECTIONS
   . = ALIGN(8192);	/* Allow at least double page for init_task_union */
   .rodata : { *(.rodata) }
   .data : { *(.data) CONSTRUCTORS }
-  .sdata : { *(.sdata) }
   _edata = .;
   _bss = .;
-  .sbss : { *(.sbss) *(.scommon) }
   .bss : { *(.bss) *(COMMON) }
   _ebss = .;
 

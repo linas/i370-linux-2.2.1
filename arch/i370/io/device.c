@@ -1,4 +1,3 @@
-
 /************************************************************/
 /*                                                       */
 /* Module ID  - device.                                     */
@@ -482,7 +481,8 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 		if (irb.scsw.status & 0x7) {
 			if ((irb.scsw.devstat == 0x0c) &&
 				 (irb.scsw.schstat == 0)) {
-				memcpy(&rdc->devvol[0],&label[4],6);
+				memcpy(&rdc->devvol[0],&label[4],sizeof(&rdc->devvol));
+				memcpy(&rdc->devvtype[0],&label[0],sizeof(&rdc->devtype));
 				rc = 0;
 				break;
 			}
@@ -572,10 +572,10 @@ register_driver(long sid, schib_t *schib,
 		/*----------------------------------------------------*/
 		if ((dev_id->idcuid == T3274) &&
 		    (dev_cons == NULL)) 
-		{
+			dev_cons = devices;
+ 
 			rc = i370_getrdc(sid,&schib,&rdc);	
-			if (!rc)
-			{
+			if (!rc) {
 				devices->unitmodl = rdc.devcumod;
 				devices->unitclas = rdc.devclcd;
 				devices->unittycd = rdc.devtycod;
@@ -586,7 +586,7 @@ register_driver(long sid, schib_t *schib,
 					 rc = i370_getvol_eckd(sid,&schib,&rdc);
 					 memcpy(&devices->unitvol,rdc.devvol,6);
 				}	
-			} else {
+			else {
 				devices->unitmodl = dev_id->idcuid;
 				devices->unitmodl = dev_id->idcumdl;
 				devices->unitdtyp = dev_id->iddevid;

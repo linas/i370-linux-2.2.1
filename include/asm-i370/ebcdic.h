@@ -15,7 +15,7 @@
   treated with __i370_translate[_to...], which modifies the translate 
   instruction at run-time.
 
-  Date: $Id: ebcdic.h,v 1.4 1999/11/08 05:08:16 linas Exp $
+  Date: $Id: ebcdic.h,v 1.5 1999/11/11 04:26:29 linas Exp $
   Changes: Uses now test for constant lengh operand.
 
   */ 
@@ -55,23 +55,23 @@ void  _i370_translate (char * area, size_t size, const char * table)
            };
 }
 
-extern unsigned char tables_ebcdic_to_ascii [256];
-extern unsigned char tables_ascii_to_ebcdic [256];
+extern unsigned char ebcdic_to_ascii [256];
+extern unsigned char ascii_to_ebcdic [256];
 
 #define __i370_translate_to_ascii(area,size)\
-        __i370_translate(area,size,tables_ebcdic_to_ascii)
+        __i370_translate(area,size,ebcdic_to_ascii)
 #define __i370_translate_to_ebcdic(area,size)\
-        __i370_translate(area,size,tables_ascii_to_ebcdic)
+        __i370_translate(area,size,ascii_to_ebcdic)
 
 #define _i370_translate_to_ascii(area,size)\
-        _i370_translate(area,size,tables_ebcdic_to_ascii)
+        _i370_translate(area,size,ebcdic_to_ascii)
 #define _i370_translate_to_ebcdic(area,size)\
-        _i370_translate(area,size,tables_ascii_to_ebcdic)
+        _i370_translate(area,size,ascii_to_ebcdic)
 
 #define i370_translate_to_ascii(area,size)\
-        i370_translate(area,size,tables_ebcdic_to_ascii)
+        i370_translate(area,size,ebcdic_to_ascii)
 #define i370_translate_to_ebcdic(area,size)\
-        i370_translate(area,size,tables_ascii_to_ebcdic)
+        i370_translate(area,size,ascii_to_ebcdic)
 
 #endif  /* _I370_asm_EBCDIC_H */
 

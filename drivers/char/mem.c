@@ -45,6 +45,9 @@ extern void fbmem_init(void);
 #ifdef CONFIG_PROM_CONSOLE
 extern void prom_con_init(void);
 #endif
+#ifdef CONFIG_3270_CONSOLE
+extern void video3270_init(void);
+#endif
 #ifdef CONFIG_MDA_CONSOLE
 extern void mda_console_init(void);
 #endif
@@ -582,6 +585,9 @@ __initfunc(int chr_dev_init(void))
 #endif
 #if defined (CONFIG_MDA_CONSOLE)
 	mda_console_init();
+#endif
+#if defined (CONFIG_3270_CONSOLE)
+	video3270_init();
 #endif
 	tty_init();
 #ifdef CONFIG_PRINTER

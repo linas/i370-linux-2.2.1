@@ -160,7 +160,7 @@ bad_area:
   if (user_mode(regs)) {
        siginfo_t info;
  
-printk(" sending SEGV to user proc: here's the reg dump & backtrace:\n");
+printk("sending SEGV to user proc: bad access to 0x%x pic=%x\n", address, pic_code);
 show_regs(regs);
 print_backtrace (regs->irregs.r13);
 

@@ -13,7 +13,7 @@
 #include <asm/ptrace.h>
 
 /* XXX ALL WRONG */
-#define ELF_NGREG	48	/* includes nip, msr, lr, etc. */
+#define ELF_NGREG	32	/* includes gprs and control regs */
 #define ELF_NFPREG	4
 
 /*

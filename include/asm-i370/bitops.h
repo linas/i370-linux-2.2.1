@@ -16,78 +16,9 @@ extern int test_and_clear_bit(int nr, volatile void *addr);
 extern int test_and_change_bit(int nr, volatile void *addr);
 
 
-/* XXX this is ppc not 370 assembly */
-/* Returns the number of 0's to the left of the most significant 1 bit */
-extern __inline__  int cntlzw(int bits)
-{
-	int lz;
-
-	asm ("cntlzw %0,%1" : "=r" (lz) : "r" (bits));
-	return lz;
-}
-
 /*
- * These are if'd out here because using : "cc" as a constraint
- * results in errors from gcc. -- Cort
- * Besides, they need to be changed so we have both set_bit
- * and test_and_set_bit, etc.
+ * This routine doesn't need to be atomic.
  */
-#if 0
-extern __inline__ int set_bit(int nr, void * addr)
-{
-	unsigned long old, t;
-	unsigned long mask = 1 << (nr & 0x1f);
-	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
-	
-	__asm__ __volatile__(
-		"1:lwarx %0,0,%3 \n\t"
-		"or	%1,%0,%2 \n\t"
-		"stwcx.	%1,0,%3 \n\t"
-		"bne	1b \n\t"
-		: "=&r" (old), "=&r" (t)	/*, "=m" (*p)*/
-		: "r" (mask), "r" (p)
-		/*: "cc" */);
-
-	return (old & mask) != 0;
-}
-
-extern __inline__  unsigned long clear_bit(unsigned long nr, void *addr)
-{
-	unsigned long old, t;
-	unsigned long mask = 1 << (nr & 0x1f);
-	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
-
-	__asm__ __volatile__("\n\
-1:	lwarx	%0,0,%3
-	andc	%1,%0,%2
-	stwcx.	%1,0,%3
-	bne	1b"
-	: "=&r" (old), "=&r" (t)	/*, "=m" (*p)*/
-	: "r" (mask), "r" (p)
-      /*: "cc"*/);
-
-	return (old & mask) != 0;
-}
-
-extern __inline__ unsigned long change_bit(unsigned long nr, void *addr)
-{
-	unsigned long old, t;
-	unsigned long mask = 1 << (nr & 0x1f);
-	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
-
-	__asm__ __volatile__("\n\
-1:	lwarx	%0,0,%3
-	xor	%1,%0,%2
-	stwcx.	%1,0,%3
-	bne	1b"
-	: "=&r" (old), "=&r" (t)	/*, "=m" (*p)*/
-	: "r" (mask), "r" (p)
-      /*: "cc"*/);
-
-	return (old & mask) != 0;
-}
-#endif
-
 extern __inline__ unsigned long test_bit(int nr, __const__ volatile void *addr)
 {
 	__const__ unsigned int *p = (__const__ unsigned int *) addr;
@@ -95,16 +26,24 @@ extern __inline__ unsigned long test_bit(int nr, __const__ volatile void *addr)
 	return (p[nr >> 5] >> (nr & 0x1f)) & 1UL;
 }
 
-extern __inline__ int ffz(unsigned int x)
+/*
+ * ffz = Find First Zero in word. Undefined if no zero exists,
+ * so code should check against ~0UL first..
+ */
+extern __inline__ unsigned long ffz(unsigned long word)
 {
-	int n;
+        int k;
 
-	if (x == ~0)
-		return 32;
-	x = ~x & (x+1);		/* set LS zero to 1, other bits to 0 */
-	__asm__ ("cntlzw %0,%1" : "=r" (n) : "r" (x));
-	return 31 - n;
+        word = ~word;
+        k = 31;
+        if (word & 0x0000ffff) { k -= 16; word <<= 16; }
+        if (word & 0x00ff0000) { k -= 8;  word <<= 8;  }
+        if (word & 0x0f000000) { k -= 4;  word <<= 4;  }
+        if (word & 0x30000000) { k -= 2;  word <<= 2;  }
+        if (word & 0x40000000) { k -= 1; }
+        return k;
 }
+
 
 #ifdef __KERNEL__
 
@@ -115,17 +54,6 @@ extern __inline__ int ffz(unsigned int x)
  */
 
 #define ffs(x) generic_ffs(x)
-
-#if 0
-/* untested, someone with I370 knowledge? */
-/* From Alexander Kjeldaas <astor@guardian.no> */
-extern __inline__ int ffs(int x)
-{
-        int result;
-        asm ("cntlzw %0,%1" : "=r" (result) : "r" (x));
-        return 32 - result; /* IBM backwards ordering of bits */
-}
-#endif
 
 /*
  * hweightN: returns the hamming weight (i.e. the number

@@ -39,10 +39,10 @@ void show_regs(struct pt_regs * regs)
 {
    int i;
 
-   for (i=0; i<16; i+=2) {
-      printk ("GPR %d: %08lX   GPR %d %08lX \n", 
-         i, regs->gpr[i], i+1, regs->gpr[i+1]);
-   }
+   //for (i=0; i<16; i+=2) {
+   //   printk ("GPR %d: %08lX   GPR %d %08lX \n", 
+   //      i, regs->gpr[i], i+1, regs->gpr[i+1]);
+   //}
    printk("PSW flags: %08lX PSW addr: %08lX \n",
      regs->psw.flags, regs->psw.addr);
 
@@ -141,7 +141,7 @@ void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
         set_fs(USER_DS);
         regs->psw.flags = USER_PSW;
         regs->psw.addr = nip;
-        regs->gpr[13] = sp;
+        regs->irregs.r13 = sp;
 }
 
 // switch_to does the task switching.  
@@ -254,8 +254,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	childregs = p->tss.regs;
 	*childregs = *regs;
 
-	childregs->gpr[15] = 0;		/* result from 'fork' ??? */
-	childregs->gpr[13] = usp;	/* user-space stack pointer */
+	childregs->irregs.r15 = 0;		/* result from 'fork' ??? */
+	childregs->irregs.r13 = usp;	/* user-space stack pointer */
 
 	/* XXX what about page tables ?? */
 	return 0;
@@ -270,7 +270,7 @@ i370_sys_clone (unsigned long clone_flags,
 	printk ("sys clone \n");
 	asm volatile ("SVC 0xbb"); // fault on purpose
         // lock_kernel();
-        res = do_fork(clone_flags, regs->gpr[13], regs);
+        res = do_fork(clone_flags, regs->irregs.r13, regs);
 
 #ifdef __SMP__
         /* When we clone the idle task we keep the same pid but

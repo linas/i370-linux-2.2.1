@@ -2,6 +2,8 @@
  * implementation of startup code for ESA/390
  */
 
+#include <asm/processor.h>
+
 /* start of text section */
         .text
         .globl  _stext
@@ -59,65 +61,63 @@ tcaStackOverflow:
 /* ================================================================ */
 /*
  * Exception vectors.
- * XXX currently totally bogus code
+ * XXX currently sorta bogus code
  */
-
 
 /*
  * Exception handling code.  
- * Save contents of registers, call C routine.
- * The C routine will return the double-word PSW on the stack 
+ * Does just enough work to call a C routine.
+ * Takes as arguments the exception handler to call, and 
+ * a temporary scratch area in the prefix page.
+ * -- Save just some of the registers; the C prologue will
+ *    save the rest on stack.
+ * -- The C routine will return the double-word PSW on the stack 
  */
-#define EXCEPTION_HANDLER(handler)     				\
-	STM	r0,r15,4008(0);	/* save gprs to low mem */	\
-	.using	.,r15;		/* use r15 as base register */	\
-	BASR	r15,0;		/* load r15 with PSW  */	\
-	L	sp,=A(KSTACK);	/* load addr of stack */	\
-	L	r15,=A(handler);/* load address of C routine */	\
-	LA	r1,4000(0,0);	/* pointer to arguments */	\
-	BASR	lr,r15;		/* jump to C routine */		\
-	LM	r6,r7,0(r15);	/* load double-word psw */	\
-	STM	r6,r7,4000(0);	/* store returned psw */	\
-	LM	r0,r15,4008(0);	/* restore saved gprs */	\
-	LPSW	4000(0);	/* return from interrupt */	\
-	.balign	8;		/* align literal pool */	\
-	.ltorg;			/* dump literal pool */		\
+#define EXCEPTION_HANDLER(sav,handler)  				\
+	STM	r13,r2,sav+12(0);	/* save gprs to low mem */	\
+	BASR	r15,0;			/* load r15 with PSW  */	\
+	.using	.,r15;			/* use r15 as base register */	\
+	L	sp,=V(current);		/* addr of current pointer */	\
+	L	sp,0(,sp);		/* addr of current process */	\
+	A	sp,sav(,0);		/* add offset to ksp */		\
+	L	sp,0(,sp);		/* load addr of kernel sp */	\
+	L	r15,=A(handler);	/* load address of C routine */	\
+	LA	r1,sav+12(,0);		/* pointer to arguments */	\
+	BASR	lr,r15;			/* jump to C routine */		\
+	LM	r0,r1,0(r15);		/* load double-word psw */	\
+	STM	r0,r1,sav+4(0);		/* store returned psw */	\
+	LM	r13,r2,sav+12(0);	/* restore saved gprs */	\
+	LPSW	sav+4(0);		/* return from interrupt */	\
+	.balign	8;			/* align literal pool */	\
+	.ltorg;				/* dump literal pool */		\
 
 /* Restart */
-	.globl Restart
 Restart:
-	EXCEPTION_HANDLER(RestartException)
+	EXCEPTION_HANDLER(INTERRUPT_BASE,RestartException)
 
 /* Machine Check */
 MachineCheck:
-	EXCEPTION_HANDLER(MachineCheckException)
+	EXCEPTION_HANDLER(INTERRUPT_BASE,MachineCheckException)
 
 /* Supervisor Call */
 SupervisorCall:
-	EXCEPTION_HANDLER(SupervisorCallException) 
+	EXCEPTION_HANDLER(INTERRUPT_BASE,SupervisorCallException) 
 
 /* Program Interruption */
 ProgramCheck:
-	EXCEPTION_HANDLER(ProgramCheckException)
+	EXCEPTION_HANDLER(INTERRUPT_BASE,ProgramCheckException)
 
 /* External */
 External:
-	EXCEPTION_HANDLER(ExternalException)
+	EXCEPTION_HANDLER(INTERRUPT_BASE,ExternalException)
 
 /* Input Output */
 InputOutput:
-	EXCEPTION_HANDLER(InputOutputException)
+	EXCEPTION_HANDLER(INTERRUPT_BASE,InputOutputException)
 
 
 /*
- * This routine is just here to keep GCC happy - sigh...
- */	
-	.global __main
-__main:
-	basr r15,lr
-
-	
-/*
+ * XXX ??? XXX no aligned any more, huh ??
  * We put a few things here that have to be page-aligned.
  * This stuff goes at the beginning of the data segment,
  * which is page-aligned.

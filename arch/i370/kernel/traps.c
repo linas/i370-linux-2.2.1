@@ -17,6 +17,8 @@
 #include <linux/kernel.h>
 #include <linux/sched.h>
 
+#include <asm/asm.h>
+#include <asm/param.h>
 #include <asm/ptrace.h>
 #include <asm/signal.h>
 #include <asm/system.h>
@@ -72,7 +74,7 @@ _exception(int signr, struct pt_regs *regs)
 #if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
       debugger(regs);
 #endif
-      print_backtrace((unsigned long *)regs->gpr[0]);
+      // print_backtrace((unsigned long *)regs->gpr[0]);
       instruction_dump((unsigned short *)instruction_pointer(regs));
       panic("Exception in kernel psw.addr=%lx signal %d",regs->psw.addr,signr);
    }
@@ -97,7 +99,7 @@ MachineCheckException(struct pt_regs *regs)
 #if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
 		debugger(regs);
 #endif
-		print_backtrace((unsigned long *)regs->gpr[1]);
+		// print_backtrace((unsigned long *)regs->gpr[1]);
 		instruction_dump((unsigned long *)regs->psw.addr);
 		panic("machine check");
 	}
@@ -145,19 +147,22 @@ RestartException(struct pt_regs *regs)
 }
 
 psw_t
-SupervisorCallException(struct pt_regs *regs)
+SupervisorCallException (irregs_t *iregs)
 {
-   psw_t retval, *fsl;
+	psw_t retval;
+	struct pt_regs *regs = current->tss.regs;
 
-   /* save old psw */
-   fsl = (psw_t *) SVC_PSW_OLD; 
-   regs->psw = *fsl;
+	/* move saved registers out of low page */
+	regs->irregs = *iregs;
 
-   printk ("svc exception\n");
+	/* save old psw */
+	regs->psw = *((psw_t *) SVC_PSW_OLD); 
 
-   /* reurn posw to return to */
-   retval = regs->psw; 
-   return retval;
+	printk ("svc exception\n");
+
+	/* reurn posw to return to */
+	retval = regs->psw; 
+	return retval;
 }
 
 psw_t
@@ -176,84 +181,65 @@ InputOutputException(struct pt_regs *regs)
 }
 
 psw_t
-ExternalException(struct pt_regs *regs)
+ExternalException (irregs_t *iregs)
 {
-   psw_t retval, *fsl;
+   	psw_t retval;
+	struct pt_regs *regs = current->tss.regs;
+	unsigned short code;
+	unsigned long long ticko;
 
-   /* save old psw */
-   fsl = (psw_t *) EXTERN_PSW_OLD; 
-   regs->psw = *fsl;
+	/* move saved registers out of low page */
+	regs->irregs = *iregs;
 
-   printk ("external exception\n");
+	/* save old psw */
+	regs->psw = *((psw_t *) EXTERN_PSW_OLD); 
 
-   retval = regs->psw; 
-   return retval;
+	/* get the interruption code */
+	code = *((unsigned short *) EXT_INT_CODE);
+
+	/* currently we only handle and expect clock interrupts */
+	printk ("external exception code=%x\n", code);
+	if ( EI_CLOCK_COMP != code) {
+		panic ("unexpected external exception\n");
+	}
+
+	/* get and set the new clock value */
+	/* clock ticks every 250 picoseconds (actually, every
+	 * microsecond/4K). We want an interrupt every HZ of 
+	 * a second */
+	ticko = _stckc ();
+	ticko += (1000000/HZ) << 12;
+	_sckc (ticko);
+	
+	/* let Linux do its timer thing */
+	do_timer (regs);
+
+	retval = regs->psw; 
+	return retval;
 }
 
 /* ================================================================ */
-/* XXX mostly all junk below */
-
-psw_t
-UnknownException(struct pt_regs *regs)
-{
-   psw_t retval, *fsl;
-	printk("Bad trap at IA: %lx, PSW: %lx\n",
-	       regs->psw.addr, regs->psw.flags);
-	_exception(SIGTRAP, regs);	
-   return retval;
-}
-
-psw_t
-InstructionBreakpoint(struct pt_regs *regs)
-{
-   psw_t retval, *fsl;
-#if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
-	if (debugger_iabr_match(regs))
-		return;
-#endif
-	_exception(SIGTRAP, regs);
-   return retval;
-}
-psw_t
-SingleStepException(struct pt_regs *regs)
-{
-   psw_t retval;
-	// regs->msr &= ~MSR_SE;  /* Turn off 'trace' bit */
-#if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
-	if (debugger_sstep(regs))
-		return;
-#endif
-	_exception(SIGTRAP, regs);	
-   return retval;
-}
 
 
 void
 StackOverflow(struct pt_regs *regs)
 {
-	printk(KERN_CRIT "Kernel stack overflow in process %p, r1=%lx\n",
-	       current, regs->gpr[1]);
+	// printk(KERN_CRIT "Kernel stack overflow in process %p, sp=%lx\n",
+	//        current, regs->gpr[1]);
 #if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
 	debugger(regs);
 #endif
 	show_regs(regs);
-	print_backtrace((unsigned long *)regs->gpr[1]);
-	instruction_dump((unsigned long *)regs->psw.addr);
+	// print_backtrace((unsigned long *)regs->gpr[1]);
+	// instruction_dump((unsigned long *)regs->psw.addr);
 	panic("kernel stack overflow");
-}
-
-void
-trace_syscall(struct pt_regs *regs)
-{
-	printk("Task: %p(%d), psw: %08lX/%08lX, Syscall: %3ld, Result: %ld\n",
-	       current, current->pid, regs->psw.flags, regs->psw.addr, regs->gpr[0],
-	       regs->gpr[3]);
 }
 
 /* ================================================================ */
 /* wire in the interrupt vectors */
 
 extern void * SupervisorCall;
+extern void * External;
 
 /*
  * we assume that we initialize traps while in real mode, i.e.
@@ -263,14 +249,25 @@ extern void * SupervisorCall;
 
 __initfunc(void trap_init(void))
 {
-   psw_t psw, *fsl;
-   printk ("trap init");
+	unsigned long *sz;
+	psw_t psw;
+	printk ("trap init");
 
-   fsl = (psw_t *) SVC_PSW_NEW;
-   psw.flags = PSW_IO | PSW_EXTERN | PSW_MACH;     // disable interupts
-   psw.addr = SupervisorCall || (1<<31); 
-   *fsl = psw;
+	/* store the offset between the task struct and the kernel stack
+	 * pointer in low memory where we can get at it for calculation
+	 */
+	sz = (unsigned long *) INTERRUPT_BASE;
+	*sz = (unsigned long) (((struct task_struct *) 0) ->tss.ksp);
 
+	// install the SVC handler
+	psw.flags = 0;        // disable all interupts
+	psw.addr = SupervisorCall || (1<<31); 
+	*((psw_t *) SVC_PSW_NEW) = psw;
+
+	// install the External Interrupt (clock) handler
+	psw.flags = 0;        // disable all interupts
+	psw.addr = External || (1<<31); 
+	*((psw_t *) EXTERN_PSW_NEW) = psw;
 }
 
 /* ================================================================ */

@@ -289,7 +289,9 @@ console_write_3210(struct console *c, const char *s,
 static kdev_t 
 console_device_3270(struct console *c)
 {
-        return MKDEV(TTY_MAJOR, 64 + c->index);
+        // return MKDEV(TTYAUX_MAJOR, 64 + c->index);
+	// see notes below
+        return MKDEV(TTY_MAJOR, 0);
 }
 
 /* ===================================================== */
@@ -297,7 +299,11 @@ console_device_3270(struct console *c)
 static kdev_t
 console_device_3210(struct console *c)
 {
-        return MKDEV(TTY_MAJOR, 64 + c->index);
+        // return MKDEV(TTYAUX_MAJOR, 64 + c->index);
+	/* When /dev/console (5,1) is opened it gets remapped to (4.0)
+	 * which is /dev/tty0 and so, we want to appear on /dev/tty0
+	 * when invoked */
+        return MKDEV(TTY_MAJOR, 0);
 }
  
 /* ===================================================== */

@@ -561,6 +561,7 @@ register_driver(long sid, schib_t *schib,
 			s390_devices[i_dev].devName,
 			s390_devices[i_dev].curMinor++);
 
+printk ("register %s at major=%d\n", devices->unitname, devices->unitmajor);
 		if (s390_devices[i_dev].drvType == CHRDEV)
 		{
 			rc = register_chrdev(s390_devices[i_dev].major,
@@ -604,9 +605,9 @@ register_driver(long sid, schib_t *schib,
 				 memcpy(&devices->unitvol,rdc.devvol,6);
 			}	
 		} else {
-/* XXX  set unitmdl ??? */
+/* XXX  set unitmodl ??? */
 			devices->unitmodl = dev_id->idcuid;
-/* XXX set unitmdl again ?? */
+/* XXX set unitmodl again ?? */
 			devices->unitmodl = dev_id->idcumdl;
 			devices->unitdtyp = dev_id->iddevid;
 			devices->unitstat = UNIT_READY;

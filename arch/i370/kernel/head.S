@@ -49,7 +49,7 @@
 _stext:
 	.globl	_start
 _start:
-	STM	r0,r15,0x200		// command line passed in regs
+	STM	r0,r15,0x200(0)		// command line passed in regs
 
 	BASR	r15,0			// load r15 with PSW 
 	.using	.,r15			// use r15 as base register

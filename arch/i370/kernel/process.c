@@ -11,6 +11,7 @@
 #include <asm/asm.h>
 #include <asm/elf.h>
 #include <asm/pgtable.h>
+#include <asm/ptrace.h>
 #include <asm/uaccess.h>
 
 #define __KERNEL_SYSCALLS__ 1
@@ -185,7 +186,7 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 #define SHOW_TASK_SWITCHES
 #ifdef SHOW_TASK_SWITCHES
 	printk("task switch ");
-        printk("%s/%d -> %s/%d PSW 0x%x 0x%x cpu %d root %x/%x\n",
+        printk("%s/%d -> %s/%d PSW 0x%lx 0x%lx cpu %d root %p/%p\n",
                prev->comm,prev->pid,
                new->comm,new->pid,
                new->tss.regs->psw.flags,
@@ -266,6 +267,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	unsigned long srcksp, dstksp;
 	i370_elf_stack_t *srcsp, *dstsp, *this_frame;
 	unsigned long delta;
+	i370_interrupt_state_t *srcregs, **dstregs;
 
 	printk("i370 copy_thread\n");
 
@@ -284,7 +286,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	/* XXX not clear to me how much of the parent stack needs to
          * be copied to the child ... 
          */
-	memcpy (dstksp, srcksp, this_frame->stack_top - srcksp);
+	memcpy (dstsp, srcsp, this_frame->stack_top - srcksp);
 	do {
 		dstsp -> caller_r12 = (unsigned long) &(p->tss.tca[0]);
 		dstsp -> caller_sp = srcsp->caller_sp - delta;
@@ -297,18 +299,31 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	/* switch_to grabs the current ksp out of tss.ksp */
 	p->tss.ksp = ((unsigned long) this_frame) - delta;
 
+	/* interrupt regs are stored on stack as well */
+	srcregs = current->tss.regs;
+	dstregs = &(p->tss.regs);
+	do {
+		*dstregs = (i370_interrupt_state_t *) 
+			(((unsigned long) srcregs) - delta);
+		(*dstregs)->irregs.r12 = (unsigned long) &(p->tss.tca[0]);
+		(*dstregs)->oldregs =  (i370_interrupt_state_t *)
+			(((unsigned long) (srcregs->oldregs)) - delta);     
+		srcregs = srcregs->oldregs;
+		dstregs = &((*dstregs)->oldregs);
+	} while (srcregs);
+
 	/* the TCA area needs to be set up to hold the stack mem top,
 	 * and a pointer to the overflow routine. */
 	p->tss.tca[3] = ((unsigned long) p) + 8192;
-	p->tss.tca[29] = tcaStackOverflow; 
+	p->tss.tca[29] = (unsigned long) tcaStackOverflow; 
 
 	/* if fork was from SVC, child gets a return value of zero.
 	 * Do this by inserting a zero in reg fifteen of the SVC
 	 * saved regs (in the SVC stack frame).  Note that r15
          * holds the returned pid, while non-zero r1 indicates an error.
 	 */
-	regs -> irregs.r1 = 0;
-	regs -> irregs.r15 = 0;
+	p->tss.regs -> irregs.r1 = 0;
+	p->tss.regs -> irregs.r15 = 0;
 
 	/* XXX what about page tables ?? */
 	return 0;

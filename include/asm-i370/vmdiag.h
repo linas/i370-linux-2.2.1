@@ -2,9 +2,6 @@
 #define  _I370_ASM_VMDIAG_H
 
 #include <linux/autoconf.h>
-
-#ifdef CONFIG_VM
-
 #include <asm/ebcdic.h>
 #include <asm/errno.h>
 
@@ -548,5 +545,4 @@ extern inline int VM_Diagnose_Code_274(void)
         return -ENOSYS;
 }
 
-#endif   /* CONFIG_VM */
 #endif   /* _I370_ASM_VMDIAG_H */

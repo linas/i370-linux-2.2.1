@@ -194,6 +194,8 @@
 #define __NR_getpmsg		187	/* some people actually want streams */
 #define __NR_putpmsg		188	/* some people actually want streams */
 
+#define __NR_syscalls	189 /* max size */
+
 #define __NR(n)	#n
 
 

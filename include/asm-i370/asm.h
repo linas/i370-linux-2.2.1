@@ -134,6 +134,13 @@ extern inline void _spka (unsigned int key)
 }
 
 /* -------------------------------------------------------- */
+
+extern inline void _lpsw (unsigned long long psw)
+{
+   asm volatile ("LPSW	%0" : : "m" (psw) : "memory");
+}
+
+/* -------------------------------------------------------- */
 /* load control registers */
 #define _lctl(REGNO)						\
 extern inline void _lctl##REGNO (unsigned int value)		\

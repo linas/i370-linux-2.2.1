@@ -23,7 +23,8 @@
 #define MACH_PSW_NEW	0x70	/* Machine Check new PSW */
 #define IO_PSW_NEW	0x78	/* IO Exception new PSW */
 
-#define EXT_INT_CODE	0x86	/* External Interruption Codes location */
+#define EXT_INT_CODE	0x86	/* External Interruption Code location */
+#define SVC_INT_CODE	0x88	/* Supervisor Call Code location */
 
 #define INTERRUPT_BASE	0xf00	/* scratch area */
 
@@ -41,29 +42,29 @@
 #ifndef __ASSEMBLY__
 
 /* Bit encodings in the PSW */
-#define PSW_PER		(1<<30)		/* Program Event Recording Mask */
-#define PSW_DAT		(1<<26)		/* Address Translation Mode */
-#define PSW_IO		(1<<25)		/* Input/Output Mask */
-#define	PSW_EXTERN	(1<<24)		/* External Mask */
-#define PSW_KEY(key)	((key&0xf)<<20)	/* PSW Protection Key */
-#define PSW_VALID	(1<<19)		/* Must be set to one always */
-#define PSW_MACH	(1<<18)		/* Machine Check Mask */
-#define PSW_WAIT	(1<<17)		/* Wait State */
-#define PSW_PROB	(1<<16)		/* Problem State (user Mode) */
+#define PSW_PER		(1<<(31-1))	/* Program Event Recording Mask */
+#define PSW_DAT		(1<<(31-5))	/* Address Translation Mode */
+#define PSW_IO		(1<<(31-6))	/* Input/Output Mask */
+#define	PSW_EXTERN	(1<<(31-7))	/* External Mask */
+#define PSW_KEY(key)	((key&0xf)<<(31-11))	/* PSW Protection Key */
+#define PSW_VALID	(1<<(31-12))	/* Must be set to one always */
+#define PSW_MACH	(1<<(31-13))	/* Machine Check Mask */
+#define PSW_WAIT	(1<<(31-14))	/* Wait State */
+#define PSW_PROB	(1<<(31-15))	/* Problem State (user Mode) */
 #define PSW_PRIMARY	PSW_DAT || (0x0000)	/* Primary Space Mode */
-#define PSW_AR		PSW_DAT || (1<<14)	/* Access Register Mode */
-#define PSW_SECONDARY	PSW_DAT || (2<<14)	/* Secondary Space Mode */
-#define PSW_HOME	PSW_DAT || (3<<14)	/* Home Space Mode */
+#define PSW_AR		PSW_DAT || (1<<(31-17))	/* Access Register Mode */
+#define PSW_SECONDARY	PSW_DAT || (2<<(31-17))	/* Secondary Space Mode */
+#define PSW_HOME	PSW_DAT || (3<<(31-17))	/* Home Space Mode */
 
 
 /* USER_PSW sets up flags for the user mode */
-#define EN_PSW		PSW_VALID | PSW_IO | PSW_EXTERN | PSW_MACH | PSW_WAIT
+/* HALT_PSW loads a disabled wait state (cpu halt) */
+#define EN_PSW		PSW_VALID | PSW_IO | PSW_EXTERN | PSW_MACH 
 #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB
 #define KERN_PSW	EN_PSW | PSW_KEY(3)
+#define HALT_PSW	PSW_VALID | PSW_WAIT 
 
-/* XXX The rest of this file is garbage XXX */
-/* copied from powerpc it should be trashed ... */
-
+/* XXX The rest of this file is sort of garbage  user beware XXX */
 
 struct task_struct;
 void start_thread(struct pt_regs *regs, unsigned long psw, unsigned long sp);
@@ -153,12 +154,8 @@ static inline unsigned long thread_saved_pc(struct thread_struct *t)
 	((struct task_struct *) __get_free_pages(GFP_KERNEL,1))
 #define free_task_struct(p)	free_pages((unsigned long)(p),1)
 
-/* in process.c - for early bootup debug -- Cort */
-int ll_printk(const char *, ...);
-void ll_puts(const char *);
 
 #endif /* endif ASSEMBLY*/
-
   
 #endif /* __ASM_I370_PROCESSOR_H */
 

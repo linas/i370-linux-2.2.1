@@ -194,10 +194,10 @@ _ssch (short sid, orb_t *orb)
 	long	scid = 0x10000 | sid;
 
         __asm__ __volatile__
-        ("l     r1,%1;		"
-         "ssch %2;		"
-         "ipm   r1;		"
-         "la    %0,0(0,r1);	"
+        ("l     r1,%1;		\n"
+         "ssch %2;		\n"
+         "ipm   r1;		\n"
+         "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*orb)
         :"r1","memory");
@@ -214,10 +214,10 @@ _msch (short sid, schib_t *schib)
 	long	scid = 0x10000 | sid;
 
         __asm__ __volatile__
-        ("l     r1,%1;		"
-         "msch %2;		"
-         "ipm   r1;		"
-         "la    %0,0(0,r1);	"
+        ("l     r1,%1;		\n"
+         "msch %2;		\n"
+         "ipm   r1;		\n"
+         "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*schib)
         :"r1","memory");
@@ -234,10 +234,10 @@ _tsch (short sid, irb_t *irb)
 	long	scid = 0x10000 | sid;
 
         __asm__ __volatile__
-        ("l     r1,%1;		"
-         "tsch %2;		"
-         "ipm   r1;		"
-         "la    %0,0(0,r1);	"
+        ("l     r1,%1;		\n"
+         "tsch %2;		\n"
+         "ipm   r1;		\n"
+         "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*irb)
         :"r1","memory");
@@ -254,10 +254,10 @@ _stsch (short sid, schib_t *schib)
 	long	scid = 0x10000 | sid;
 
         __asm__ __volatile__
-        ("l     r1,%1;		"
-         "stsch %2;		"
-         "ipm   r1;		"
-         "la    %0,0(0,r1);	"
+        ("l     r1,%1;		\n"
+         "stsch %2;		\n"
+         "ipm   r1;		\n"
+         "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*schib)
         :"r1","memory");

@@ -15,8 +15,8 @@
 KERNELLOAD = 0x10000
 
 ASFLAGS         =
-# LINKFLAGS       =  -T arch/ppc/vmlinux.lds -Ttext $(KERNELLOAD) -Bstatic
-LINKFLAGS       =  -Ttext $(KERNELLOAD) -Bstatic
+LINKFLAGS       =  -T arch/i370/vmlinux.lds -Ttext $(KERNELLOAD) -Bstatic
+# LINKFLAGS       =  -Ttext $(KERNELLOAD) -Bstatic
 CFLAGSINC       = -D__KERNEL__ -I$(TOPDIR)/include -D__i370__
 CFLAGS          := $(CFLAGS) -D__i370__ -fsigned-char -pipe \
                 -fno-builtin -Wno-uninitialized 

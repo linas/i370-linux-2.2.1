@@ -189,6 +189,8 @@ no_context:
   else
        printk(KERN_ALERT "Unable to handle kernel access");
   printk(" at virtual address %08lx\n",address);
+  show_regs(regs);
+  print_backtrace (regs->irregs.r13);
   i370_halt();
  
 /*-------------------------------------------------------------*/

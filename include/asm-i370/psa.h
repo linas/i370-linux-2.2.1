@@ -1,44 +1,38 @@
  /*
-        psa.h -- Prefixed Storage Area Definition
-  
+  psa.h -- Prefixed Storage Area Definition
+
+  The PSA is used to implement SMP on Linux/390.  Each processor has
+  its own 4K PSA page that stores any/all processor-specific data.
+  Although each PSA appears at a different 'absolute' address, it
+  always maps to real address zero for any given processor.
+
   This file is part of Linux/390.
 
   Written by Peter Schulte-Stracke <Peter.Schulte-Stracke@t-online.de>
+  Updates Copyright (C) 1999 Linas Vepstas
   
   Copyright 1999 by Peter Schulte-Stracke. This is free software. Use
   is permitted under the obligations of the GNU General Public Licence.
   See file COPYRIGHT for details. There is NO warranty.
-  
-  Date: $Id: psa.h,v 1.4 1999/10/21 05:56:12 linas Exp $
-  Data Types:
-  Special Variables:
-  Known Bugs:
-  Changes:
-  
  */ 
 
 #ifndef __ASM_I370_PSA_H
 #define __ASM_I370_PSA_H
+
+#include <asm/ptrace.h>
+
 #ifndef __ASSEMBLY__
 
- /*	  -- N O T E S --
- ----------------------------------------------------------------------
-  .     The PSA is a per processor area used primarily by low level
-  .	routines. It is neccessary for task switching including
-  .	interrupt handling, and some low level kernel assembler code.
-  .	
-  .     Cf. asm/current.h for more considerations.
-  */
-
-#define _i370_vm_guest_p()       (_PSA_.reserved_0[20] & 0x80)
-#define _i370_hercules_guest_p() (_PSA_.reserved_0[20] & 0x40)
-#define _i370_primary_cpu_p()    (_PSA_.reserved_0[20] & 0x01)
+#define _i370_vm_guest_p()       (_PSA_.initflag.vm)
+#define _i370_hercules_guest_p() (_PSA_.initflag.hercules)
+#define _i370_primary_cpu_p()    (_PSA_.initflag.primary)
 
 struct task_struct;
 
 struct PSA {		/* PSA: Prefixed Storage Area */
    
-   /* much presently omitted...... */
+  /* Interrupt vectors are at low addresses.  See processor.h
+   * much presently omitted...... */
   char           reserved_0 [512];
 
   char           eyecatcher [4];/* "PSA " in ascii                    */
@@ -48,6 +42,10 @@ struct PSA {		/* PSA: Prefixed Storage Area */
     unsigned              :5;
     unsigned     primary  :1;	/* the primary (booting) CPU          */
   } initflag;
+  char           pad[3];
+
+  struct task_struct* Current;	/* thread executing on this CPU       */
+
   unsigned short cpuadp, cpuadl;/* processor address (from STIDP)     */
   unsigned short cpuno;		/* cpu number as defined by Linux     */
 
@@ -59,10 +57,11 @@ struct PSA {		/* PSA: Prefixed Storage Area */
   unsigned short cpumask;	/* bit set according to  ...          */
   char *         istack;	/* address of first frame in interrupt stack */
 
-  char reserved_528 [576-528];
 
-  char           super[0];	/* four bytes of flags redefined below*/
-  
+  unsigned int   local_bh_count;
+  unsigned int   local_irq_count;
+
+#ifdef NOT_RIGHT_NOW
   /*             PSASUPER       FIRST BYTE                            */ 
   
   unsigned mchk   : 1;	        /* Machine Check FLIH in progress     */
@@ -83,17 +82,15 @@ struct PSA {		/* PSA: Prefixed Storage Area */
   unsigned        : 0;
   /*             PSASUPER       FOURTH BYTE                           */ 
   unsigned        : 0;
+#endif
 
-  struct task_struct* Current;	/* thread executing on this CPU       */
+  /* pfx trace is at 0xd00 see PFX_TRACE in head.S */
+  /* INTERRUPT_BASE is 0xf00 in processor.h  */
+  char reserved_544 [0xf00-0x220];
+  psw_t		 psw;
+  irregs_t       irregs;       /* some but not all of the GPR's       */
 
-  unsigned int   local_bh_count;
-  unsigned int   local_irq_count;
-
-  char reserved_592 [1728-592];
-
-  unsigned long  regs1 [16];	/* a register save area               */
-
-  char reserved_1792 [4096-1792]; /* was tca ... */
+  char reserved_3912 [0x1000-0xf48];  
 
   };
 
@@ -102,7 +99,7 @@ extern struct PSA _PSA_ ;	/* defined in head.S */
 
 #else  // __ASSEMBLY__
 
-#define _psa_current 0x248	/* decimal 584 */
+#define _psa_current 0x208	/* decimal 520 */
 
 
 #endif // __ASSEMBLY__

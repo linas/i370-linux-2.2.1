@@ -29,11 +29,16 @@
 
 #define segment_eq(a,b)	((a).seg == (b).seg)
 
-/* XXX what does this have to do with userok ??? what's with the address
- * ?? */
-#define __kernel_ok (segment_eq(get_fs(), KERNEL_DS))
-#define __user_ok(addr,size) (((size) <= 0x80000000)&&((addr) <= 0x80000000-(size)))
-#define __access_ok(addr,size) (__kernel_ok || __user_ok((addr),(size)))
+/* Basically, access is considered OK & area verified if all addresses
+ * are under the 2 gig boundry.  The finer details of copy_to_user,
+ * etc. will catch any problems on a smaller scale.
+ */
+#define __low_2gb(addr,size) ( (!((size) & 0x80000000)) && \
+                               (!((((unsigned long)addr)+size) & 0x80000000)))
+
+#define __kernel_ok ((segment_eq(get_fs(), KERNEL_DS))
+#define __user_ok(addr,size) __low_2gb(addr,size)
+#define __access_ok(addr,size) __low_2gb((addr),(size))
 #define access_ok(type,addr,size) __access_ok((unsigned long)(addr),(size))
 
 extern inline int verify_area(int type, const void * addr, unsigned long size)
@@ -193,13 +198,14 @@ do {								\
 
 /* more complex routines */
 
-extern int __copy_tofrom_user(void *to, const void *from, unsigned long size);
+extern int __copy_to_user(void *to, const void *from, unsigned long size);
+extern int __copy_from_user(void *to, const void *from, unsigned long size);
 
 extern inline unsigned long
 copy_from_user(void *to, const void *from, unsigned long n)
 {
 	if (access_ok(VERIFY_READ, from, n))
-		return __copy_tofrom_user(to, from, n);
+		return __copy_from_user(to, from, n);
 	return n;
 }
 
@@ -207,14 +213,9 @@ extern inline unsigned long
 copy_to_user(void *to, const void *from, unsigned long n)
 {
 	if (access_ok(VERIFY_WRITE, to, n))
-		return __copy_tofrom_user(to, from, n);
+		return __copy_to_user(to, from, n);
 	return n;
 }
-
-#define __copy_from_user(to, from, size) \
-	__copy_tofrom_user((to), (from), (size))
-#define __copy_to_user(to, from, size) \
-	__copy_tofrom_user((to), (from), (size))
 
 extern unsigned long
 __clear_user(void *addr, unsigned long size);

@@ -58,9 +58,14 @@ vid3270_putcs(struct vc_data *conp, const unsigned short *s,
 	      int count, int y, int x)
 {
 	int i;
-	printk("vid3270_putcs %d chars:\n", count);
+	if (80 == count) {  /* quick hack don't print blank lines */
+		for(i=0; i<count; i++) if (0x20 != s[i]) goto prt:
+		return;
+	}
+prt:
+	printk("vid3270_putcs %d chars at %d %d:\n", count, y, x);
 	for(i=0; i<count; i++) {
-		printk ("%x %c", s[i] , s[i]);
+		printk ("%x=%c ", s[i] , s[i]);
 	} 
 }
 

@@ -51,6 +51,11 @@ _start:
 	.ltorg			// dump literal pool
 
 
+/* XXX note that this tcaStackOverflow routine is called
+ * in a funky and unusual way from the excpetion handler;
+ * the register assignments don't quite follow the normal
+ * ones because we cannot trash r15.  Yuck, review this.
+ */
 tcaStackOverflow:
 	SVC	0xff		// force a fault to occur
 
@@ -97,13 +102,15 @@ tcaStackOverflow:
  * sav+32  saved r1
  * sav+36  saved r2
  */
+#define F_SIZE 0x100
+
 #define EXCEPTION_HANDLER(sav,oldpsw,handler)  				\
 	STM	r11,r2,sav+8(0);	/* save gprs to low mem */	\
 	BASR	r15,0;			/* load r15 with PSW  */	\
 	.using	.,r15;			/* use r15 as base register */	\
 	L	r1,oldpsw(,0);		/* get old psw flags into r1 */	\
 	N	r1,=X'00010000';	/* is in problem state? */	\
-	BZ	1f;			/* sp is already ok if kern */	\
+	BZ	.L##handler;		/* sp is already ok if kern */	\
 	L	r11,=V(current);	/* addr of current pointer */	\
 	L	r11,0(,r11);		/* addr of current process */	\
 	LA	sp,0(,r11);		/* copy r11 to r13 */		\
@@ -113,13 +120,27 @@ tcaStackOverflow:
 	A	rtca,sav-8(,0);		/* add offset to tca */		\
 	/* XXX the following 6 insns can be chopped out later */	\
 	/* do this by having a ready-to-run stackframe initialized */	\
-	LA	r15,148(,sp);		/* load 15 with top of stack */	\
-	ST	r15,76(,sp);		/* store top of stack at 76 */	\
+	LA	r0,148(,sp);		/* load r0 with top of stack */	\
+	ST	r0,76(,sp);		/* store top of stack at 76 */	\
 	LA	r1,4092(,r11);		/* r1 == end of stack */	\
 	ST	r1,12(,rtca);		/* store end of stack in tca */ \
 	L	r1,=A(tcaStackOverflow);/* bogus hack alert XXX */	\
 	ST	r1,116(,rtca);		/* bogosity */			\
-1:	L	r15,=A(handler);	/* load address of C routine */	\
+.L##handler:				/* branch here if kernel */	\
+	L	r2,76(,sp);		/* find top of kernel stack */	\
+	LA	r1,F_SIZE(,r2);		/* add double stackframe */	\
+	CL	r1,12(,rtca);		/* got room ? */		\
+	BNH	.L2##handler;		/* if so blast ahead */		\
+	LR	r0,r1;			/* overflow in r0 not r1 */	\
+	L	r1,116(,rtca);		/* load overflow handler */	\
+	BASR	r14,r1;			/* call overflow handler */	\
+	LR	r1,r0;			/* stack top in r1 not r0 */	\
+.L2##handler:								\
+	L	r0,72(,sp);		/* propagate */			\
+	STM	r0,r1,72(r2);		/* store new stack top */	\
+	MVI	0(r2),0x10;		/* store marker */		\
+	LR	sp,r2;			/* initialize stack pointer */	\
+	L	r15,=A(handler);	/* load address of C routine */	\
 	LA	r11,sav(,0);		/* pointer to arguments */	\
 	LA	r1,sav(,0);		/* pointer to returned value */	\
 	BASR	lr,r15;			/* jump to C routine */		\

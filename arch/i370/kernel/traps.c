@@ -137,7 +137,7 @@ ProgramCheckException(struct pt_regs *regs)
 	current->tss.regs = &state;			\
 							\
 	/* move saved registers out of low page */	\
-	state.irregs = saved_regs->irregs;		\
+	state.irregs = saved_regs.irregs;		\
 							\
 	/* save old psw */				\
 	state.psw = *((psw_t *) OLDPSW); 		\
@@ -151,7 +151,7 @@ ProgramCheckException(struct pt_regs *regs)
 
 
 i370_interrupt_state_t
-RestartException(i370_interrupt_state_t *saved_regs)
+RestartException(i370_interrupt_state_t saved_regs)
 {
 	EX_HEADER(IPL_PSW_OLD);
 
@@ -162,7 +162,7 @@ RestartException(i370_interrupt_state_t *saved_regs)
 }
 
 i370_interrupt_state_t
-SupervisorCallException (i370_interrupt_state_t *saved_regs)
+SupervisorCallException (i370_interrupt_state_t saved_regs)
 {
 	EX_HEADER(SVC_PSW_OLD);
 
@@ -172,7 +172,7 @@ SupervisorCallException (i370_interrupt_state_t *saved_regs)
 }
 
 i370_interrupt_state_t
-InputOutputException(i370_interrupt_state_t *saved_regs)
+InputOutputException(i370_interrupt_state_t saved_regs)
 {
 	EX_HEADER(IO_PSW_OLD);
 
@@ -182,7 +182,7 @@ InputOutputException(i370_interrupt_state_t *saved_regs)
 }
 
 i370_interrupt_state_t
-ExternalException (i370_interrupt_state_t *saved_regs)
+ExternalException (i370_interrupt_state_t saved_regs)
 {
 	unsigned short code;
 	unsigned long long ticko;
@@ -243,9 +243,17 @@ extern void External (void);
 
 __initfunc(void trap_init(void))
 {
+	unsigned long long clock_reset;
 	unsigned long *sz;
 	psw_t psw;
 	printk ("trap init");
+
+	/* clear any pending timer interrupts before installing
+	 * external interrupt handler. Do this by setting the
+         * clock comparator to -1.
+	 */
+	clock_reset = 0xffffffffffffffff;
+	_sckc (clock_reset);
 
 	/* store the offset between the task struct and the kernel stack
 	 * pointer in low memory where we can get at it for calculation

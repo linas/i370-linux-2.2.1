@@ -12,7 +12,7 @@
 
 void set_bit(int nr, volatile void *addr)
 {
-	volatile unsigned long oldval, newval;
+	unsigned long oldval, newval;
 	unsigned long mask = 1 << (nr & 0x1f);
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
@@ -25,14 +25,14 @@ void set_bit(int nr, volatile void *addr)
 	OR	%1,%3;
 	CS	%0,%1,%2;
         BNE	1b"
-        : "=r" (oldval), "=r" (newval), "=m" (*p)             
+        : "+r" (oldval), "+r" (newval), "+m" (*p)             
         : "r" (mask)
         : "memory");
 }
 
 void clear_bit(int nr, volatile void *addr)
 {
-	volatile unsigned long oldval, newval;
+	unsigned long oldval, newval;
 	unsigned long mask = 1 << (nr & 0x1f);
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
@@ -47,14 +47,14 @@ void clear_bit(int nr, volatile void *addr)
 	NR	%1,%3;
 	CS	%0,%1,%2;
         BNE	1b"
-        : "=r" (oldval), "=r" (newval), "=m" (*p)             
+        : "+r" (oldval), "+r" (newval), "+m" (*p)             
         : "r" (mask)
         : "memory");
 }
 
 void change_bit(int nr, volatile void *addr)
 {
-	volatile unsigned long oldval, newval;
+	unsigned long oldval, newval;
 	unsigned long mask = 1 << (nr & 0x1f);
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
@@ -67,14 +67,14 @@ void change_bit(int nr, volatile void *addr)
 	XR	%1,%3;
 	CS	%0,%1,%2;
         BNE	1b"
-        : "=r" (oldval), "=r" (newval), "=m" (*p)             
+        : "+r" (oldval), "+r" (newval), "+m" (*p)             
         : "r" (mask)
         : "memory");
 }
 
 int test_and_set_bit(int nr, volatile void *addr)
 {
-	volatile unsigned long oldval, newval;
+	unsigned long oldval, newval;
 	unsigned long mask = 1 << (nr & 0x1f);
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
@@ -87,7 +87,7 @@ int test_and_set_bit(int nr, volatile void *addr)
 	OR	%1,%3;
 	CS	%0,%1,%2;
         BNE	1b"
-        : "=r" (oldval), "=r" (newval), "=m" (*p)             
+        : "+r" (oldval), "+r" (newval), "+m" (*p)             
         : "r" (mask)
         : "memory");
 
@@ -96,7 +96,7 @@ int test_and_set_bit(int nr, volatile void *addr)
 
 int test_and_clear_bit(int nr, volatile void *addr)
 {
-	volatile unsigned long oldval, newval;
+	unsigned long oldval, newval;
 	unsigned long mask = 1 << (nr & 0x1f);
 	unsigned long maskcomp = ~mask;
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
@@ -110,7 +110,7 @@ int test_and_clear_bit(int nr, volatile void *addr)
 	NR	%1,%3;
 	CS	%0,%1,%2;
         BNE	1b"
-        : "=r" (oldval), "=r" (newval), "=m" (*p)             
+        : "+r" (oldval), "+r" (newval), "+m" (*p)             
         : "r" (maskcomp)
         : "memory");
 
@@ -119,7 +119,7 @@ int test_and_clear_bit(int nr, volatile void *addr)
 
 int test_and_change_bit(int nr, volatile void *addr)
 {
-	volatile unsigned long oldval, newval;
+	unsigned long oldval, newval;
 	unsigned long mask = 1 << (nr & 0x1f);
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
@@ -132,7 +132,7 @@ int test_and_change_bit(int nr, volatile void *addr)
 	XR	%1,%3;
 	CS	%0,%1,%2;
         BNE	1b"
-        : "=r" (oldval), "=r" (newval), "=m" (*p)             
+        : "+r" (oldval), "+r" (newval), "+m" (*p)             
         : "r" (mask)
         : "memory");
 

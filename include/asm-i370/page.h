@@ -3,7 +3,7 @@
 #ifndef _I370_PAGE_H
 #define _I370_PAGE_H
 
-/* PAGE_SHIFT determines the page size */
+/* PAGE_SHIFT determines the page size (4KByte pages) */
 #define PAGE_SHIFT	12
 #define PAGE_SIZE	(1UL << PAGE_SHIFT)
 #define PAGE_MASK	(~(PAGE_SIZE-1))
@@ -18,9 +18,10 @@
 
 /* When running the kernel in real mode, use storage keys
  * to protect the text segment from acidental corruption.
+ * The four-bit key is stored in bits 24-28 of sske.
  */
-#define KTEXT_STORAGE_KEY	3
-#define KDATA_STORAGE_KEY	0
+#define KTEXT_STORAGE_KEY	(3) << 4
+#define KDATA_STORAGE_KEY	(0) << 4
 
 #define STRICT_MM_TYPECHECKS
 #ifdef STRICT_MM_TYPECHECKS

@@ -138,7 +138,7 @@ struct _i370_elf_stack_s {
 	unsigned long	x14;			/* 132 */
 	unsigned long	x15;			/* 136 */
 	unsigned long	x16;			/* 140 */
-	unsigned long	p_ret_val;	/* ptr return by value */ /* 144 */
+	unsigned long	scratch;		/* 144 */
 };
 typedef struct _i370_elf_stack_s i370_elf_stack_t;
 

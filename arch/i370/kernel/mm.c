@@ -304,29 +304,43 @@ void set_context(int context) {}
 int
 __copy_tofrom_user (void * to, const void * from, unsigned long len)
 {
-	/* XXX bogus  only works for KENREL_DS */
-	memcpy (to,from,len);
-	return 0;
+	if (__kernel_ok) {
+		memcpy (to,from,len);
+		return 0;
+	} else {
+		/* XXX bogus  fixme */
+		printk (" copy_tofrom_user %x %x %d\n", to,from,len);
+		i370_halt();
+	}
+	return 1;
 }
 int __strncpy_from_user(char *dst, const char *src, long count)
 {
 
-int     lclcount;
-
-	/* XXX bogus  only works for KENREL_DS */
-
-	lclcount = strlen(src);
-
-	strncpy (dst,src,count);
-
-	return lclcount;
+	if (__kernel_ok) {
+		int     lclcount;
+		lclcount = strlen(src);
+		strncpy (dst,src,count);
+		return lclcount;
+	} else {
+		/* XXX bogus  fixme */
+		printk (" strncopy_from_user %x %x %d\n", dst,src,count);
+		i370_halt();
+	}
+	return 0;
 }
 
- unsigned long __clear_user(void *addr, unsigned long size)
+unsigned long __clear_user(void *addr, unsigned long size)
 {
 	/* set a block of bytes to zero */  
-	/* XXX bogus  only works for KENREL_DS */
-	memset (addr, 0, size);
+	if (__kernel_ok) {
+		memset (addr, 0, size);
+		return 0;
+	} else {
+		/* XXX bogus  fixme */
+		printk (" clear_user %x %d\n", addr, size);
+		i370_halt();
+	}
 	return 0;
 }
 
@@ -339,7 +353,14 @@ int     lclcount;
 long strlen_user(const char *str)
 {
 	/* XXX bogus  only works for KENREL_DS */
-	return strlen (str);
+	if (__kernel_ok) {
+		return strlen (str);
+	} else {
+		/* XXX bogus  fixme */
+		printk (" strlen_user %x\n", str);
+		i370_halt();
+	}
+	return 0;
 }
 
 /* put_user_data() will only be called with len of 1,2 or 4 
@@ -422,4 +443,3 @@ put_user_data(long data, void *addr, long len)
 }
 
 /* ============================ END OF FILE ============================== */
-

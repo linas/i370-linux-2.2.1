@@ -139,30 +139,20 @@ extern inline void i370_halt (void)
 }
 	
 
-#define EX_HEADER(OLDPSW) 				\
-	i370_interrupt_state_t state;			\
-							\
-	state.oldregs = current->tss.regs;		\
-	current->tss.regs = &state;			\
-							\
-	/* move saved registers out of low page */	\
-	state.irregs = saved_regs.irregs;		\
-							\
-	/* save old psw */				\
-	state.psw = *((psw_t *) OLDPSW); 		\
-
+#define EX_HEADER					\
+	saved_regs->oldregs = current->tss.regs;	\
+	current->tss.regs = saved_regs;			
 
 
 #define EX_TRAILER {					\
-	current->tss.regs = state.oldregs;		\
-	return state;					\
+	current->tss.regs = saved_regs->oldregs;	\
 }
 
 
-i370_interrupt_state_t
-RestartException(i370_interrupt_state_t saved_regs)
+void
+RestartException(i370_interrupt_state_t *saved_regs)
 {
-	EX_HEADER(IPL_PSW_OLD);
+	EX_HEADER;
 
 	printk ("restart exception\n");
 	panic("machine check");
@@ -170,45 +160,23 @@ RestartException(i370_interrupt_state_t saved_regs)
 	EX_TRAILER;
 }
 
-#ifdef JUNK
-i370_interrupt_state_t
-SupervisorCallException (i370_interrupt_state_t saved_regs)
+void
+InputOutputException(i370_interrupt_state_t *saved_regs)
 {
-	unsigned long svc_code;
-	EX_HEADER(SVC_PSW_OLD);
-
-	/* get the interruption code */
-	svc_code = *((unsigned long *) SVC_INT_CODE);
-
-	/* real SVC's use an interruption code of zero,
-	 * all other SVC codes are for debugging. */
-	if (0 != (svc_code & 0xffff)) {
-		panic ("bad svc\n");
-		i370_halt();
-	}
-	printk ("svc exception\n");
-
-	EX_TRAILER;
-}
-#endif 
-
-i370_interrupt_state_t
-InputOutputException(i370_interrupt_state_t saved_regs)
-{
-	EX_HEADER(IO_PSW_OLD);
+	EX_HEADER;
 
 	printk ("io exception\n");
 
 	EX_TRAILER;
 }
 
-i370_interrupt_state_t
-ExternalException (i370_interrupt_state_t saved_regs)
+void
+ExternalException (i370_interrupt_state_t *saved_regs)
 {
 	unsigned short code;
 	unsigned long long ticko;
 
-	EX_HEADER(EXTERN_PSW_OLD);
+	EX_HEADER;
 
 	/* get the interruption code */
 	code = *((unsigned short *) EXT_INT_CODE);
@@ -228,7 +196,7 @@ ExternalException (i370_interrupt_state_t saved_regs)
 	_sckc (ticko);
 	
 	/* let Linux do its timer thing */
-	do_timer (&state);
+	do_timer (saved_regs);
 
 	EX_TRAILER;
 }

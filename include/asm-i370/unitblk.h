@@ -112,9 +112,9 @@ typedef	struct _devchar {
 /* Maps the device info. returned by Sense ID to a major no.  */
 /*------------------------------------------------------------*/
 typedef struct {
-    unsigned short int cuid;   /* Control unit ID (idcuid)    */
+    unsigned short int cuid;            /* Control unit ID (idcuid)     */
 	unsigned char	model;		/* Control unit model		*/
-	unsigned short	dev _PACK;     /* Device ID (iddevid)         */
+	unsigned short	dev _PACK;      /* Device ID (iddevid)          */
 	int      	i_s390dev;	/* Index into s390dev table	*/
 } S390map_t;
 
@@ -126,8 +126,8 @@ typedef struct {
 	int		curMinor;	/* Current minor number   */
 	int		maxMinor;	/* Maximum no. of devices */
 	int		drvType;	/* Device driver type     */
-#   define CHRDEV 0
-#   define BLKDEV 1
+#   define CHRDEV 1
+#   define BLKDEV 2
 	char		devName[8];	/* Device name            */
 	struct file_operations *fops;
 	unsigned int 	isc;    	/* Interrupt sub-class    */

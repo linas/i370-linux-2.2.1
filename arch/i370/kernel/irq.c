@@ -111,12 +111,12 @@ atomic_t __i370_bh_counter;
 __initfunc (void
 init_IRQ(void))
 {
-	cr0_t cr0;
+	cr6_t cr6;
 	int i_bh;
 
-	cr0.raw       = _stctl_r0();
-	cr0.bits.iksm = ~0;
-	_lctl_r0(cr0.raw);
+	cr6.raw       = _stctl_r6();
+	cr6.bits.iosm = ~0;
+	_lctl_r6(cr6.raw);
 	for (i_bh = 0; i_bh < NR_CPUS; i_bh++) {
 		local_bh_count[i_bh] = 0;
 		local_irq_count[i_bh] = 0;
@@ -169,12 +169,12 @@ void
 disable_irq(unsigned int irq_nr)
 {
 	unsigned char mask;
-	cr0_t cr0;
+	cr6_t cr6;
 
-	mask	  = ~(1 << (irq_nr & 7));
-	cr0.raw       = _stctl_r0();
-	cr0.bits.iksm &= mask;
-	_lctl_r0(cr0.raw);
+	mask	  = ~(1 << (irq_nr & 0x7));
+	cr6.raw       = _stctl_r6();
+	cr6.bits.iosm &= mask;
+	_lctl_r6(cr6.raw);
 }
 
 /*===================== End of Function ====================*/
@@ -191,12 +191,12 @@ void
 enable_irq(unsigned int irq_nr)
 {
 	unsigned char mask;
-	cr0_t cr0;
+	cr6_t cr6;
 
-	mask	  = 1 << (irq_nr & 7);
-	cr0.raw       = _stctl_r0();
-	cr0.bits.iksm |= mask;
-	_lctl_r0(cr0.raw);
+	mask	  = 1 << (irq_nr & 0x7);
+	cr6.raw       = _stctl_r6();
+	cr6.bits.iosm |= mask;
+	_lctl_r6(cr6.raw);
 }
 
 /*===================== End of Function ====================*/
@@ -393,11 +393,11 @@ free_irq(unsigned int irq, void *dev_id)
 unsigned long
 probe_irq_on (void)
 {
-	cr0_t cr0;
+	cr6_t cr6;
 	long result;
 
-	cr0.raw = _stctl_r0();
-	result  = cr0.bits.iksm;
+	cr6.raw = _stctl_r6();
+	result  = cr6.bits.iosm;
 
 	return result;
 }
@@ -416,13 +416,13 @@ probe_irq_on (void)
 int
 probe_irq_off (unsigned long irqs)
 {
-	cr0_t cr0;
+	cr6_t cr6;
 	unsigned char mask;
 	long result;
 
-	mask    = ~(1 << (irqs & 7));
-	cr0.raw = _stctl_r0();
-	result  = cr0.bits.iksm & mask;
+	mask    = ~(1 << (irqs & 0x7));
+	cr6.raw = _stctl_r6();
+	result  = cr6.bits.iosm & mask;
 
 	return result;
 }

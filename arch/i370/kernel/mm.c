@@ -166,7 +166,22 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 
 __initfunc(void free_initmem(void))
 {
-	printk ("do da free_initmem ding \n");
+	unsigned long num_freed_pages = 0;
+
+#define FREESEC(START,END,CNT) do { \
+        unsigned long a = (unsigned long)(&START); \
+        for (; a < (unsigned long)(&END); a += PAGE_SIZE) { \
+                clear_bit(PG_reserved, &mem_map[MAP_NR(a)].flags); \
+                atomic_set(&mem_map[MAP_NR(a)].count, 1); \
+                free_page(a); \
+                CNT++; \
+        } \
+} while (0)
+
+        FREESEC(__init_text_begin,__init_data_end, num_freed_pages);
+
+	printk ("freed initmem from %p to %p  (%d pages total)\n",
+		__init_text_begin, __init_data_end, num_freed_pages);
 
 	/* XXX hack alert I don't think init_irq belongs here */
 	irq_init();

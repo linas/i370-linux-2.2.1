@@ -396,6 +396,8 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 		unsigned long va, frm;
 		va = (unsigned long) to;
 		frm = (unsigned long) from;
+		if (va < PAGE_SIZE) 
+			printk(KERN_WARNING "copy_to_user null ptr va=0x%lx\n", va);
 		while (len > 0) {
 			unsigned long off = va & ~PAGE_MASK;
 			unsigned long rlen = PAGE_SIZE - off;
@@ -432,6 +434,8 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 		unsigned long va, too;
 		va = (unsigned long) from;
 		too = (unsigned long) to;
+		if (va < PAGE_SIZE) 
+			printk(KERN_WARNING "copy_from_user null ptr va=0x%lx\n", va);
 		while (len > 0) {
 			unsigned long off = va & ~PAGE_MASK;
 			unsigned long rlen = PAGE_SIZE - off;
@@ -473,6 +477,8 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 		clen = 0;
 		va = (unsigned long) src;
 		too = (unsigned long) dst;
+		if (va < PAGE_SIZE) 
+			printk(KERN_WARNING "strncpy_from_user null ptr va=0x%lx\n", va);
 		while (len > 0) {
 			unsigned long off = va & ~PAGE_MASK;
 			unsigned long rlen = PAGE_SIZE - off;
@@ -537,6 +543,9 @@ __clear_user(void *addr, unsigned long len)
 		unsigned long ra;
 		pte_t *pte;
 
+		if (va < PAGE_SIZE) 
+			printk(KERN_WARNING "clear_user null ptr va=0x%lx\n", va);
+
 		pte = find_pte (current->mm, va);
 		if (!pte || pte_none(*pte)) {
 			printk ("clear_user make_pages_present at va=%lx\n", va);
@@ -577,6 +586,8 @@ strlen_user(const char *str)
 		unsigned long i=0;
 		pte_t *pte;
 
+		if (va < PAGE_SIZE) 
+			printk(KERN_WARNING "strlen_user null ptr va=0x%lx\n", va);
 		pte = find_pte (current->mm, va);
 		if (!pte || pte_none(*pte)) {
 			printk ("strlen_user make_pages_present at va=%lx\n", va);
@@ -628,6 +639,8 @@ put_user_data(long data, void *addr, long len)
  * note LRA (load real addr) is not enough ...
  */
 	va = (unsigned long) addr;
+	if (va < PAGE_SIZE) 
+		printk(KERN_WARNING "put_user_data null ptr va=0x%lx\n", va);
 	pte = find_pte (current->mm, va);
 
 	if (!pte || pte_none(*pte)) {

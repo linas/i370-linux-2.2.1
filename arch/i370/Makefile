@@ -16,8 +16,8 @@
 ASFLAGS         =
 LINKFLAGS       = $(KERNELLOAD) 
 CFLAGSINC       = -D__KERNEL__ -I$(TOPDIR)/include -D__i370__
-CFLAGS          := $(CFLAGS) -D__i370__ -fsigned-char -msoft-float -pipe \
-                -fno-builtin -Wno-uninitialized -mmultiple -mstring
+CFLAGS          := $(CFLAGS) -D__i370__ -fsigned-char -pipe \
+                -fno-builtin -Wno-uninitialized 
 CPP             = $(CC) -E $(CFLAGS)
 
 MAKEBOOT = $(MAKE) -C arch/$(ARCH)/boot 

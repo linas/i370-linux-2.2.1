@@ -3,6 +3,7 @@
 
 #include <linux/config.h>
 
+#include <asm/asm.h>
 #include <asm/ptrace.h>
 
 /* Prefix Page Fixed Storage Locations
@@ -226,6 +227,14 @@ static inline unsigned long thread_saved_pc(struct thread_struct *t)
 	((struct task_struct *) __get_free_pages(GFP_KERNEL,1))
 #define free_task_struct(p)	free_pages((unsigned long)(p),1)
 
+
+extern inline void i370_halt (void)
+{
+        psw_t halt_psw;
+        halt_psw.flags = HALT_PSW;   /* load disabled wait state */
+        halt_psw.addr = 0xffffffff;
+        _lpsw (*((unsigned long long *) &halt_psw));
+}
 
 #endif /* endif ASSEMBLY*/
   

@@ -22,7 +22,8 @@ extern unsigned long free_area_init(unsigned long, unsigned long);
 
 atomic_t next_mmu_context; 
 struct pgtable_cache_struct quicklists;
-extern char __init_begin[], __init_end[];
+extern char __init_text_begin[], __init_text_end[];
+extern char __init_data_begin[], __init_data_end[];
 extern char _text[], _etext[];  
 
 
@@ -54,6 +55,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
          set_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);                
          if (addr < (ulong) _text)
          {
+            _sske (addr, KTEXT_STORAGE_KEY);
             lowpages++;
          }
          else if (addr < (ulong) _etext)
@@ -61,9 +63,16 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
             _sske (addr, KTEXT_STORAGE_KEY);
             codepages++;
          }
-         else if (addr >= (ulong) __init_begin
-               && addr < (ulong) __init_end)
+         else if (addr >= (ulong) __init_text_begin
+               && addr < (ulong) __init_text_end)
          {
+            _sske (addr, KTEXT_STORAGE_KEY);
+            initpages++;
+         }
+         else if (addr >= (ulong) __init_data_begin
+               && addr < (ulong) __init_data_end)
+         {
+            _sske (addr, KDATA_STORAGE_KEY);
             initpages++;
          }
          else 
@@ -83,6 +92,9 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
           free_page(addr);
       }
    }
+
+   /* take away write privledges from text pages. */
+   _spka (KDATA_STORAGE_KEY);
 
    printk("Memory: %luk available "
           "(%dk kernel code, %dk data, %dk init) "

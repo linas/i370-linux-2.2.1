@@ -122,8 +122,8 @@ MachineCheckException(i370_interrupt_state_t *saved_regs)
 void
 ProgramCheckException(i370_interrupt_state_t *saved_regs)
 {
-	long *pfx_prg_code = ((long *) PFX_PRG_CODE);
-	long *pfx_prg_trans = ((long *) PFX_PRG_TRANS);
+	long pfx_prg_code = *((long *) PFX_PRG_CODE);
+	long pfx_prg_trans = *((long *) PFX_PRG_TRANS);
 
 #ifdef JUNK_XXX_RIMPLEMENT_THIS_SOMEDAY
 	if (regs->msr & 0x100000) {
@@ -141,7 +141,19 @@ ProgramCheckException(i370_interrupt_state_t *saved_regs)
 	}
 #endif 
 	printk ("Program Check code=0x%x trans=0x%x\n", 
-		*pfx_prg_code, *pfx_prg_trans);
+		pfx_prg_code, pfx_prg_trans);
+
+	switch (pfx_prg_code) 
+	{
+		case PIC_PRIVLEDGED:
+			printf ("privleded \n");
+			break;
+		casse PIC_ADDRESSING:
+			printf ("addressing\n");
+			break;
+		default:
+			printk ("unexpected prgram check code\n");
+	}
 
 	i370_halt(); 
 }
@@ -151,16 +163,17 @@ RestartException(i370_interrupt_state_t *saved_regs)
 {
 	printk ("restart exception\n");
 	panic("restart");
+	i370_halt();
 }
 
 void
 InputOutputException(i370_interrupt_state_t *saved_regs)
 {
-	long *pfx_io_parm = (long *) PFX_IO_PARM;
-	long *pfx_subssy_id = (long *) PFX_SUBSYS_ID;
+	long pfx_io_parm = *((long *) PFX_IO_PARM);
+	long pfx_subssy_id = *((long *) PFX_SUBSYS_ID);
 
 	//printk ("i/o interrupt subchannel=0x%x param=0x%x\n", 
-	//	*pfx_subsysid, *pfx_io_parm);
+	//	pfx_subsysid, pfx_io_parm);
 }
 
 void
@@ -176,6 +189,7 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 	if ( EI_CLOCK_COMP != code) {
 		printk ("unexpected external exception code=0x%x\n", code);
 		panic ("unexpected external exception\n");
+		i370_halt();
 	}
 
 	/* get and set the new clock value */

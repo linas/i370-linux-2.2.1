@@ -191,5 +191,29 @@ extern inline void _ptlb (void)
    asm volatile ("PTLB" : : : "memory");
 }
 
+/* -------------------------------------------------------- */
+/* Halt the system */
+
+extern inline void i370_halt (void)
+{
+   // need to have 8-byte alignment for the psw
+   // unsigned long long psw __attribute__ ((aligned (8)));
+   char area[12];
+   unsigned long ptr = (unsigned long ) area;
+   unsigned long long *psw;
+   ptr = ((ptr+4) / 8) * 8;
+   psw = (unsigned long long *) ptr;
+   asm volatile (
+	"	L	r1,=X'000a0000';	"
+	"	ST	r1,%0;			"
+	"	L	r1,=A(.Lcontinue):	"
+	"	O	r1,=X'80000000';	"
+	"	ST	r1,4+%0;		"
+	"	LPSW	%0;			"
+	".Lcontinue:				"
+	"	NOPR	r0;			"
+	: "+m" (*psw) : : "r1", "memory");
+}
+
 #endif /* __ASSEMBLY__ */
 #endif /* __I370_ASM_H__ */

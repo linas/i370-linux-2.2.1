@@ -101,6 +101,8 @@ extern void *ioremap(unsigned long address, unsigned long size);
 extern void iounmap(void *addr);
 extern unsigned long iopa(unsigned long addr);
 
+extern unsigned long mm_ptov(unsigned long addr) __attribute__ ((const));
+
 /*
  * The PCI bus is inherently Little-Endian.  The PowerPC is being
  * run Big-Endian.  Thus all values which cross the [PCI] barrier

@@ -308,18 +308,55 @@ void set_context(int context) {}
 /* copy in/out routines of various sorts */
 
 int
-__copy_tofrom_user (void * to, const void * from, unsigned long len)
+__copy_to_user (void * to, const void * from, unsigned long len)
 {
 	if (__kernel_ok) {
 		memcpy (to,from,len);
 		return 0;
 	} else {
 		/* XXX bogus  fixme */
+		unsigned long va, ra, off;
+		pte_t *pte;
+		va = (unsigned long) to;
+		pte = find_pte (current->mm, va);
+		if (pte_none(*pte)) {
+			printk ("cpy_to_user: unmaped page \n");
+		} else {
+			off = va & ~PAGE_MASK;
+			ra = (pte_val(*pte) & PAGE_MASK) | off;
+			printk ("cpy_to_user va=%x ra=%x\n", va, ra);
+		}
+		printk (" copy_to_user %x %x %d\n", to,from,len);
+		i370_halt();
+	}
+	return 1;
+}
+
+int
+__copy_from_user (void * to, const void * from, unsigned long len)
+{
+	if (__kernel_ok) {
+		memcpy (to,from,len);
+		return 0;
+	} else {
+		/* XXX bogus  fixme */
+		unsigned long va, ra, off;
+		pte_t *pte;
+		va = (unsigned long) from;
+		pte = find_pte (current->mm, va);
+		if (pte_none(*pte)) {
+			printk ("cpy_from_user: unmaped page \n");
+		} else {
+			off = va & ~PAGE_MASK;
+			ra = (pte_val(*pte) & PAGE_MASK) | off;
+			printk ("cpy_from_user va=%x ra=%x\n", va, ra);
+		}
 		printk (" copy_tofrom_user %x %x %d\n", to,from,len);
 		i370_halt();
 	}
 	return 1;
 }
+
 int __strncpy_from_user(char *dst, const char *src, long count)
 {
 
@@ -330,6 +367,17 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 		return lclcount;
 	} else {
 		/* XXX bogus  fixme */
+		unsigned long va, ra, off;
+		pte_t *pte;
+		va = (unsigned long) src;
+		pte = find_pte (current->mm, va);
+		if (pte_none(*pte)) {
+			printk ("strncpy_from_user: unmaped page \n");
+		} else {
+			off = va & ~PAGE_MASK;
+			ra = (pte_val(*pte) & PAGE_MASK) | off;
+			printk (" strncpy_from_user va=%x ra=%x\n", va, ra);
+		}
 		printk (" strncopy_from_user %x %x %d\n", dst,src,count);
 		i370_halt();
 	}
@@ -344,6 +392,17 @@ unsigned long __clear_user(void *addr, unsigned long size)
 		return 0;
 	} else {
 		/* XXX bogus  fixme */
+		unsigned long va, ra, off;
+		pte_t *pte;
+		va = (unsigned long) addr;
+		pte = find_pte (current->mm, va);
+		if (pte_none(*pte)) {
+			printk ("clear_user: unmaped page \n");
+		} else {
+			off = va & ~PAGE_MASK;
+			ra = (pte_val(*pte) & PAGE_MASK) | off;
+			printk (" clear_user va=%x ra=%x\n", va, ra);
+		}
 		printk (" clear_user %x %d\n", addr, size);
 		i370_halt();
 	}
@@ -363,6 +422,18 @@ long strlen_user(const char *str)
 		return strlen (str);
 	} else {
 		/* XXX bogus  fixme */
+		pte_t *pte;
+		unsigned long va, ra, off;
+		va = (unsigned long) str;
+		pte = find_pte (current->mm, va);
+		if (pte_none(*pte)) {
+			printk ("strlen_user: unmaped page \n");
+		} else {
+			off = va & ~PAGE_MASK;
+			ra = (pte_val(*pte) & PAGE_MASK) | off;
+			printk (" strlen_user va=%x ra=%x\n", va, ra);
+		}
+
 		printk (" strlen_user %x\n", str);
 		i370_halt();
 	}

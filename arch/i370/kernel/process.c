@@ -295,6 +295,7 @@ release_thread(struct task_struct *t)
 void 
 i370_sys_exit (void) 
 {
+	printk ("i370_sys_exi(): not implemented \n");
 	i370_halt();
 }
 
@@ -409,7 +410,7 @@ asmlinkage int
 i370_sys_fork (void) 
 {
 	int res = 0;
-	printk ("i370_sys_fork \n");
+	printk ("i370_sys_fork(): not implemented \n");
 
 	lock_kernel();
 	// XXX whatever

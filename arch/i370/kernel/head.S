@@ -395,11 +395,11 @@ ProgramCheck:
 	SAVE_REGS (PC_INTERRUPT_BASE)
 	BASR	r15,0
 	.using	*,r15
-/*--------------------------------------------------------------*/
-/* If this is a trace table related program check then we'd     */
-/* better not generate a trace record or we could get ourselves */
-/* in a rather tight loop                                       */
-/*--------------------------------------------------------------*/
+	/*--------------------------------------------------------------*/
+	/* If this is a trace table related program check then we'd     */
+	/* better not generate a trace record or we could get ourselves */
+	/* in a rather tight loop                                       */
+	/*--------------------------------------------------------------*/
 	L	r0,PFX_PRG_CODE(0)
 	LA	r14,0x7f(0)
 	NR	r0,r14

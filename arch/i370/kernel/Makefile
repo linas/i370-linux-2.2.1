@@ -11,8 +11,7 @@
 	$(CC) $(CFLAGS) -D__ASSEMBLY__ -c $< -o $*.o
 
 O_TARGET := kernel.o
-# OX_OBJS := setup.o
-OX_OBJS := 
+OX_OBJS := setup.o
 
 
 O_OBJS := idle.o 

@@ -35,15 +35,16 @@ You will want to debug in CP.  So, during boot, you will want to
 
 Some handy commands:
 TRACE ALL        trace all instructions
-TRACE CLEAR      clear all tracepoints
+TRACE END        clear all tracepoints
+TRACE PROGRAM    trace program interrupts
+Begin            run the thing
 Query TRACE      show trace status
-DISPLAY G0-16    show general registers 0-16
-DISPLAY X0-16    show control registers 0-16
-DISPLAY PSW      you guessed it ...
-DISPLAY SCHIB    display subchannel info block ...
+Display G0-16    show general registers 0-16
+Display X0-16    show control registers 0-16
+Display PSW ALL  show old and new psw's for all interupts
+Display SCHIB    display subchannel info block ...
 STORE G5 ...     load a value into GPR 5
 STORE PSW ...    load a new PSW ...
-Begin            run the thing
 
 
 

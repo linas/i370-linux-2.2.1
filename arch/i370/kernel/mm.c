@@ -1,4 +1,9 @@
 
+/* 
+ * XXX almost everythin in this file is wrong ...
+ */
+
+#include <linux/blk.h>
 #include <linux/init.h>
 #include <linux/kernel.h>
 #include <linux/mm.h>

@@ -1,7 +1,10 @@
 /*
+ * XXX all wrong implemenet everything here ...
  */
 
 #include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/time.h>
 
 
 /* keep track of when we need to update the rtc */
@@ -10,7 +13,7 @@ unsigned long last_rtc_update = 0;
 
 __initfunc(void time_init(void))
 {
-   printk ("time init\n");
+   printk ("do dah time init\n");
 }
 
 /*

@@ -238,6 +238,8 @@ console_write_3210(struct console *c, const char *s,
  
 	for (i=0; i<count; i++) {
 		conBuffer[pbufnext] = ascii_to_ebcdic[(s[i])];
+		/* kill the EBCDIC line-feed */
+		if (conBuffer[pbufnext] == 0x25)  conBuffer[pbufnext] = 0x0;
 		if ((conBuffer[pbufnext] == 0x00) ||
 		    (pbufnext >= sizeof(conBuffer))) {
 			

@@ -413,9 +413,14 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	srcregs = current->tss.regs;
 	dstregs = &(p->tss.regs);
 
-	/* this can't happen, but it did ... */
 	if (!srcregs) {
+		/* This can't happen, but it did ... Last time it happened, 
+		 * its because the #define _psa_current was wrong and head.S 
+		 * didn't pick up the right value.  Unfortunately, this is 
+		 * likely to happen again.
+		 */
 		printk("i370_copy_thread, damaged regs pointer\n");
+		printk("Please check offset _psa_current psa.h and in head.S\n");
 		show_regs (regs);
 		print_backtrace ((unsigned long) this_frame);
 		i370_halt();

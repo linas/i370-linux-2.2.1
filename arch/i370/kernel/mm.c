@@ -41,7 +41,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
    int initpages = 0;
    int initrdpages = 0;
 
-   printk ("enter mem init\n");
+   printk ("enter mem init startmem=0x%x endmem=0x%x\n", start_mem, end_mem);
    end_mem &= PAGE_MASK;
    high_memory = (void *) end_mem;
    max_mapnr = MAP_NR(high_memory);
@@ -251,36 +251,50 @@ long end)
 
 int do_check_pgt_cache(int low, int high)
 {
-  return 0;
+	return 0;
 }
 
 void __bad_pte(pmd_t *pmd)
 {
-   printk("Bad pmd in pte_alloc: %08lx\n", pmd_val(*pmd));
-   pmd_val(*pmd) = (unsigned long) BAD_PAGETABLE;
+	printk("Bad pmd in pte_alloc: %08lx\n", pmd_val(*pmd));
+	pmd_val(*pmd) = (unsigned long) BAD_PAGETABLE;
 }
 
-pte_t *i370_get_pte(pmd_t *pmd, unsigned long offset)
+/* XXX hack alert -- we can in fact fit four page tables onto 
+ * one page, and we should muck around in this routine to make this so.
+ * but for now, we'll be slobs and use one page per page table.
+ */
+pte_t *i370_get_pte(pmd_t *pmd, unsigned long entry_index)
 {
-   pte_t *pte;
+	pte_t *pte;
 
-   printk ("enter i370_get_pte \n");
-   if (pmd_none(*pmd)) {
-      pte = (pte_t *) __get_free_page(GFP_KERNEL);
-      if (pte) {
-         clear_page((unsigned long)pte);
-         pmd_val(*pmd) = (unsigned long)pte;
-         return pte + offset;
-      }
-      pmd_val(*pmd) = (unsigned long)BAD_PAGETABLE;
-      return NULL;
-   }
+	/* entry index had better range between 0 and 255 */
+	printk ("enter i370_get_pte addr_of_ste=%x dx=%d\n", pmd, entry_index);
+	if (pmd_none(*pmd)) {
+		pte = (pte_t *) __get_free_page(GFP_KERNEL);
+		if (pte) {
+			int i;
+			pte_t *pe = pte;
+			unsigned long ste = (unsigned long) pte;
 
-   if (pmd_bad(*pmd)) {
-      __bad_pte(pmd);
-      return NULL;
-   }
-   return (pte_t *) pmd_page(*pmd) + offset;
+			for (i=0; i<PTRS_PER_PTE; i++) {
+				pte_clear (pe);
+				pe ++;
+			}
+			ste &= SEG_PTO_MASK;
+			ste |= 0xf;	/* length=(15+1)*16=256 */
+			pmd_val(*pmd) = ste;
+			return pte + entry_index;
+		}
+		pmd_val(*pmd) = (unsigned long)BAD_PAGETABLE;
+		return NULL;
+	}
+
+	if (pmd_bad(*pmd)) {
+		__bad_pte(pmd);
+		return NULL;
+	}
+	return ((pte_t *) pmd_page(*pmd)) + entry_index;
 }
 
 /*
@@ -298,18 +312,17 @@ pte_t *i370_get_pte(pmd_t *pmd, unsigned long offset)
  */
 unsigned long empty_bad_page_table;
 unsigned long empty_bad_page;
+pte_t  bad_pte;
 
 pte_t * __bad_pagetable(void)
 {
-   __clear_user((void *)empty_bad_page_table, PAGE_SIZE);
-   return (pte_t *) empty_bad_page_table;
+	return (pte_t *) empty_bad_page_table;
 }
 
 
 pte_t __bad_page(void)
 {
-   __clear_user((void *)empty_bad_page, PAGE_SIZE);
-   return pte_mkdirty(mk_pte(empty_bad_page, PAGE_SHARED));
+	return bad_pte;
 }
 
 
@@ -319,25 +332,41 @@ pte_t __bad_page(void)
 __initfunc(unsigned long paging_init(unsigned long start_mem, 
                                      unsigned long end_mem))
 {
-   printk ("paging init\n");
-   /*
-    * Grab some memory for bad_page and bad_pagetable to use.
-    */
-   empty_bad_page = PAGE_ALIGN(start_mem);
-   empty_bad_page_table = empty_bad_page + PAGE_SIZE;
-   start_mem = empty_bad_page + 2 * PAGE_SIZE;
+	int i;
+	pte_t *pte;
+	printk ("paging init startmem=%x endmem=%x\n", start_mem, end_mem);
+	/*
+	 * Grab some memory for bad_page and bad_pagetable to use.
+	 * Clear out the bad page.  Initilialze the bad pagetable.
+	 */
+	empty_bad_page = PAGE_ALIGN(start_mem);
+	memset ((void *)empty_bad_page, 0, PAGE_SIZE);
+	bad_pte = pte_mkdirty(mk_pte(empty_bad_page, PAGE_SHARED));
 
-   /* free_area_init is in linux/mm/page_malloc.c and it 
-    * sets up its arch-independent page tables*/
-   start_mem = free_area_init(start_mem, end_mem);
+	empty_bad_page_table = empty_bad_page + PAGE_SIZE;
+	pte = (pte_t *) empty_bad_page_table;
+	for (i=0; i<PTRS_PER_PTE; i++) {
+		*pte = bad_pte;
+		pte ++;
+	}
 
-   return start_mem;
+	start_mem = empty_bad_page_table + PAGE_SIZE;
+
+	/* free_area_init is in linux/mm/page_malloc.c and it 
+	 * sets up its arch-independent page tables*/
+	start_mem = free_area_init(start_mem, end_mem);
+
+	return start_mem;
 }
 
 void set_context(int context) {}  
 
 /* ========================================================== */
 /* copy in/out routines of various sorts */
+/* XXX probably would get a performance boost by 
+ * using the 'LRA' instruction. (assuming cr1 is valid).
+ */
+
 
 int
 __copy_to_user (void * to, const void * from, unsigned long len)
@@ -346,20 +375,28 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 		memcpy (to,from,len);
 		return 0;
 	} else {
-		/* XXX bogus  fixme */
-		unsigned long va, ra, off;
-		pte_t *pte;
+		unsigned long va, frm;
 		va = (unsigned long) to;
-		pte = find_pte (current->mm, va);
-		if (pte_none(*pte)) {
-			printk ("cpy_to_user: unmaped page \n");
-		} else {
-			off = va & ~PAGE_MASK;
-			ra = (pte_val(*pte) & PAGE_MASK) | off;
-			printk ("cpy_to_user va=%x ra=%x\n", va, ra);
+		frm = (unsigned long) from;
+		while (len > 0) {
+			pte_t *pte;
+			pte = find_pte (current->mm, va);
+			if (pte_none(*pte)) {
+				printk ("Error: copy_to_user: unmaped page \n");
+				i370_halt();
+			} else {
+				unsigned long off = va & ~PAGE_MASK;
+				unsigned long rlen = PAGE_SIZE - off;
+				unsigned long ra;
+				if (len < rlen) rlen = len;
+				ra = pte_page (*pte) | off;
+				printk ("cpy_to_user va=%x ra=%x\n", va, ra);
+				memcpy ((void *)ra, (void *)frm, rlen);
+				len -= rlen;
+				frm += rlen;
+				va += rlen;
+			}
 		}
-		printk (" copy_to_user %x %x %d\n", to,from,len);
-		i370_halt();
 	}
 	return 1;
 }
@@ -371,20 +408,28 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 		memcpy (to,from,len);
 		return 0;
 	} else {
-		/* XXX bogus  fixme */
-		unsigned long va, ra, off;
-		pte_t *pte;
+		unsigned long va, too;
 		va = (unsigned long) from;
-		pte = find_pte (current->mm, va);
-		if (pte_none(*pte)) {
-			printk ("cpy_from_user: unmaped page \n");
-		} else {
-			off = va & ~PAGE_MASK;
-			ra = (pte_val(*pte) & PAGE_MASK) | off;
-			printk ("cpy_from_user va=%x ra=%x\n", va, ra);
+		too = (unsigned long) to;
+		while (len > 0) {
+			pte_t *pte;
+			pte = find_pte (current->mm, va);
+			if (pte_none(*pte)) {
+				printk ("Error: copy_from_user: unmaped page \n");
+				i370_halt();
+			} else {
+				unsigned long off = va & ~PAGE_MASK;
+				unsigned long rlen = PAGE_SIZE - off;
+				unsigned long ra;
+				if (len < rlen) rlen = len;
+				ra = pte_page (*pte) | off;
+				printk ("cpy_from_user va=%x ra=%x\n", va, ra);
+				memcpy ((void *)too, (void *)ra, rlen);
+				len -= rlen;
+				too += rlen;
+				va += rlen;
+			}
 		}
-		printk (" copy_from_user %x %x %d\n", to,from,len);
-		i370_halt();
 	}
 	return 1;
 }
@@ -393,50 +438,78 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 {
 
 	if (__kernel_ok) {
-		int     lclcount;
-		lclcount = strlen(src);
+		long  lcl_count;
+		lcl_count = strlen(src);
+		if (count < lcl_count) lcl_count = count;
 		strncpy (dst,src,count);
-		return lclcount;
+		return lcl_count;
 	} else {
-		/* XXX bogus  fixme */
-		unsigned long va, ra, off;
-		pte_t *pte;
+		unsigned long len, clen, va, too;
+		len = count;
+		clen = 0;
 		va = (unsigned long) src;
-		pte = find_pte (current->mm, va);
-		if (pte_none(*pte)) {
-			printk ("strncpy_from_user: unmaped page \n");
-		} else {
-			off = va & ~PAGE_MASK;
-			ra = (pte_val(*pte) & PAGE_MASK) | off;
-			printk (" strncpy_from_user va=%x ra=%x\n", va, ra);
+		too = (unsigned long) dst;
+		while (len > 0) {
+			pte_t *pte;
+			pte = find_pte (current->mm, va);
+			if (pte_none(*pte)) {
+				printk ("Error: strncpy_from_user: unmaped page \n");
+				i370_halt();
+			} else {
+				unsigned long off = va & ~PAGE_MASK;
+				unsigned long rlen = PAGE_SIZE - off;
+				unsigned long ra;
+				unsigned long i=0;
+				if (len < rlen) rlen = len;
+				ra = pte_page (*pte) | off;
+				printk ("strncpy_from_user va=%x ra=%x\n", va, ra);
+				while (i<rlen) {
+					if (0 == *(char *)(ra+i)) {
+						i++;  /* copy null byte */
+						break;
+					}
+					i++;
+					clen ++;
+				}
+				memcpy ((void *)too, (void *)ra, i);
+				len -= rlen;
+				too += rlen;
+				va += rlen;
+				if (rlen != i) break; /* found null ? */
+			}
 		}
-		printk (" strncopy_from_user %x %x %d\n", dst,src,count);
-		i370_halt();
+		return clen;
 	}
 	return 0;
 }
 
-unsigned long __clear_user(void *addr, unsigned long size)
+unsigned long __clear_user(void *addr, unsigned long len)
 {
 	/* set a block of bytes to zero */  
 	if (__kernel_ok) {
-		memset (addr, 0, size);
+		memset (addr, 0, len);
 		return 0;
 	} else {
-		/* XXX bogus  fixme */
-		unsigned long va, ra, off;
-		pte_t *pte;
+		unsigned long va;
 		va = (unsigned long) addr;
-		pte = find_pte (current->mm, va);
-		if (pte_none(*pte)) {
-			printk ("clear_user: unmaped page \n");
-		} else {
-			off = va & ~PAGE_MASK;
-			ra = (pte_val(*pte) & PAGE_MASK) | off;
-			printk (" clear_user va=%x ra=%x\n", va, ra);
+		while (len > 0) {
+			pte_t *pte;
+			pte = find_pte (current->mm, va);
+			if (pte_none(*pte)) {
+				printk ("Error: clear_user: unmaped page \n");
+				i370_halt();
+			} else {
+				unsigned long off = va & ~PAGE_MASK;
+				unsigned long rlen = PAGE_SIZE - off;
+				unsigned long ra;
+				if (len < rlen) rlen = len;
+				ra = pte_page (*pte) | off;
+				printk ("clear_user va=%x ra=%x\n", va, ra);
+				memset ((void *)ra, 0, rlen);
+				len -= rlen;
+				va += rlen;
+			}
 		}
-		printk (" clear_user %x %d\n", addr, size);
-		i370_halt();
 	}
 	return 0;
 }
@@ -449,25 +522,39 @@ unsigned long __clear_user(void *addr, unsigned long size)
 
 long strlen_user(const char *str)
 {
-	/* XXX bogus  only works for KENREL_DS */
 	if (__kernel_ok) {
-		return strlen (str);
+		return (strlen(str) +1);
 	} else {
-		/* XXX bogus  fixme */
-		pte_t *pte;
-		unsigned long va, ra, off;
+		unsigned long clen, va;
+		int notdone = 1;
+		clen = 0;
 		va = (unsigned long) str;
-		pte = find_pte (current->mm, va);
-		if (pte_none(*pte)) {
-			printk ("strlen_user: unmaped page \n");
-		} else {
-			off = va & ~PAGE_MASK;
-			ra = (pte_val(*pte) & PAGE_MASK) | off;
-			printk (" strlen_user va=%x ra=%x\n", va, ra);
+		while (notdone) {
+			pte_t *pte;
+			pte = find_pte (current->mm, va);
+			if (pte_none(*pte)) {
+				printk ("Error: strncpy_from_user: unmaped page \n");
+				i370_halt();
+			} else {
+				unsigned long off = va & ~PAGE_MASK;
+				unsigned long rlen = PAGE_SIZE - off;
+				unsigned long ra;
+				unsigned long i=0;
+				ra = pte_page (*pte) | off;
+				printk ("strlen_user va=%x ra=%x\n", va, ra);
+				while (i<rlen) {
+					if (0 == *(char *)(ra+i)) {
+						notdone = 0;
+						i++;  /* count null byte */
+						break;
+					}
+					i++;
+				}
+				clen += i;
+				va += rlen;
+			}
 		}
-
-		printk (" strlen_user %x\n", str);
-		i370_halt();
+		return clen;
 	}
 	return 0;
 }
@@ -487,7 +574,7 @@ put_user_data(long data, void *addr, long len)
  */
 	va = (unsigned long) addr;
 	pte = find_pte (current->mm, va);
-	printk ("put_user_data: *(%x) = %x\n", pte, pte_val(*pte));
+	printk ("put_user_data: va=%x pte=%x = %x\n", va, pte, pte_val(*pte));
 
 	if (pte_none(*pte)) {
 		printk ("put_user_data: unmaped page \n");

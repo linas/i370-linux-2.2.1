@@ -100,8 +100,8 @@
 /* HALT_PSW loads a disabled wait state (cpu halt)                   */
 /*-------------------------------------------------------------------*/
 #define EN_PSW		PSW_VALID | PSW_IO | PSW_EXTERN | PSW_MACH 
-// XXX disable key 9 until the pte's are fixed up XXX
-// #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(9)
+/* XXX disable key 9 until the pte's are fixed up XXX */
+/* #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(9) */
 #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(6)
 #define KERN_PSW	EN_PSW | PSW_KEY(6)
 #define DISAB_PSW	PSW_VALID | PSW_KEY(6)

@@ -373,7 +373,7 @@ extern __inline__ pgd_t *i370_pgd_alloc(void)
 		/* memset won't work, we need to set the invalid bit */
 		int i;
 		pmd_t *pme = (pmd_t *) ret;
-printk ("in pgd_alloc alloced 2 pages at %p\n", ret);
+		/* printk ("in pgd_alloc alloced 2 pages at %p\n", ret); */
 		for (i=0; i<USER_PTRS_PER_PGD; i++) {
 			pmd_clear (pme);
 			pme ++;
@@ -474,18 +474,18 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
 	pte_t *pte = NULL;
 
 	va &= ADDR_MASK;
-// printk ("find_pte for va=0x%lx\n", va);
+	/* printk ("find_pte for va=0x%lx\n", va); */
 	
 	dir = pgd_offset( mm, va );
 	if (dir)
 	{
-// printk ("find_pte got pgd for dir=%p\n", dir);
+		/* printk ("find_pte got pgd for dir=%p\n", dir); */
 		pmd = pmd_offset(dir, va);
 		if (pmd && pmd_present(*pmd))
 		{
 			pte = pte_offset(pmd, va);
+			/* printk ("find_pte got pmd for va=%lx pte=%p\n", va, pte); */
 /* XXX the PowerPC implementation flushes the  tlb here, should we ?? */
-// printk ("find_pte got pmd for va=%lx pte=%p\n", va, pte);
 		}
 	}
 	return pte;

@@ -30,7 +30,7 @@ typedef struct _unitblk {
 	unsigned  int   unitminor;	/* Minor device number */
 	int             unitisc;	/* Device interrupt subclass */
 	void           *unitirqh;	/* Interrupt handler     */
-	unsigned  char  unitname[8];	/* Device name */
+	unsigned char   unitname[8];	/* Device name */
 	unsigned char   unitflg1;	/* flag byte */
 	unsigned char   unitflg2;	/* Flag byte */
 	unsigned char   unitid;		/* Unit ID */
@@ -42,7 +42,7 @@ typedef struct _unitblk {
 	unsigned char   unittycd;	/* Device Type code from RDC */
 	unsigned char   unitcuid;	/* CUID from RDC */
 	unsigned char   unitvol[6];	/* volume Id */
-	unsigned char   fill[10];       /* fill to next 16 byte boundary */
+	unsigned char   fill[10];        /* fill to next 16 byte boundary */
 	struct _unitblk *unitnxt;       /* Next Unit Block */
 } unitblk_t;
 

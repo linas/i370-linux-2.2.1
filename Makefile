@@ -3,7 +3,8 @@ PATCHLEVEL = 2
 SUBLEVEL = 1
 EXTRAVERSION =
 
-ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/)
+# ARCH := $(shell uname -m | sed -e s/i.86/i386/ -e s/sun4u/sparc64/ -e s/arm.*/arm/ -e s/sa110/arm/)
+ARCH := i370
 
 .EXPORT_ALL_VARIABLES:
 
@@ -18,7 +19,7 @@ FINDHPATH	= $(HPATH)/asm $(HPATH)/linux $(HPATH)/scsi $(HPATH)/net
 HOSTCC  	=gcc
 HOSTCFLAGS	=-Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
 
-CROSS_COMPILE 	=
+CROSS_COMPILE 	= /home/linas/src/usr/bin/i370-ibm-linux-
 
 AS	=$(CROSS_COMPILE)as
 LD	=$(CROSS_COMPILE)ld

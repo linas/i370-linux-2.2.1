@@ -37,6 +37,19 @@ void* memcpy (void *dest, const void *src, size_t n)
    return dest;
 }
 
+void* memmove (void *dest, const void *src, size_t n)
+{
+   int i=0;
+   char *d, *s;
+   d = (char *)dest;
+   s = (char *) src;
+   // rewrite to inline MVCL
+   for (i=0; i<n; i++) {
+      d[i] = s[i];
+   }
+   return dest;
+}
+
 void *memset(void *s, int c, size_t n)
 {
    char *ss = (char *)s;

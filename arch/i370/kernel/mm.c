@@ -223,21 +223,23 @@ int do_check_pgt_cache(int low, int high)
 /*
  * Flush a particular page from the DATA cache
  * Note: this is necessary because the instruction cache does *not*
- * snoop from the data cache.
+ * snoop from the data cache. XXXX
  *
  *      void flush_page_to_ram(void *page)
  */
 void flush_page_to_ram(unsigned long page) {}
+void flush_icache_range(unsigned long a, unsigned long b) {}
 
 
 void __bad_pte(pmd_t *pmd)
 {
-//        printk("Bad pmd in pte_alloc: %08lx\n", pmd_val(*pmd));
-//         pmd_val(*pmd) = (unsigned long) BAD_PAGETABLE;
+   printk("Bad pmd in pte_alloc: %08lx\n", pmd_val(*pmd));
+   pmd_val(*pmd) = (unsigned long) BAD_PAGETABLE;
 }
 
 pte_t *get_pte_slow(pmd_t *pmd, unsigned long offset)
 {
+   printk ("get_pte_slow \n");
 return 0x0;
 }
 
@@ -258,19 +260,18 @@ unsigned long empty_bad_page_table;
 
 pte_t * __bad_pagetable(void)
 {
-//        __clear_user((void *)empty_bad_page_table, PAGE_SIZE);
-        return (pte_t *) empty_bad_page_table;
+   __clear_user((void *)empty_bad_page_table, PAGE_SIZE);
+   return (pte_t *) empty_bad_page_table;
 }
 
 unsigned long empty_bad_page;
 
 pte_t __bad_page(void)
 {
-//        __clear_user((void *)empty_bad_page, PAGE_SIZE);
+   __clear_user((void *)empty_bad_page, PAGE_SIZE);
    return pte_mkdirty(mk_pte(empty_bad_page, PAGE_SHARED));
 }
 
 
 void set_context(int context) {}  
 
-void flush_icache_range(unsigned long a, unsigned long b) {}

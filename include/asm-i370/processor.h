@@ -51,22 +51,22 @@
 #define	EI_SERVICE		0x2401	/* Service Signal */
 
 
-#ifndef __ASSEMBLY__
-
 /* Bit encodings in the PSW */
-#define PSW_PER		(1<<(31-1))	/* Program Event Recording Mask */
-#define PSW_DAT		(1<<(31-5))	/* Address Translation Mode */
-#define PSW_IO		(1<<(31-6))	/* Input/Output Mask */
-#define	PSW_EXTERN	(1<<(31-7))	/* External Mask */
+#define PSW_PER		0x40000000	/* Program Event Recording Mask */
+#define PSW_DAT		0x04000000	/* Address Translation Mode */
+#define PSW_IO		0x02000000	/* Input/Output Mask */
+#define	PSW_EXTERN	0x01000000	/* External Mask */
+#define PSW_KEY_MASK	0x00f00000	/* PSW Protection Key Mask */
 #define PSW_KEY(key)	((key&0xf)<<(31-11))	/* PSW Protection Key */
-#define PSW_VALID	(1<<(31-12))	/* Must be set to one always */
-#define PSW_MACH	(1<<(31-13))	/* Machine Check Mask */
-#define PSW_WAIT	(1<<(31-14))	/* Wait State */
-#define PSW_PROB	(1<<(31-15))	/* Problem State (user Mode) */
-#define PSW_PRIMARY	PSW_DAT || (0x0000)	/* Primary Space Mode */
-#define PSW_AR		PSW_DAT || (1<<(31-17))	/* Access Register Mode */
-#define PSW_SECONDARY	PSW_DAT || (2<<(31-17))	/* Secondary Space Mode */
-#define PSW_HOME	PSW_DAT || (3<<(31-17))	/* Home Space Mode */
+#define PSW_VALID	0x00800000	/* Must be set to one always */
+#define PSW_MACH	0x00400000	/* Machine Check Mask */
+#define PSW_WAIT	0x00200000	/* Wait State */
+#define PSW_PROB	0x00100000	/* Problem State (User Mode) */
+#define PSW_SPACE_MASK  0x000c0000	/* Space Mode Mask Bits */
+#define PSW_PRIMARY	0x00000000	/* Primary Space Mode */
+#define PSW_AR		0x00040000	/* Access Register Mode */
+#define PSW_SECONDARY	0x00080000	/* Secondary Space Mode */
+#define PSW_HOME	0x000c0000	/* Home Space Mode */
 
 
 /* USER_PSW sets up flags for the user mode */
@@ -77,6 +77,8 @@
 #define HALT_PSW	PSW_VALID | PSW_WAIT 
 
 /* XXX The rest of this file is sort of garbage  user beware XXX */
+
+#ifndef __ASSEMBLY__
 
 struct task_struct;
 void start_thread(struct pt_regs *regs, unsigned long psw, unsigned long sp);

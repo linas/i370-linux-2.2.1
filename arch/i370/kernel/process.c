@@ -221,7 +221,7 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 	/* switch control registers */
 	/* cr1 contains the segment table origin */
-	// _lctl1 (new_tss->regs->cr1.raw);
+	_lctl1 (new_tss->regs->cr1.raw);
 
 	/* switch kernel stack pointers */
 	_set_TCA ((unsigned long) &(new_tss->tca[0]));
@@ -266,6 +266,7 @@ i370_sys_exit (void)
  * -- Set up the user stack pointer
  * -- Set up page tables ??? !!
  * -- Load CR1 with page table origin ??!!
+ * -- Copy PSW flags (in particular, the DAT flag) ???
  *
  * argument p is the copy_to_proc;  copy_from is "current"
  * usp and regs are what was pass to do_fork below ...
@@ -338,6 +339,15 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	 */
 	p->tss.regs -> irregs.r15 = 0;
 	current->tss.regs -> irregs.r15 = p->pid;
+
+	/* new thread might return to user-mode when it returns 
+	 * from sys call; set the PSW appropriately */
+        if (USER_DS == p->tss.fs) {
+        	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
+        	regs->psw.flags |= USER_PSW;
+	} else {
+        	regs->psw.flags &= ~(PSW_DAT | PSW_PROB);
+	}
 
 	/* XXX what about page tables ?? */
 	return 0;

@@ -232,6 +232,11 @@ release_thread(struct task_struct *t)
 /*
  * Copy a thread..
  * mostly wrong .... but give it a shot
+ * What this function does/needs to do:
+ * -- Copy architecture-dependent parts of the task structure.
+ * -- Set up the user stack pointer
+ * -- Set up page tables ??? !!
+ * -- Load CR1 with page table origin ??!!
  */
 int
 copy_thread(int nr, unsigned long clone_flags, unsigned long usp,

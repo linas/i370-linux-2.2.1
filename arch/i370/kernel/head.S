@@ -247,9 +247,9 @@ tcaStackOverflow:
 
 #define EXCEPTION_CALL_C(handler)  					\
 	L	r15,=A(handler);	/* load address of C routine */	\
-	LA	r11,SAVED_PSW(,sp);	/* ptr to saved psw, regs */	\
-	ST	r11,ARGP(,sp);		/* ptr to arguments on stack */	\
-	LA	r11,ARGP(,sp);		/* pointer to arguments */	\
+	LA	r2,SAVED_PSW(,sp);	/* ptr to saved psw, regs */	\
+	ST	r2,ARGP(,sp);		/* ptr to arguments on stack */	\
+	LA	r2,ARGP(,sp);		/* pointer to arguments */	\
 	LA	r1,SAVED_PSW(,sp);	/* pointer to returned value */	\
 	BASR	lr,r15;			/* jump to C routine */		\
 	.using	.,lr;			/* use r14 to the end */	\
@@ -308,7 +308,7 @@ SupervisorCall:
 	SLL	r1,2			/* 4 bytes per word ... */
 	L	r15,0(r2,r1)		/* load address of C routine */
 	STM     r3,r10,SAVED_R3(sp)	/* sys call args in regs */
-	LA	r11,SAVED_R5(,sp)	/* pointer to args on stack */
+	LA	r2,SAVED_R5(,sp)	/* pointer to args on stack */
 	LA	r1,ARGP(,sp)		/* pointer to returned value */
 	BASR	lr,r15			/* jump to C routine */
 	.using	.,lr;			/* use r14 for remainder of the show */

@@ -19,9 +19,10 @@
  * used in a few "it can't possibly happen" situations.
  */
 #define HALT(sav)							\
+	SPKA    sav(0);			/* Ensure we can use lo core */ \
 	L	r1,=X'000A0000';	/* disabled wait */		\
 	ST	r1,sav(,0);						\
-	L	r1,=X'FFFFFFFF';	/* bad address */		\
+	L	r1,=X'00000210';	/* must be any valid address */	\
 	ST	r1,sav+4(,0);						\
 	LPSW	sav(0);			/* oops halt the machine */
 
@@ -80,7 +81,7 @@ _cinit:
 	ST	r1,116(,rtca)		// bogosity
 	L	r15,=A(start_kernel)	// load address of C routine
 	BASR	lr,r15			// jump to C routine
-	HALT (INTERRUPT_BASE)		// its impossible to return to here ...
+	HALT (INTERRUPT_BASE)		// it's impossible to return to here ...
 
 	.balign	4			// align literal pool
 	.ltorg				// dump literal pool

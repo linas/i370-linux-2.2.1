@@ -60,7 +60,6 @@ _start:
 _cinit:
 	L	r13,=A(init_ksp)	/* load addr of stackptr into r13 */
 	L	r13,0(,r13)		/* load address of stack into r13 */
-	LA	r13,TASK_STRUCT_SIZE(,r13); /* framep is stack bottom     */	
 	LA	r11,MIN_STACK_SIZE(,r13); /* load r11 with top of stack   */
 	SLR	r3,r3
 	ST	r3,8(,r13)		/* terminate stack backchain      */
@@ -131,8 +130,8 @@ _cinit:
 #define ARGS_SIZE	0x4	/* args size */
 #define FRAME_BASE	STACK_SIZE + ARGS_SIZE
 #define FRAME_SIZE	0x60	/* frame size */
-#define SF_SIZE		STACK_SIZE + ARGS_SIZE + FRAME_SIZE
-#define SF_SIZ		188	/* add above together by hand */
+#define SF_SIZE		STACK_SIZE + ARGS_SIZE + FRAME_SIZE + 4
+#define SF_SIZ		192	/* add above together by hand, double-word align */
 
 /* -------------------------------------------------------- */
 /* location of saved registers on stack */

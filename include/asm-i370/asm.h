@@ -23,6 +23,52 @@ extern inline void _set_SP (unsigned long newsp)
 }
 
 /* -------------------------------------------------------- */
+/* get the current value of the tca pointer */
+/* since this inlines, it will basically copy r12 to where-ever */
+extern inline unsigned long _get_TCA(void)
+{
+        unsigned long rc;
+        asm volatile ("LA	%0,0(,tca)" : "=r" (rc) : );
+        return rc;
+}
+
+/* set the current value of the tca pointer */
+/* use with caution */
+extern inline void _set_TCA (unsigned long newtca)
+{
+        asm volatile ("LR	sp,%0" : : "r" (newtca) : "memory");
+}
+
+/* -------------------------------------------------------- */
+/* copy fpregs to memory */
+extern inline void _store_fpregs (double *memy)
+{
+        asm volatile (
+		"STD	f0,%0;"
+		"STD	f2,%1;"
+		"STD	f4,%2;"
+		"STD	f6,%3;"
+		: "=m" (memy[0]), 
+		  "=m" (memy[1]),
+		  "=m" (memy[2]),
+		  "=m" (memy[3]) );
+}
+
+/* copy mem to fpregs */
+extern inline void _load_fpregs (double *memy)
+{
+        asm volatile (
+		"LD	f0,%0;"
+		"LD	f2,%1;"
+		"LD	f4,%2;"
+		"LD	f6,%3;"
+		: : "m" (memy[0]), 
+		    "m" (memy[1]),
+		    "m" (memy[2]),
+		    "m" (memy[3]) );
+}
+
+/* -------------------------------------------------------- */
 /* Store Clock */
 extern inline unsigned long long _stck (void)
 {

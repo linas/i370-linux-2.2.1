@@ -21,7 +21,6 @@ extern unsigned long free_area_init(unsigned long, unsigned long);
 
 
 atomic_t next_mmu_context; 
-struct pgtable_cache_struct quicklists;
 extern char __init_text_begin[], __init_text_end[];
 extern char __init_data_begin[], __init_data_end[];
 extern char _text[], _etext[];  
@@ -252,14 +251,9 @@ pte_t *get_pte_slow(pmd_t *pmd, unsigned long offset)
 
    printk ("enter get_pte_slow \n");
    if (pmd_none(*pmd)) {
-      pte = (pte_t *) get_zero_page_fast();
-      if (NULL == pte) {
-         pte = (pte_t *) __get_free_page(GFP_KERNEL);
-         if (pte) {
-            clear_page((unsigned long)pte);
-         }
-      }
+      pte = (pte_t *) __get_free_page(GFP_KERNEL);
       if (pte) {
+         clear_page((unsigned long)pte);
          pmd_val(*pmd) = (unsigned long)pte;
          return pte + offset;
       }

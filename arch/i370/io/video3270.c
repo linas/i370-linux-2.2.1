@@ -77,7 +77,7 @@ vid3270_putcs(struct vc_data *conp, const unsigned short *s,
 {
 	int i;
 	if (80 == count) {  /* quick hack don't print blank lines */
-		for(i=0; i<count; i++) if (0x20 != s[i]) goto prt;
+		for(i=0; i<count; i++) if (0x20 != 0xff & s[i]) goto prt;
 		return;
 	}
 prt:

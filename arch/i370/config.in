@@ -1,8 +1,8 @@
-# $Id: config.in,v 1.3 1999/03/06 20:18:15 linas Exp $
+# $Id: config.in,v 1.4 1999/03/20 05:49:42 linas Exp $
 # For a description of the syntax of this configuration file,
 # see the Configure script.
 #
-mainmenu_name "Linux/i370 Kernel Configuration"
+mainmenu_name "Linux ESA/390 Kernel Configuration"
 
 mainmenu_option next_comment
 comment 'Platform support'
@@ -16,10 +16,6 @@ choice 'Machine Type' \
 bool 'Symmetric multi-processing support' CONFIG_SMP
 
 endmenu
-
-if [ "$CONFIG_MBX" = "y" ];then
-  define_bool CONFIG_SERIAL_CONSOLE y
-fi
 
 mainmenu_option next_comment
 comment 'General setup'
@@ -100,10 +96,7 @@ if [ "$CONFIG_VT" = "y" ]; then
 fi
 
 # there are no serial ports, just stub this for now
-tristate 'Standard/generic (dumb) serial support' CONFIG_SERIAL
-if [ "$CONFIG_SERIAL" = "y" ]; then
-   bool '   Support for console on serial port' CONFIG_SERIAL_CONSOLE
-fi
+bool 'Standard 3270 console support' CONFIG_3270_CONSOLE
 
 bool 'Unix98 PTY support' CONFIG_UNIX98_PTYS
 if [ "$CONFIG_UNIX98_PTYS" = "y" ]; then

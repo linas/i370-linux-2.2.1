@@ -154,7 +154,7 @@ void
 switch_to(struct task_struct *prev, struct task_struct *new)
 {
 	struct thread_struct *new_tss, *old_tss;
-	pt_regs_t *oldregs, *newregs;
+	i370_regs_t *oldregs, *newregs;
 
 //        int s = _disable_interrupts();
 
@@ -186,7 +186,7 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 	/* switch control registers */
 	/* cr1 contains the segment table origin */
-	_lctl1 (new_tss->cr1);
+	_lctl1 (new_tss->regs->cr1.raw);
 
 	/* switch kernel stack pointers */
 	old_tss->ksp = _get_SP();

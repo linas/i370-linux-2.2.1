@@ -117,14 +117,14 @@ extern inline void _sckc (unsigned long long tickee)
 }
 
 /* -------------------------------------------------------- */
-/* set storage key extended */
+/* Set Storage Key Extended */
 extern inline void _sske (unsigned int key, unsigned int realaddr)
 {
    /* be sure to serialize memory access around this instruction */
    asm volatile ("SSKE	%0,%1" : : "r" (key), "r" (realaddr) : "memory");
 }
 
-/* examine storage key extended */
+/* Examine Storage Key Extended */
 extern inline unsigned int _iske (unsigned int realaddr)
 {
    unsigned int key;
@@ -132,7 +132,7 @@ extern inline unsigned int _iske (unsigned int realaddr)
    return key;
 }
 
-/* set psw key from address */
+/* Set PSW Key from Address */
 extern inline void _spka (unsigned int key)
 {
    asm volatile ("SPKA	0(%0)" : : "r" (key));
@@ -146,7 +146,7 @@ extern inline void _lpsw (unsigned long long psw)
 }
 
 /* -------------------------------------------------------- */
-/* load control registers */
+/* Load Control Registers */
 
 #define _lctl(REGNO,val) _lctl_r##REGNO (val)
 
@@ -176,7 +176,7 @@ def_lctl(14)
 def_lctl(15)
 
 /* -------------------------------------------------------- */
-/* store control registers */
+/* Store Control Registers */
  
 #define _stctl(REGNO,val) _stctl_r##REGNO (val)
  
@@ -211,16 +211,44 @@ def_stctl(15)
 /* Store Processor Address */
 extern inline unsigned long _stap (void)
 {
-   unsigned short cpuid;
-   asm volatile ("STAP	%0" : "=m" (cpuid) );
-   return ((unsigned long) cpuid);
+	unsigned short cpuid;
+	asm volatile ("STAP	%0" : "=m" (cpuid) );
+	return ((unsigned long) cpuid);
 }
 
 /* -------------------------------------------------------- */
-/* Purge TLB */
+/* Signal Processor */
+extern inline long _sigp (unsigned long addr,
+                         unsigned long code)
+{
+	long rc;
+
+	asm volatile (
+		"SIGP   %1,%2(0);       \n"
+		"IPM    r1;     \n"
+		"SRL    r1,28;  \n"
+		"LR     %0,r1;  \n"
+		: "=r" (rc)
+		: "r" (addr), "m" (code)
+		: "r1", "memory");
+	return (rc);
+}
+
+/* -------------------------------------------------------- */
+/* Purge Table Lookaside Buffer */
 extern inline void _ptlb (void)
 {
-   asm volatile ("PTLB" : : : "memory");
+	asm volatile ("PTLB" : : : "memory");
+}
+
+/* Invalidate Page Table Entry */
+extern inline void _ipte (void *sto, void *pfx)
+{
+	asm volatile (
+		"IPTE %0,%1\n"
+		:
+		: "r" (sto), "r" (pfx)
+		: "memory");
 }
 
 /* -------------------------------------------------------- */
@@ -228,14 +256,14 @@ extern inline void _ptlb (void)
 
 extern inline void i370_halt (void)
 {
-   // need to have 8-byte alignment for the psw
-   // unsigned long long psw __attribute__ ((aligned (8)));
-   char area[12];
-   unsigned long ptr = (unsigned long ) area;
-   unsigned long long *psw;
-   ptr = ((ptr+4) / 8) * 8;
-   psw = (unsigned long long *) ptr;
-   asm volatile (
+	// need to have 8-byte alignment for the psw
+	// unsigned long long psw __attribute__ ((aligned (8)));
+	char area[12];
+	unsigned long ptr = (unsigned long ) area;
+	unsigned long long *psw;
+	ptr = ((ptr+4) / 8) * 8;
+	psw = (unsigned long long *) ptr;
+	asm volatile (
 	"	L	r1,=X'000a0000';	\n"
 	"	ST	r1,%0;			\n"
 	"	L	r1,=A(1f);		\n"

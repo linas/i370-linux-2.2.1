@@ -24,21 +24,23 @@
 #define CCW_CMD_NOP     0x03	/* NO-OP CCW */
 #define CCW_CMD_SID		0xe4	/* Sense ID */
 
+#ifndef __ASSEMBLY__
+
 /*
  *       Define the Format-1 Channel Command Word
  */
- 
+
 typedef struct _ccw {             /* CCW structure                    */
 	char            cmd;      /* CCW command field                */
 	char            flags;    /* CCW flags                        */
 	short int       count;    /* count of bytes to transfer       */
 	void            *dataptr; /* Data address                     */
 } ccw_t;                          /* End of CCW structure             */
- 
+
 /*
  *       Define the Operation Request Block
  */
- 
+
 typedef struct _orb {             /* ORB structure                    */
 	int             intparm;  /* interrupt parameter              */
 	char            key;      /* channel key                      */
@@ -47,11 +49,11 @@ typedef struct _orb {             /* ORB structure                    */
 	char            zeros;    /*                                  */
 	ccw_t           *ptrccw;  /* Channel program address          */
 } orb_t;                          /* End of ORB structure             */
- 
+
 /*
  *       Define the DE  (Define Extent for DASD)
  */
- 
+
 typedef struct _de {              /* DE  structure                    */
 	char            mask;     /* mask byte                        */
 	char            globa;    /* global attributes                */
@@ -62,11 +64,11 @@ typedef struct _de {              /* DE  structure                    */
 	unsigned long   deext;    /* Start of Extent CCCCHHHH         */
 	unsigned long   deend;	  /* End of Extend CCCCHHHH	      */
 } de_t;                           /* End of D.E. structure            */
- 
+
 /*
  *       Define the LOCR (Locate record for DASD)
  */
- 
+
 typedef struct _locr {            /* LOCR structure                   */
 	char            orop;     /* orientation and operation        */
 	char            rsv;      /* reserved byte                    */
@@ -79,8 +81,8 @@ typedef struct _locr {            /* LOCR structure                   */
 	short           zeros;    /* must be zeros                    */
 } locr_t;                         /* End of L.R. structure            */
 
-/* 
- * Define the SCSW SubChannel Status Word 
+/*
+ * Define the SCSW SubChannel Status Word
  */
 
 typedef struct _scsw {		/* SUBCHANNEL Status Word Structure     */
@@ -103,7 +105,7 @@ typedef struct _scsw {		/* SUBCHANNEL Status Word Structure     */
 	char	  *ccw;     	/* Word 1  bits 0-31 CCW Address        */
 	unsigned char devstat; 	/* Word 2  bits 0-7 Device Status       */
 	unsigned char schstat;  /*         bits 8-15 Subchannel Status  */
-	unsigned short residual; /*         bits 16-31 Residual Count   */  
+	unsigned short residual; /*         bits 16-31 Residual Count   */
 } scsw_t;     		/* End of SCSW structure */
 
 /*
@@ -117,7 +119,7 @@ typedef struct _irb {			/* IRB structure                     */
 	unsigned char 	lpum;     	/*     bits 8-15 Last Path Used Mask */
 	unsigned		:1;     /*     bit 16 unassigned             */
 	unsigned 	fvf	:5;     /*     bits 17-21 FVF                */
-	unsigned 	sa	:2;     /*     bits 22-23 Storage Access     */ 
+	unsigned 	sa	:2;     /*     bits 22-23 Storage Access     */
 	unsigned 	tc	:2;     /*     bits 24-25 Termination Code   */
 	unsigned 	dsc	:1;     /*     bit 26 Device Status Check    */
 	unsigned 	scnd	:1;     /*     bit 27 Secondary Error        */
@@ -188,8 +190,8 @@ typedef struct _iorb {
 
 /* *	Issue SSCH 	*/
 
-extern inline int     
-_ssch (short sid, orb_t *orb) 
+extern inline int
+_ssch (short sid, orb_t *orb)
 {
 	int     rc;
 	long	scid = 0x10000 | sid;
@@ -198,18 +200,19 @@ _ssch (short sid, orb_t *orb)
         ("l     r1,%1;		\n"
          "ssch %2;		\n"
          "ipm   r1;		\n"
+	 "srl   r1,28;		\n"
          "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*orb)
         :"r1","memory");
 
-        return (rc & 0x30000000); 
+        return (rc);
 }
 
 /* *	Issue MSCH 	*/
 
-extern inline int     
-_msch (short sid, schib_t *schib) 
+extern inline int
+_msch (short sid, schib_t *schib)
 {
 	int     rc;
 	long	scid = 0x10000 | sid;
@@ -218,18 +221,19 @@ _msch (short sid, schib_t *schib)
         ("l     r1,%1;		\n"
          "msch %2;		\n"
          "ipm   r1;		\n"
+	 "srl   r1,28;		\n"
          "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*schib)
         :"r1","memory");
 
-        return(rc & 0x30000000);
+        return(rc);
 }
 
 /* *	Issue TSCH 	*/
 
-extern inline int     
-_tsch (short sid, irb_t *irb) 
+extern inline int
+_tsch (short sid, irb_t *irb)
 {
 	int     rc;
 	long	scid = 0x10000 | sid;
@@ -238,18 +242,19 @@ _tsch (short sid, irb_t *irb)
         ("l     r1,%1;		\n"
          "tsch %2;		\n"
          "ipm   r1;		\n"
+	 "srl   r1,28;		\n"
          "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*irb)
         :"r1","memory");
 
-        return(rc & 0x30000000);
+        return(rc);
 }
 
 /* *	Issue STSCH 	*/
 
-extern inline int     
-_stsch (short sid, schib_t *schib) 
+extern inline int
+_stsch (short sid, schib_t *schib)
 {
 	int     rc;
 	long	scid = 0x10000 | sid;
@@ -258,13 +263,51 @@ _stsch (short sid, schib_t *schib)
         ("l     r1,%1;		\n"
          "stsch %2;		\n"
          "ipm   r1;		\n"
+	 "srl   r1,28;		\n"
          "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*schib)
         :"r1","memory");
 
-        return(rc & 0x30000000);
+        return(rc);
 }
+
+extern inline int
+_tpi (long *scid)
+{
+	int     rc;
+
+	__asm__ __volatile__
+		("	TPI   %1	\n"
+		"       IPM   r1	\n"
+		"       SRL   r1,28     \n"
+		"       ST    r1,%0     \n"
+		: "=m" (rc)
+		: "m" (*scid)
+		:"r1","memory");
+
+	return(rc);
+}
+
+extern inline int
+_csch(long scid)
+{
+	int     rc;
+
+	__asm__ __volatile__
+		("	L     r1,%1 	\n"
+		"       CSCH		\n"
+		"       IPM   r1	\n"
+		"       SRL   r1,28     \n"
+		"       ST    r1,%0     \n"
+		: "=m" (rc)
+		: "m" (scid)
+		:"r1","memory");
+
+	return(rc);
+}
+
+#endif /* __ASSEMBLY__ */
 
 
 #endif /* I370_IORB_H_ */

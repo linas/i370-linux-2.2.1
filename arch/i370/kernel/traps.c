@@ -310,8 +310,6 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 /* ================================================================ */
 /* do SLIH intrerrupt handling (the bottom half) */
 
-extern void do_signal(void);
-
 void 
 ret_from_syscall (void) 
 {

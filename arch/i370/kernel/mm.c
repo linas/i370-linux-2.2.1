@@ -178,6 +178,7 @@ i370_flush_tlb_all(void)
 void
 i370_flush_tlb_mm(struct mm_struct *mm)
 {
+	printk ("i370_flush_tlb_mm\n");
 /*
         mm->context = NO_CONTEXT;
         if (mm == current->mm)
@@ -188,6 +189,7 @@ i370_flush_tlb_mm(struct mm_struct *mm)
 void
 i370_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
 {
+	printk ("i370_flush_tlb_page\n");
 #if 0
         if (vmaddr < TASK_SIZE)
                 flush_hash_page(vma->vm_mm->context, vmaddr);
@@ -207,6 +209,7 @@ void
 i370_flush_tlb_range(struct mm_struct *mm, unsigned long start, unsigned
 long end)
 {
+	printk ("i370_flush_tlb_range\n");
 #if 0
         start &= PAGE_MASK;
 
@@ -228,28 +231,17 @@ int do_check_pgt_cache(int low, int high)
   return 0;
 }
 
-/*
- * Flush a particular page from the DATA cache
- * Note: this is necessary because the instruction cache does *not*
- * snoop from the data cache. XXXX
- *
- *      void flush_page_to_ram(void *page)
- */
-void flush_page_to_ram(unsigned long page) {}
-void flush_icache_range(unsigned long a, unsigned long b) {}
-
-
 void __bad_pte(pmd_t *pmd)
 {
    printk("Bad pmd in pte_alloc: %08lx\n", pmd_val(*pmd));
    pmd_val(*pmd) = (unsigned long) BAD_PAGETABLE;
 }
 
-pte_t *get_pte_slow(pmd_t *pmd, unsigned long offset)
+pte_t *i370_get_pte(pmd_t *pmd, unsigned long offset)
 {
    pte_t *pte;
 
-   printk ("enter get_pte_slow \n");
+   printk ("enter i370_get_pte \n");
    if (pmd_none(*pmd)) {
       pte = (pte_t *) __get_free_page(GFP_KERNEL);
       if (pte) {
@@ -321,13 +313,4 @@ __initfunc(unsigned long paging_init(unsigned long start_mem,
 
 void set_context(int context) {}  
 
-
-/*
- * Returns a pre-zero'd page from the list otherwise returns
- * NULL.
- */
-unsigned long get_zero_page_fast(void)
-{
-return 0; /* XXX */
-}
 

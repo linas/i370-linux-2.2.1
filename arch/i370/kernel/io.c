@@ -2,6 +2,7 @@
  */
 
 #include <linux/init.h>
+#include <linux/kernel.h>
 #include <linux/tasks.h>
 
 unsigned int local_bh_count[NR_CPUS];

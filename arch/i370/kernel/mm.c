@@ -359,9 +359,9 @@ put_user_data(long data, void *addr, long len)
 	printk ("put_user_data: *(%x) = %x\n", pte, pte_val(*pte));
 
 /* XXX figure out how to map an umapped page */
-	if (pte_none(pte)) {
+	if (pte_none(*pte)) {
 		printk ("put_user_data: unmaped page \n");
-	   	while (1);
+	   	i370_halt();
 	}
 
 	/* put together the real address */

@@ -1,4 +1,9 @@
 
+/*
+ * arch/i370/kernel/setup.c
+ *
+ * perform some very very early setup for initialization
+ */
 #include <linux/config.h>
 #include <linux/string.h>
 #include <linux/sched.h>
@@ -15,6 +20,49 @@
 // cmd_line is array of 512 in head.S
 extern char cmd_line[512];
 char saved_command_line[512];
+
+
+extern void i370_find_devices (unsigned long *memory_start_p, 
+				unsigned long *memory_end_p);
+
+/* ========================================================== */
+/*
+ * set up system trace tables
+ */
+trc_page_t	*trace_base;
+
+void	setup_trace(unsigned long *memory_start) 
+{
+	long	i;
+	unsigned long cpuid = _stap() | (1<<31);
+	unsigned long cr12;
+
+	trc_page_t	*trc;
+
+	/* align on page boundry ... */
+	trace_base = (trc_page_t *)(((int)(*memory_start) + 0xfff));
+	trace_base = (trc_page_t *)(((int)(trace_base) & 0x7ffff000));
+
+	/* build ciruclar list */
+	trc = trace_base;
+	for (i=0; i<MAX_TRACE_PAGES; i++) 
+	{
+		trc->trc_cpuad = cpuid;
+		trc->trc_next = (trc+1);
+		trc ++;
+	}
+	trc--;                                  /* back up */
+	trc->trc_next = trace_base;	        /* make last trace point to first */
+
+	*memory_start = (long) (trc+1);         /* set new memory start */
+
+	/* put trace table base into control reg 12 */
+	cr12 = (unsigned long)trace_base; 
+	cr12 |= 0x1;
+	_lctl_r12 (cr12);
+}
+
+/* ========================================================== */
 
 __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long * memory_start_p, unsigned long * memory_end_p))
@@ -64,16 +112,19 @@ __initfunc(void setup_arch(char **cmdline_p,
 
 void machine_restart(char *cmd)
 {
-   printk("machine restart\n");
+	printk("machine restart\n");
+	i370_halt();
 }
 
 void machine_halt(void)
 {
-   printk("machine halt\n");
+   	printk("machine halt\n");
+	i370_halt();
 }
 void machine_power_off(void)
 {
-   printk("machine pwer off\n");
+	printk("machine power off\n");
+	i370_halt();
 }
 
 int get_cpuinfo(char *buffer)
@@ -84,40 +135,5 @@ int get_cpuinfo(char *buffer)
 	return len;
 }
 
+/* ============================= END OF FILE ======================== */
 
-
-/*
- * set up system trace tables
- */
-trc_page_t	*trace_base;
-
-void	setup_trace(unsigned long *memory_start) 
-{
-	long	i;
-	unsigned long cpuid = _stap() | (1<<31);
-	unsigned long cr12;
-
-	trc_page_t	*trc;
-
-	/* align on page boundry ... */
-	trace_base = (trc_page_t *)(((int)(*memory_start) + 0xfff));
-	trace_base = (trc_page_t *)(((int)(trace_base) & 0x7ffff000));
-
-	/* build ciruclar list */
-	trc = trace_base;
-	for (i=0; i<MAX_TRACE_PAGES; i++) 
-	{
-		trc->trc_cpuad = cpuid;
-		trc->trc_next = (trc+1);
-		trc ++;
-	}
-	trc--;                                  /* back up */
-	trc->trc_next = trace_base;	        /* make last trace point to first */
-
-	*memory_start = (long) (trc+1);         /* set new memory start */
-
-	/* put trace table base into control reg 12 */
-	cr12 = (unsigned long)trace_base; 
-	cr12 |= 0x1;
-	_lctl12 (cr12);
-}

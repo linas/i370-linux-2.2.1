@@ -221,7 +221,7 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 
 	/* switch control registers */
 	/* cr1 contains the segment table origin */
-	_lctl1 (new_tss->regs->cr1.raw);
+	_lctl_r1 (new_tss->regs->cr1.raw);
 
 	/* switch kernel stack pointers */
 	_set_TCA ((unsigned long) &(new_tss->tca[0]));
@@ -342,12 +342,15 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 	/* new thread might return to user-mode when it returns 
 	 * from sys call; set the PSW appropriately */
-        if (USER_DS == p->tss.fs) {
+/* XXX I think this is not how one finds out about user mode ... */
+#if 0
+        if ((long)USER_DS == (long)(p->tss.fs)) {
         	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
         	regs->psw.flags |= USER_PSW;
 	} else {
         	regs->psw.flags &= ~(PSW_DAT | PSW_PROB);
 	}
+#endif
 
 	/* XXX what about page tables ?? */
 	return 0;

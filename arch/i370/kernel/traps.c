@@ -65,14 +65,6 @@ void instruction_dump (unsigned short *pc)
 /*
  * Trap & Exception support
  */
-extern inline void i370_halt (void) 
-{
-	psw_t halt_psw;
-	halt_psw.flags = HALT_PSW;   /* load disabled wait state */
-	halt_psw.addr = 0xffffffff;
-	_lpsw (*((unsigned long long *) &halt_psw));
-}
-	
 
 void
 _exception(int signr, struct pt_regs *regs)
@@ -96,26 +88,6 @@ MachineCheckException(i370_interrupt_state_t *saved_regs)
 {
 	printk ("machine check \n");
 	i370_halt();
-
-	if ( !user_mode(regs) )
-	{
-#if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
-		if (debugger_fault_handler) {
-			debugger_fault_handler(regs);
-			return;
-		}
-#endif
-		printk("Machine check in kernel mode.\n");
-		printk("regs %p ",regs);
-		show_regs(regs);
-#if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
-		debugger(regs);
-#endif
-		// print_backtrace((unsigned long *)regs->gpr[1]);
-		instruction_dump((unsigned long *)regs->psw.addr);
-		panic("machine check");
-	}
-	_exception(SIGSEGV, regs);	
 }
 
 
@@ -146,10 +118,10 @@ ProgramCheckException(i370_interrupt_state_t *saved_regs)
 	switch (pfx_prg_code) 
 	{
 		case PIC_PRIVLEDGED:
-			printf ("privleded \n");
+			printk ("privleded \n");
 			break;
-		casse PIC_ADDRESSING:
-			printf ("addressing\n");
+		case PIC_ADDRESSING:
+			printk ("addressing\n");
 			break;
 		default:
 			printk ("unexpected prgram check code\n");
@@ -170,7 +142,7 @@ void
 InputOutputException(i370_interrupt_state_t *saved_regs)
 {
 	long pfx_io_parm = *((long *) PFX_IO_PARM);
-	long pfx_subssy_id = *((long *) PFX_SUBSYS_ID);
+	long pfx_subsys_id = *((long *) PFX_SUBSYS_ID);
 
 	//printk ("i/o interrupt subchannel=0x%x param=0x%x\n", 
 	//	pfx_subsysid, pfx_io_parm);

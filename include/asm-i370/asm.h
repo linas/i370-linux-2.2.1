@@ -9,22 +9,29 @@
 extern inline unsigned long _get_SP(void)
 {
         unsigned long rc;
-        asm volatile ("LA       %0,0(,sp)" : "=r" (rc) : );
+        asm volatile ("LA	%0,0(,sp)" : "=r" (rc) : );
         return rc;
+}
+
+/* set the current value of the stack pointer */
+/* use with caution */
+extern inline void _set_SP (unsigned long newsp)
+{
+        asm volatile ("LR	sp,%0" : : "r" (newsp) : "memory");
 }
 
 /* set storage key extended */
 extern inline void _sske (unsigned int key, unsigned int realaddr)
 {
    /* be sure to serialize memory access around this instruction */
-   asm volatile ("SSKE %0,%1" : : "r" (key), "r" (realaddr) : "memory");
+   asm volatile ("SSKE	%0,%1" : : "r" (key), "r" (realaddr) : "memory");
 }
 
 /* examine storage key extended */
 extern inline unsigned int _iske (unsigned int realaddr)
 {
    unsigned int key;
-   asm volatile ("ISKE %0,%1" : "=r" (key) : "r" (realaddr) );
+   asm volatile ("ISKE	%0,%1" : "=r" (key) : "r" (realaddr) );
    return key;
 }
 
@@ -33,7 +40,7 @@ extern inline unsigned int _iske (unsigned int realaddr)
 extern inline void _lctl##REGNO (unsigned int value)		\
 {								\
    /* be sure to serialize memory access around this instruction */\
-   asm volatile ("LCTL " #REGNO "," #REGNO ",%0"  		\
+   asm volatile ("LCTL  " #REGNO "," #REGNO ",%0"  		\
                    : : "m" (value) : "memory");			\
 }
 

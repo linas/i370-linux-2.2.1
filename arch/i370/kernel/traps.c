@@ -130,68 +130,64 @@ ProgramCheckException(struct pt_regs *regs)
    return retval;
 }
 
-i370_regs_t
-RestartException(i370_regs_t *saved_regs)
+#define EX_HEADER(OLDPSW) 				\
+	i370_interrupt_state_t state;			\
+							\
+	state.oldregs = current->tss.regs;		\
+	current->tss.regs = &state;			\
+							\
+	/* move saved registers out of low page */	\
+	state.irregs = saved_regs->irregs;		\
+							\
+	/* save old psw */				\
+	state.psw = *((psw_t *) OLDPSW); 		\
+
+
+
+#define EX_TRAILER {					\
+	current->tss.regs = state.oldregs;		\
+	return state;					\
+}
+
+
+i370_interrupt_state_t
+RestartException(i370_interrupt_state_t *saved_regs)
 {
-	struct pt_regs *regs = current->tss.regs;
-
-	/* move saved registers out of low page */
-	regs->irregs = saved_regs->irregs;
-
-	/* save old psw */
-	regs->psw = *((psw_t *) IPL_PSW_OLD); 
+	EX_HEADER(IPL_PSW_OLD);
 
 	printk ("restart exception\n");
 	panic("machine check");
 
-	return *regs;
+	EX_TRAILER;
 }
 
-i370_regs_t
-SupervisorCallException (i370_regs_t *saved_regs)
+i370_interrupt_state_t
+SupervisorCallException (i370_interrupt_state_t *saved_regs)
 {
-	struct pt_regs *regs = current->tss.regs;
-
-	/* move saved registers out of low page */
-	regs->irregs = saved_regs->irregs;
-
-	/* save old psw */
-	regs->psw = *((psw_t *) SVC_PSW_OLD); 
+	EX_HEADER(SVC_PSW_OLD);
 
 	printk ("svc exception\n");
 
-	/* reurn posw to return to */
-	return *regs;
+	EX_TRAILER;
 }
 
-i370_regs_t
-InputOutputException(i370_regs_t *saved_regs)
+i370_interrupt_state_t
+InputOutputException(i370_interrupt_state_t *saved_regs)
 {
-	struct pt_regs *regs = current->tss.regs;
-
-	/* move saved registers out of low page */
-	regs->irregs = saved_regs->irregs;
-
-	/* save old psw */
-	regs->psw = *((psw_t *) IO_PSW_OLD); 
+	EX_HEADER(IO_PSW_OLD);
 
 	printk ("io exception\n");
 
-	return *regs;
+	EX_TRAILER;
 }
 
-i370_regs_t
-ExternalException (i370_regs_t *saved_regs)
+i370_interrupt_state_t
+ExternalException (i370_interrupt_state_t *saved_regs)
 {
-	struct pt_regs *regs = current->tss.regs;
 	unsigned short code;
 	unsigned long long ticko;
 
-	/* move saved registers out of low page */
-	regs->irregs = saved_regs->irregs;
-
-	/* save old psw */
-	regs->psw = *((psw_t *) EXTERN_PSW_OLD); 
+	EX_HEADER(EXTERN_PSW_OLD);
 
 	/* get the interruption code */
 	code = *((unsigned short *) EXT_INT_CODE);
@@ -211,9 +207,9 @@ ExternalException (i370_regs_t *saved_regs)
 	_sckc (ticko);
 	
 	/* let Linux do its timer thing */
-	do_timer (regs);
+	do_timer (&state);
 
-	return *regs;
+	EX_TRAILER;
 }
 
 /* ================================================================ */
@@ -236,8 +232,8 @@ StackOverflow(struct pt_regs *regs)
 /* ================================================================ */
 /* wire in the interrupt vectors */
 
-extern void * SupervisorCall;
-extern void * External;
+extern void SupervisorCall (void);
+extern void External (void);
 
 /*
  * we assume that we initialize traps while in real mode, i.e.
@@ -258,13 +254,13 @@ __initfunc(void trap_init(void))
 	*sz = (unsigned long) (((struct task_struct *) 0) ->tss.ksp);
 
 	// install the SVC handler
-	psw.flags = 0;        // disable all interupts
-	psw.addr = SupervisorCall || (1<<31); 
+	psw.flags = PSW_VALID;        // disable all interupts
+	psw.addr = ((unsigned long) SupervisorCall) | (1<<31); 
 	*((psw_t *) SVC_PSW_NEW) = psw;
 
 	// install the External Interrupt (clock) handler
-	psw.flags = 0;        // disable all interupts
-	psw.addr = External || (1<<31); 
+	psw.flags = PSW_VALID;        // disable all interupts
+	psw.addr = ((unsigned long) External) | (1<<31); 
 	*((psw_t *) EXTERN_PSW_NEW) = psw;
 }
 

@@ -110,26 +110,32 @@ tcaStackOverflow:
 	.ltorg;				/* dump literal pool */		\
 
 /* Restart */
+	.globl Restart
 Restart:
 	EXCEPTION_HANDLER(INTERRUPT_BASE,RestartException)
 
 /* Machine Check */
+	.globl MachineCheck
 MachineCheck:
 	EXCEPTION_HANDLER(INTERRUPT_BASE,MachineCheckException)
 
 /* Supervisor Call */
+	.global SupervisorCall
 SupervisorCall:
 	EXCEPTION_HANDLER(INTERRUPT_BASE,SupervisorCallException) 
 
 /* Program Interruption */
+	.global ProgramCheck
 ProgramCheck:
 	EXCEPTION_HANDLER(INTERRUPT_BASE,ProgramCheckException)
 
 /* External */
+	.global External
 External:
 	EXCEPTION_HANDLER(INTERRUPT_BASE,ExternalException)
 
 /* Input Output */
+	.global InputOutput
 InputOutput:
 	EXCEPTION_HANDLER(INTERRUPT_BASE,InputOutputException)
 

@@ -5,6 +5,7 @@
  */
 
 #include <linux/sched.h>
+#include <linux/smp_lock.h>
 
 #include <asm/asm.h>
 #include <asm/elf.h>
@@ -22,6 +23,7 @@ union task_union init_task_union = { INIT_TASK };
 
 /* only used to get secondary processor up */
 // struct task_struct *current_set[NR_CPUS] = {&init_task, };
+struct task_struct *current = &init_task;
 
 unsigned long
 kernel_stack_top(struct task_struct *tsk)
@@ -37,7 +39,7 @@ task_top(struct task_struct *tsk)
 
 void show_regs(struct pt_regs * regs)
 {
-   int i;
+   // int i;
 
    //for (i=0; i<16; i+=2) {
    //   printk ("GPR %d: %08lX   GPR %d %08lX \n", 
@@ -147,15 +149,20 @@ void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 // switch_to does the task switching.  
 // I'm not to clear on what it needs to do ... 
 // ... needs to switch the stack pointer, at least ... 
+//     if we just switch the stack pointer, then I don't think we need to
+//     save/restore any registers, since merely returning from this routine
+//     will accomplish all the sve/restore we need.
 // ... change addressing modes (potentially, from real 
-//     to primary or v.v.  ...
+//     to primary or v.v.  ... then again, we can defer changing addressing
+//     until we return to the user-level process. Ditto for the next two
+//     steps ...
 // ... modify the segment table CR1 and mabye CR3 key  ...
 // ... Purge TLB ...
 void
 switch_to(struct task_struct *prev, struct task_struct *new)
 {
 	struct thread_struct *new_tss, *old_tss;
-	i370_regs_t *oldregs, *newregs;
+	i370_interrupt_state_t *oldregs, *newregs;
 
 //        int s = _disable_interrupts();
 
@@ -234,6 +241,12 @@ release_thread(struct task_struct *t)
 {
 }
 
+void 
+i370_sys_exit (void) 
+{
+	{ int *x = 0x7fffffff; *x = 23; /* fault on purpose */ }
+}
+
 /*
  * Copy a thread..
  * mostly wrong .... but give it a shot
@@ -242,6 +255,10 @@ release_thread(struct task_struct *t)
  * -- Set up the user stack pointer
  * -- Set up page tables ??? !!
  * -- Load CR1 with page table origin ??!!
+ *
+ * argument p is the copy_to_p copy_from is "current"
+ * usp and regs are what was pass to do_fork below ...
+ * return 0 if success, non-zero if not
  */
 int
 copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
@@ -261,6 +278,11 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	return 0;
 }
 
+/* 
+ * note:
+ * do_fork will call copy_thread, passing sp and regs to it
+ */
+
 
 asmlinkage int 
 i370_sys_clone (unsigned long clone_flags,
@@ -268,8 +290,8 @@ i370_sys_clone (unsigned long clone_flags,
 {
         int res;
 	printk ("sys clone \n");
-	asm volatile ("SVC 0xbb"); // fault on purpose
-        // lock_kernel();
+	{ int *x = 0x7fffffff; *x = 23; /* fault on purpose */ }
+        lock_kernel();
         res = do_fork(clone_flags, regs->irregs.r13, regs);
 
 #ifdef __SMP__
@@ -284,13 +306,20 @@ i370_sys_clone (unsigned long clone_flags,
  * XXX not clear on this .. won't the child be returning with the kernel
  * already unlocked ?? 
  */
-        // unlock_kernel();
+        unlock_kernel();
         return res;
 }
 
 /*
  * i370_kernel_thread ... creates a new kernel thread.
- * implements the usual fork-exec style creation.
+ * Called during initialization, and during module load to create
+ * misc important kernel threads. 
+ *
+ * The child is supposed to then call the arg fn(), and never return.
+ * if for anyreason fn() returns, the child thread is supposed to be 
+ * cleaned up and discarded.  Thus we don't have to worry about copying
+ * all of the kernel stack; simply setting up a minimally configured
+ * stack should do.
  * 
  */
 
@@ -299,11 +328,11 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
 	printk ("create kernel_thread\n");
-	asm volatile ("SVC 0xbb"); // fault on purpose
-	// pid = i370_sys_clone (flags, xxx);
+	{ int *x = 0x7fffffff; *x = 23; /* fault on purpose */ }
+	pid = i370_sys_clone (flags, current->tss.regs);
         if (pid) return pid;
 	fn (args);
-	// i370_sys_exit();  XXX !!!??
+	while (1) { i370_sys_exit(); } 
 	return 0;
 }
 

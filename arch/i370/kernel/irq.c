@@ -40,7 +40,7 @@
 /************************************************************/
 
 #include <linux/errno.h>
- #include <linux/init.h>
+#include <linux/init.h>
 #include <linux/kernel_stat.h>
 #include <linux/signal.h>
 #include <linux/sched.h>
@@ -89,8 +89,8 @@ extern unitblk_t *unit_base;
 extern unitblk_t *dev_cons;
 extern long      sid_count;
 
- unsigned int local_bh_count[NR_CPUS];
- unsigned int local_irq_count[NR_CPUS];
+unsigned int local_bh_count[NR_CPUS];
+unsigned int local_irq_count[NR_CPUS];
 
 struct irqaction *irq_action[NR_IRQS] = {
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -135,8 +135,8 @@ init_IRQ(void))
 /************************************************************/
 
 void
-irq_init()
- {
+irq_init (void)
+{
 	int rc, i_ucb;
 	unitblk_t *ucb;
 
@@ -212,9 +212,7 @@ enable_irq(unsigned int irq_nr)
 
 int
 get_irq_list(char *buf)
- {
--	int len = 0;
--	len += sprintf(buf+len, "No irqs XXX not implemented\n");
+{
 	int i, len = 0;
 	struct irqaction * action;
 
@@ -234,7 +232,7 @@ get_irq_list(char *buf)
 		len += sprintf(buf+len, "\n");
 	}
  	return len;
- }
+}
 
 /*===================== End of Function ====================*/
 
@@ -304,7 +302,6 @@ request_irq(unsigned int irq,
 {
 	int retval = 0;
 	struct irqaction *action, *old, **p;
-	unsigned long flags;
 	unitblk_t *ucb;
 
 	if (irq > NR_IRQS)
@@ -361,7 +358,6 @@ void
 free_irq(unsigned int irq, void *dev_id)
 {
 	struct irqaction * action, **p;
-	unsigned long flags;
 	unitblk_t *ucb;
 
 	if (irq > NR_IRQS) {
@@ -398,7 +394,6 @@ unsigned long
 probe_irq_on (void)
 {
 	cr0_t cr0;
-	unsigned char mask;
 	long result;
 
 	cr0.raw = _stctl_r0();

@@ -47,10 +47,12 @@
 	New:	include/asm-i370/psa.h
 		arch/i370/kernel/entry.S
 	Changed:Readme.Patches  (this file)
+		arch/i370/kernel/Makefile		
 		include/asm-i370/current.h
+		arch/i370/kernel/irq.c
 		arch/i370/kernel/process.c
 		arch/i370/kernel/setup.c
-
+		
 
 
  
@@ -95,7 +97,7 @@
 	[correction ptr006-1-19990927]
 
 
-$Id: README.patches,v 1.1 1999/10/07 04:31:34 linas Exp $
+$Id: README.patches,v 1.2 1999/11/08 05:06:17 linas Exp $
 
 
 

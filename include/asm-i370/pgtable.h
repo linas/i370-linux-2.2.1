@@ -1,5 +1,9 @@
 #include <linux/config.h>
 
+/* 
+ * XXX almost everything here is wrong ...
+ */
+
 #ifndef _I370_PGTABLE_H
 #define _I370_PGTABLE_H
 
@@ -9,23 +13,19 @@
 #include <asm/mmu.h>
 #include <asm/page.h>
 
-extern void local_flush_tlb_all(void);
-extern void local_flush_tlb_mm(struct mm_struct *mm);
-extern void local_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr);
-extern void local_flush_tlb_range(struct mm_struct *mm, unsigned long start,
+extern void i370_flush_tlb_all(void);
+extern void i370_flush_tlb_mm(struct mm_struct *mm);
+extern void i370_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr);
+extern void i370_flush_tlb_range(struct mm_struct *mm, unsigned long start,
 			    unsigned long end);
 
-#define flush_tlb_all local_flush_tlb_all
-#define flush_tlb_mm local_flush_tlb_mm
-#define flush_tlb_page local_flush_tlb_page
-#define flush_tlb_range local_flush_tlb_range
+#define flush_tlb_all i370_flush_tlb_all
+#define flush_tlb_mm i370_flush_tlb_mm
+#define flush_tlb_page i370_flush_tlb_page
+#define flush_tlb_range i370_flush_tlb_range
 
 /*
- * No cache flushing is required when address mappings are
- * changed, because the caches on PowerPCs are physically
- * addressed.
- * Also, when SMP we use the coherency (M) bit of the
- * BATs and PTEs.  -- Cort
+ * No cache flushing is required 
  */
 #define flush_cache_all()		do { } while (0)
 #define flush_cache_mm(mm)		do { } while (0)
@@ -53,31 +53,17 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
  * when necessary, and updating the accessed and modified bits in the
  * page table tree.
  *
- * The PowerPC MPC8xx uses a TLB with hardware assisted, software tablewalk.
- * We also use the two level tables, but we can put the real bits in them
- * needed for the TLB and tablewalk.  These definitions require Mx_CTR.PPM = 0,
- * Mx_CTR.I370S = 0, and MD_CTR.TWAM = 1.  The level 2 descriptor has
- * additional page protection (when Mx_CTR.I370S = 1) that allows TLB hit
- * based upon user/super access.  The TLB does not have accessed nor write
- * protect.  We assume that if the TLB get loaded with an entry it is
- * accessed, and overload the changed bit for write protect.  We use
- * two bits in the software pte that are supposed to be set to zero in
- * the TLB entry (24 and 25) for these indicators.  Although the level 1
- * descriptor contains the guarded and writethrough/copyback bits, we can
- * set these at the page level since they get copied from the Mx_TWC
- * register when the TLB entry is loaded.  We will use bit 27 for guard, since
- * that is where it exists in the MD_TWC, and bit 26 for writethrough.
- * These will get masked from the level 2 descriptor at TLB load time, and
- * copied to the MD_TWC before it gets loaded.
  */
 
-/* PMD_SHIFT determines the size of the area mapped by the second-level page tables */
-#define PMD_SHIFT	22
+/* PMD_SHIFT determines the size of the area mapped by the second-level
+ * page tables.  For the i370, it is a 1MB segment 
+ */
+#define PMD_SHIFT	20
 #define PMD_SIZE	(1UL << PMD_SHIFT)
 #define PMD_MASK	(~(PMD_SIZE-1))
 
 /* PGDIR_SHIFT determines what a third-level page table entry can map */
-#define PGDIR_SHIFT	22
+#define PGDIR_SHIFT	20
 #define PGDIR_SIZE	(1UL << PGDIR_SHIFT)
 #define PGDIR_MASK	(~(PGDIR_SIZE-1))
 
@@ -191,7 +177,7 @@ extern unsigned long empty_zero_page[1024];
 #define PTR_MASK	(~(sizeof(void*)-1))
 
 /* sizeof(void*) == 1<<SIZEOF_PTR_LOG2 */
-/* 64-bit machines, beware!  SRB. */
+/* 64-bit machines, beware!  SRB. XXX hack alert */
 #define SIZEOF_PTR_LOG2	2
 
 /* to set the page-dir */

@@ -113,6 +113,7 @@ tcaStackOverflow:
  * 
  * NB: Floating point regs get saved only during task switch, and not here ...
  *
+ * sav-16  old interrupt mask
  * sav-12  offset from struct task_struct to tca
  * sav-8   offset from struct task_struct to sav area
  * sav-4   offset from struct task_struct to ksp
@@ -319,8 +320,8 @@ SupervisorCall:
 	LA	r1,ARGP(,sp)		/* pointer to returned value */
 	BASR	lr,r15			/* jump to C routine */
 	.using	.,lr;			/* use r14 for remainder of the show */
-	STNSM    r0,0xfc;		/* disable interrupts */
-	EXCEPTION_UNCHAIN		/* unstack pointer chain */
+	STNSM    INTERRUPT_BASE-16(0),0xfc;	/* disable interrupts */
+	EXCEPTION_UNCHAIN (INTERRUPT_BASE)	/* unstack pointer chain */
 	/* get old PSW, restore registers, return from interrupt */
 	MVC	INTERRUPT_BASE(8,0),SAVED_PSW(sp) /* restore old psw frm stack */
 	LM	r11,r12,SAVED_R11(sp)	/* restore r11, r12 */	

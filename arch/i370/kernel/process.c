@@ -1,5 +1,6 @@
 
 #include <linux/sched.h>
+#include <asm/elf.h>
 #include <asm/pgtable.h>
 #include <asm/uaccess.h>
 
@@ -52,6 +53,9 @@ switch_to(struct task_struct *prev, struct task_struct *new)
         printk("swith_to\n");
 }
 
+void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
+{}
+
 void exit_thread(void)
 {
 //        if (last_task_used_math == current)
@@ -79,3 +83,5 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
    /* XXX */
    return 0;
 }
+
+int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) { return 0;}

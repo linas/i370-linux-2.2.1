@@ -181,7 +181,7 @@ unsigned long empty_bad_page_table;
 
 pte_t * __bad_pagetable(void)
 {
-        __clear_user((void *)empty_bad_page_table, PAGE_SIZE);
+//        __clear_user((void *)empty_bad_page_table, PAGE_SIZE);
         return (pte_t *) empty_bad_page_table;
 }
 
@@ -190,6 +190,10 @@ unsigned long empty_bad_page;
 pte_t __bad_page(void)
 {
 //        __clear_user((void *)empty_bad_page, PAGE_SIZE);
-//        return pte_mkdirty(mk_pte(empty_bad_page, PAGE_SHARED));
+   return pte_mkdirty(mk_pte(empty_bad_page, PAGE_SHARED));
 }
 
+
+void set_context(int context) {}  
+
+void flush_icache_range(unsigned long a, unsigned long b) {}

@@ -95,3 +95,5 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 
  unsigned long __clear_user(void *addr, unsigned long size)
 { return 0; }
+
+long strlen_user(const char *str) { return 0;}

@@ -265,7 +265,7 @@ tcaStackOverflow:
 	LR	sp,r2;			/* initialize stack pointer */	\
 	/* move saved regs out of prefix page to stackframe */		\
 	MVC	SAVED_PSW(8,sp),oldpsw(0); /* save old psw on stack */	\
-	MVC	SAVED_R11(32,sp),sav+IR_R11(0);				\
+	MVC	SAVED_R11(64,sp),sav+IR_R11(0);	/* 16 regs=64 bytes */	\
 	/* chain the interrupt state pointer into thread_struct */	\
 	LA	r1,0(,r11);		/* copy r11 to r1 */		\
 	A	r1,sav-8(,0);		/* add offset to regs ptr */	\

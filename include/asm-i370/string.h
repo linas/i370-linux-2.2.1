@@ -9,7 +9,7 @@
   is permitted under the obligations of the GNU General Public Licence.
   See file COPYRIGHT for details. There is NO warranty.
 
-  Date: $Id: string.h,v 1.5 1999/11/08 05:08:17 linas Exp $
+  Date: $Id: string.h,v 1.6 1999/11/09 06:55:56 linas Exp $
   Known Bugs: Generally, it is not checked for architecturally given
         length restrictions. 
   Changes: corrected #defines for inlines not provided; corrected
@@ -35,13 +35,18 @@
 #define _I370_STRING_H_
 
 #define __HAVE_ARCH_STRNCPY	/* in arch/i370/lib/string.c */
+
+#ifndef CONFIG_STRING_INLINES
+#define __HAVE_ARCH_MEMSET	/* in arch/i370/lib/string.c */
 //#define __HAVE_ARCH_STRCAT
 //#define __HAVE_ARCH_BCOPY
 //#define __HAVE_ARCH_MEMMOVE
 //#define __HAVE_ARCH_MEMCHR
+#endif /*  CONFIG_STRING_INLINES */
 
 #include <linux/autoconf.h>
 #include <linux/types.h>
+
 #ifdef CONFIG_STRING_INLINES
 
 #define __HAVE_ARCH_MEMCMP

@@ -8,6 +8,8 @@
 #ifndef __I370_ASM_H__
 #define __I370_ASM_H__
 
+#ifndef __ASSEMBLY__  
+
 /* -------------------------------------------------------- */
 /* get the current value of the stack pointer */
 /* since this inlines, it will basically copy r13 to where-ever */
@@ -189,4 +191,5 @@ extern inline void _ptlb (void)
    asm volatile ("PTLB" : : : "memory");
 }
 
+#endif /* __ASSEMBLY__ */
 #endif /* __I370_ASM_H__ */

@@ -42,3 +42,12 @@ Running
 Load kernel in real mode, set PSW keys to 0.  
 (It will switch to PSW key 3 during boot).
 Kernel expects to load at address 0x10000.
+
+
+Tracing 
+-------
+The ESA/390 TRACE instruction is used to capture traces of interruptions.
+See head.S for details.
+
+
+

@@ -45,10 +45,10 @@ _start:
 	LA	r2,148(,sp)	// load r2 with top of stack
 	ST	r2,76(,sp)	// store top of stack at 76
 	L	rtca,=A(KTCA)	// let bottom of stack double as tca
-	L	r1,=A(KSTKEND)	// r1 == end of stack
-	ST	r1,12(,rtca)	// store end of stack in the tca
-	L	r1,=A(tcaStackOverflow)	// bogus bogus hack alert XXX
-	ST	r1,116(,rtca)		// bogosity
+	L	r0,=A(KSTKEND)	// r1 == end of stack
+	ST	r0,12(,rtca)	// store end of stack in the tca
+	L	r0,=A(tcaStackOverflow)	// bogus bogus hack alert XXX
+	ST	r0,116(,rtca)		// bogosity
 	L	r15,=A(start_kernel)	// load address of C routine
 	BASR	lr,r15		// jump to C routine
 	.balign	4		// align literal pool
@@ -72,6 +72,25 @@ tcaStackOverflow:
  * -- Save just some of the registers; the C prologue will
  *    save the rest on stack.
  * -- The C routine will return the double-word PSW on the stack 
+ *
+ * Memory map:
+ * starting at sav+4, the memory map should match the memory layout 
+ * of the C struct _i370_regs_s exactly; a pointer to this struct is
+ * taken as input to the called C function, and this memory is copied
+ * to on return.
+ * 
+ * XXX hack alert -- we should probably be restoring flt pt. regs 
+ * here too...
+ *
+ * sav     offset from struct task_struct to ksp
+ * sav+4   psw flags
+ * sav+8   psw addr
+ * sav+12  saved r13
+ * sav+16  saved r14
+ * sav+20  saved r15
+ * sav+24  saved r0
+ * sav+28  saved r1
+ * sav+32  saved r2
  */
 #define EXCEPTION_HANDLER(sav,handler)  				\
 	STM	r13,r2,sav+12(0);	/* save gprs to low mem */	\
@@ -82,10 +101,9 @@ tcaStackOverflow:
 	A	sp,sav(,0);		/* add offset to ksp */		\
 	L	sp,0(,sp);		/* load addr of kernel sp */	\
 	L	r15,=A(handler);	/* load address of C routine */	\
-	LA	r1,sav+12(,0);		/* pointer to arguments */	\
+	LA	r11,sav+4(,0);		/* pointer to arguments */	\
+	LA	r1,sav+4(,0);		/* pointer to returned value */	\
 	BASR	lr,r15;			/* jump to C routine */		\
-	LM	r0,r1,0(r15);		/* load double-word psw */	\
-	STM	r0,r1,sav+4(0);		/* store returned psw */	\
 	LM	r13,r2,sav+12(0);	/* restore saved gprs */	\
 	LPSW	sav+4(0);		/* return from interrupt */	\
 	.balign	8;			/* align literal pool */	\

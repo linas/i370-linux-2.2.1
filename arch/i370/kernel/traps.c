@@ -130,30 +130,30 @@ ProgramCheckException(struct pt_regs *regs)
    return retval;
 }
 
-psw_t
-RestartException(struct pt_regs *regs)
+i370_regs_t
+RestartException(i370_regs_t *saved_regs)
 {
-   psw_t retval, *fsl;
-
-   /* save old psw */
-   fsl = (psw_t *) IPL_PSW_OLD; 
-   regs->psw = *fsl;
-
-   printk ("restart exception\n");
-   panic("machine check");
-
-   retval = regs->psw; 
-   return retval;
-}
-
-psw_t
-SupervisorCallException (irregs_t *iregs)
-{
-	psw_t retval;
 	struct pt_regs *regs = current->tss.regs;
 
 	/* move saved registers out of low page */
-	regs->irregs = *iregs;
+	regs->irregs = saved_regs->irregs;
+
+	/* save old psw */
+	regs->psw = *((psw_t *) IPL_PSW_OLD); 
+
+	printk ("restart exception\n");
+	panic("machine check");
+
+	return *regs;
+}
+
+i370_regs_t
+SupervisorCallException (i370_regs_t *saved_regs)
+{
+	struct pt_regs *regs = current->tss.regs;
+
+	/* move saved registers out of low page */
+	regs->irregs = saved_regs->irregs;
 
 	/* save old psw */
 	regs->psw = *((psw_t *) SVC_PSW_OLD); 
@@ -161,35 +161,34 @@ SupervisorCallException (irregs_t *iregs)
 	printk ("svc exception\n");
 
 	/* reurn posw to return to */
-	retval = regs->psw; 
-	return retval;
+	return *regs;
 }
 
-psw_t
-InputOutputException(struct pt_regs *regs)
+i370_regs_t
+InputOutputException(i370_regs_t *saved_regs)
 {
-   psw_t retval, *fsl;
+	struct pt_regs *regs = current->tss.regs;
 
-   /* save old psw */
-   fsl = (psw_t *) IO_PSW_OLD; 
-   regs->psw = *fsl;
+	/* move saved registers out of low page */
+	regs->irregs = saved_regs->irregs;
 
-   printk ("io exception\n");
+	/* save old psw */
+	regs->psw = *((psw_t *) IO_PSW_OLD); 
 
-   retval = regs->psw; 
-   return retval;
+	printk ("io exception\n");
+
+	return *regs;
 }
 
-psw_t
-ExternalException (irregs_t *iregs)
+i370_regs_t
+ExternalException (i370_regs_t *saved_regs)
 {
-   	psw_t retval;
 	struct pt_regs *regs = current->tss.regs;
 	unsigned short code;
 	unsigned long long ticko;
 
 	/* move saved registers out of low page */
-	regs->irregs = *iregs;
+	regs->irregs = saved_regs->irregs;
 
 	/* save old psw */
 	regs->psw = *((psw_t *) EXTERN_PSW_OLD); 
@@ -214,8 +213,7 @@ ExternalException (irregs_t *iregs)
 	/* let Linux do its timer thing */
 	do_timer (regs);
 
-	retval = regs->psw; 
-	return retval;
+	return *regs;
 }
 
 /* ================================================================ */

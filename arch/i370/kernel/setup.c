@@ -16,6 +16,7 @@ char saved_command_line[512];
 __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long * memory_start_p, unsigned long * memory_end_p))
 {
+	unsigned long ksp;
 	extern int panic_timeout;
 	extern char _etext[], _edata[], _end[];
 //	extern unsigned long find_available_memory(void);
@@ -38,6 +39,10 @@ __initfunc(void setup_arch(char **cmdline_p,
 //	*memory_end_p = (unsigned long) end_of_DRAM;
 	*memory_end_p = 0x2000000;  // 32M
 
+	/* init_task ksp hasn't been set & its bogus; set it */
+	ksp = init_stack;
+	ksp = ((ksp +7) >>3 ) << 3;
+	init_task.tss.ksp = ksp ;
 }
 
 void machine_restart(char *cmd)

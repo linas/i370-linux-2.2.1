@@ -260,6 +260,7 @@ int
 copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
             struct task_struct * p, struct pt_regs * regs)
 {
+	unsigned long srcksp, dstksp;
 	i370_elf_stack_t *srcsp, *dstsp, *this_frame;
 	unsigned long delta;
 
@@ -268,17 +269,21 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	/* copy the kernel stack, and fix up the entries in it,
 	 * so that it unwinds properly in the copied thread.
 	 */
-	srcsp = (i370_elf_stack_t *) (((char *) current) + sizeof (struct task_struct));
-	dstsp = (i370_elf_stack_t *) (((char *) p) + sizeof (struct task_struct));
+	srcksp = (unsigned long) (((char *) current) + sizeof (struct task_struct));
+	dstksp = (unsigned long) (((char *) p) + sizeof (struct task_struct));
+	srcksp = ((srcksp+7) >> 3) << 3;
+	dstksp = ((dstksp+7) >> 3) << 3;
+	srcsp = (i370_elf_stack_t *) srcksp;
+	dstsp = (i370_elf_stack_t *) dstksp;
 	this_frame = (i370_elf_stack_t *) _get_SP();
-	delta = ((unsigned long) srcsp) - ((unsigned long) dstsp);
-	p->tss.ksp = (unsigned long) dstsp;
+	delta = srcksp - dstksp;
+	p->tss.ksp = dstksp;
 
 	/* XXX not clear to me how much of the parent stack needs to
          * be copied to the child ... esp if the parent stack has all sorts
          * of interrupt grabage on it ... 
          */
-	memcpy (dstsp, srcsp, this_frame->stack_top - p->tss.ksp);
+	memcpy (dstksp, srcksp, this_frame->stack_top - p->tss.ksp);
 	do {
 		dstsp -> caller_r12 = (unsigned long) &(p->tss.tca[0]);
 		dstsp -> caller_sp = srcsp->caller_sp - delta;

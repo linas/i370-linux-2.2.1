@@ -203,15 +203,11 @@ extern unsigned long empty_zero_page[1024];
  * positions.  This distinguishes them from swaped-out pte's, which don't 
  * contain 'true' ptes, but instead contain swapfile info.
  */
-/*
-XXX pte_none .. these seem to have compiler bug problems ... ??
-Might be a compiler bug with the O,N,X insn's
-Might be fixed already ... did I already fix this ??
-*/
 
 /*
-extern inline int 
-	pte_none(pte_t pte)	{ return !((pte_val(pte) & ~(_PAGE_INVALID |_PAGE_RO))); }
+ * Note this version was once hobbled by a compiler bug ...
+ * extern inline int 
+ * 	pte_none(pte_t pte)	{ return !((pte_val(pte) & ~(_PAGE_INVALID |_PAGE_RO))); }
 */
 extern inline int 
 	pte_none(pte_t pte)	{ return ((pte_val(pte) == (_PAGE_INVALID |_PAGE_RO))); }

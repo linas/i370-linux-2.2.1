@@ -206,7 +206,7 @@ extern inline void i370_halt (void)
    asm volatile (
 	"	L	r1,=X'000a0000';	"
 	"	ST	r1,%0;			"
-	"	L	r1,=A(.Lcontinue):	"
+	"	L	r1,=A(.Lcontinue);	"
 	"	O	r1,=X'80000000';	"
 	"	ST	r1,4+%0;		"
 	"	LPSW	%0;			"

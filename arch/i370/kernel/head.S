@@ -163,20 +163,23 @@ tcaStackOverflow:
 #define IR_R0		0x1c
 #define IR_R1		0x20
 #define IR_R2		0x24
+#define IR_R3		0x28	
+#define IR_R4		0x2c
 
-#define IR_CR0		0x28
-#define IR_CR1		0x2c
-#define IR_OLDREGS	0x30
+#define IR_R5		0x30
+#define IR_R6		0x34
+#define IR_R7		0x38
+#define IR_R8		0x3c
+#define IR_R9		0x40
+#define IR_R10		0x44
 
-#define IR_R3		0x40	/* used only by sys calls, not other rupts */
-#define IR_R4		0x44
-#define IR_R5		0x48
-#define IR_R6		0x4c
-#define IR_R7		0x50
-#define IR_R8		0x54
-#define IR_R9		0x58
-#define IR_R10		0x5c
+#define IR_CR0		0x48
+#define IR_CR1		0x4c
+#define IR_OLDREGS	0x50
 
+/* -------------------------------------------------------- */
+
+/* stack related offsets; have nothing to do with the above */
 #define SF_BASE		0x50	/* stack offset, past STM r15,r0,72(r2) of prolog */
 #define STACK_SIZE	0x94	/* stack size */
 #define ARGS_BASE	STACK_SIZE
@@ -197,8 +200,6 @@ tcaStackOverflow:
 #define SAVED_R1	FRAME_BASE + IR_R1
 #define SAVED_R2	FRAME_BASE + IR_R2
 
-#define SAVED_OLDREGS	FRAME_BASE + IR_OLDREGS
-
 #define SAVED_R3	FRAME_BASE + IR_R3
 #define SAVED_R4	FRAME_BASE + IR_R4
 #define SAVED_R5	FRAME_BASE + IR_R5
@@ -208,6 +209,8 @@ tcaStackOverflow:
 #define SAVED_R9	FRAME_BASE + IR_R9
 #define SAVED_R10	FRAME_BASE + IR_R10
 
+#define SAVED_OLDREGS	FRAME_BASE + IR_OLDREGS
+
 /* ADJUST_BASE is used to advance the stack pointer base past the
  * unsafe sections of a function pointer prolog.  Taking an interrupt
  * and not adjusting would result in a corrupted stack.
@@ -216,9 +219,12 @@ tcaStackOverflow:
 #define ADJUST_BASE							\
 	LA	r2,SF_BASE(,r2);	/* safe offset to stack top */	\
 
+#define SAVE_REGS(sav) 							\
+	STM	r11,r4,sav+IR_R11(0);	/* save gprs to low mem */	\
+	STM	r5,r10,sav+IR_R5(0);	/* for debugging only, remove later xxx */
+
 
 #define EXCEPTION_PROLOG(sav,sp_adjust,oldpsw) 				\
-	STM	r11,r2,sav+8(0);	/* save gprs to low mem */	\
 	BASR	r15,0;			/* load r15 with PSW  */	\
 	.using	.,r15;			/* use r15 as base register */	\
 	L	r11,=V(current);	/* addr of current pointer */	\
@@ -292,7 +298,7 @@ tcaStackOverflow:
 	/* get old PSW, restore registers, return from interrupt */	\
 	MVC	sav(8,0),SAVED_PSW(sp); /* restore old psw frm stack */	\
 	LM	r11,r12,SAVED_R11(sp);	/* restore r11, r12 */		\
-	LM	r14,r2,SAVED_R14(sp);	/* restore r14 to r2 */		\
+	LM	r14,r4,SAVED_R14(sp);	/* restore r14 to r4 */		\
 	L	r13,SAVED_R13(sp);	/* restore r13 */		\
 	LPSW	sav(0);			/* return from interrupt */
 
@@ -304,13 +310,7 @@ tcaStackOverflow:
 /* areas used in the prefix page used for tracing */
 #define	PFX_TRACE	0xd00
 
-#define	IPL_SAVE	0xe00
-#define	MCH_SAVE	0xe20
-#define	SVC_SAVE	0xe40
-#define	PRG_SAVE	0xe60
-#define EXT_SAVE	0xe80
-#define IO_SAVE		0xea0
-
+/* id numbers not addresses */
 #define	IPL_TRC_ID	0x100
 #define	MCH_TRC_ID	0x200
 #define	SVC_TRC_ID	0x300
@@ -318,21 +318,20 @@ tcaStackOverflow:
 #define EXT_TRC_ID	0x500
 #define IO_TRC_ID	0x600
 
-#define EXCEPTION_TRACE(trc_id,savearea,subid,irpt_code,old_psw)	\
-	STM	r15,r4,savearea(0);	/* save r15..r4 */		\
+#define EXCEPTION_TRACE(trc_id,subid,irpt_code,old_psw)			\
 	SLR	r0,r0;			/* Not Used */			\
 	LA	r1,trc_id(0);		/* Trace id */			\
 	ST	r1,PFX_TRACE(0);	/* Store in PFX */		\
 	L	r1,subid(0);		/* subchannel id */		\
 	L	r2,irpt_code(0);	/* Get Irpt code */		\
 	LM	r3,r4,old_psw(0);	/* Get Old PSW */		\
-	TRACE	r0,r4,PFX_TRACE(0);	/* Trace Wondrous event */	\
-	LM	r15,r4,savearea(0);	/* Reload Caller Regs */	
+	TRACE	r0,r4,PFX_TRACE(0);	/* Trace Wondrous event */
 
 /* Restart IPL (Initial Program Load) */
 	.globl Restart
 Restart:
-	EXCEPTION_TRACE (IPL_TRC_ID, IPL_SAVE, IPL_CCW1, IPLCCW2, IPL_PSW_OLD)
+	SAVE_REGS (INTERRUPT_BASE)
+	EXCEPTION_TRACE (IPL_TRC_ID, IPL_CCW1, IPLCCW2, IPL_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, IPL_PSW_OLD)
 	EXCEPTION_CALL_C (RestartException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
@@ -340,7 +339,8 @@ Restart:
 /* Machine Check */
 	.globl MachineCheck
 MachineCheck:
-	EXCEPTION_TRACE (MCH_TRC_ID, MCH_SAVE, PFX_MCH_CODE_LO, PFX_MCH_CODE_HI, MACH_PSW_OLD)
+	SAVE_REGS (INTERRUPT_BASE)
+	EXCEPTION_TRACE (MCH_TRC_ID, PFX_MCH_CODE_LO, PFX_MCH_CODE_HI, MACH_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, MACH_PSW_OLD)
 	EXCEPTION_CALL_C (MachineCheckException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
@@ -349,7 +349,8 @@ MachineCheck:
 #define NR_syscalls	188
 	.global SupervisorCall
 SupervisorCall:
-	EXCEPTION_TRACE (SVC_TRC_ID, SVC_SAVE, 0, PFX_SVC_CODE, SVC_PSW_OLD)
+	SAVE_REGS (INTERRUPT_BASE)
+	EXCEPTION_TRACE (SVC_TRC_ID, 0, PFX_SVC_CODE, SVC_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE,  , SVC_PSW_OLD) 
 
 	SLR	r2,r2			/* put zero in r2 */
@@ -378,11 +379,10 @@ SupervisorCall:
 	STNSM    INTERRUPT_BASE-16(0),0xfc;	/* disable interrupts */
 	EXCEPTION_UNCHAIN (INTERRUPT_BASE)	/* unstack pointer chain */
 	/* get old PSW, restore registers, return from interrupt */
-	/* Note r1, r15 are not restored, but are returned 'as-is' from syscall */
+	/* Note r15 is not restored, but is returned 'as-is' from syscall */
 	MVC	INTERRUPT_BASE(8,0),SAVED_PSW(sp) /* restore old psw frm stack */
 	LM	r11,r12,SAVED_R11(sp)	/* restore r11, r12 */	
-	L	r0,SAVED_R0(sp)		/* restore r0 */	
-	L	r2,SAVED_R2(sp)		/* restore r2 */	
+	LM	r0,r4,SAVED_R0(sp)	/* restore r0 thru r4 */	
 	L	r14,SAVED_R14(sp)	/* restore r14 */	
 	L	r13,SAVED_R13(sp)	/* restore r13 */
 	LPSW	INTERRUPT_BASE(0);	/* return from interrupt */
@@ -391,7 +391,8 @@ SupervisorCall:
 /* Program Interruption */
 	.global ProgramCheck
 ProgramCheck:
-	EXCEPTION_TRACE (PRG_TRC_ID, PRG_SAVE, PFX_PRG_TRANS, PFX_PRG_CODE, PROG_PSW_OLD)
+	SAVE_REGS (INTERRUPT_BASE)
+	EXCEPTION_TRACE (PRG_TRC_ID, PFX_PRG_TRANS, PFX_PRG_CODE, PROG_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, PROG_PSW_OLD)
 	EXCEPTION_CALL_C (ProgramCheckException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
@@ -399,7 +400,8 @@ ProgramCheck:
 /* External */
 	.global External
 External:
-	EXCEPTION_TRACE (EXT_TRC_ID, EXT_SAVE, PFX_EXT_SIG, PFX_EXT_CODE, EXTERN_PSW_OLD)
+	SAVE_REGS (INTERRUPT_BASE)
+	EXCEPTION_TRACE (EXT_TRC_ID, PFX_EXT_SIG, PFX_EXT_CODE, EXTERN_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, EXTERN_PSW_OLD)
 	EXCEPTION_CALL_C (ExternalException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
@@ -407,7 +409,8 @@ External:
 /* Input Output */
 	.global InputOutput
 InputOutput:
-	EXCEPTION_TRACE (IO_TRC_ID, IO_SAVE, PFX_SUBSYS_ID, PFX_IO_PARM, IO_PSW_OLD)
+	SAVE_REGS (INTERRUPT_BASE)
+	EXCEPTION_TRACE (IO_TRC_ID, PFX_SUBSYS_ID, PFX_IO_PARM, IO_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, IO_PSW_OLD)
 	EXCEPTION_CALL_C (InputOutputException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)

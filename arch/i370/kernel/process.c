@@ -70,14 +70,22 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) {
 
 void show_regs(struct pt_regs * regs)
 {
-   // int i;
+	printk("PSW flags: %08lX PSW addr: %08lX \n",
+		regs->psw.flags, regs->psw.addr);
+	printk (" cr0: %08lX  cr1: %08lX \n", regs->cr0.raw, regs->cr1.raw);
 
-   //for (i=0; i<16; i+=2) {
-   //   printk ("GPR %d: %08lX   GPR %d %08lX \n", 
-   //      i, regs->gpr[i], i+1, regs->gpr[i+1]);
-   //}
-   printk("PSW flags: %08lX PSW addr: %08lX \n",
-     regs->psw.flags, regs->psw.addr);
+        /* Note: if debugging disabled, r5-r10 may not be valid */
+        printk ("  r0: %08lX   r1: %08lX   r2: %08lX   r3: %08lX \n", 
+		regs->irregs.r0, regs->irregs.r1, regs->irregs.r2, regs->irregs.r3);
+
+        printk ("  r4: %08lX   r5: %08lX   r6: %08lX   r7: %08lX \n", 
+		regs->irregs.r4, regs->irregs.r5, regs->irregs.r6, regs->irregs.r7);
+
+        printk ("  r8: %08lX   r9: %08lX  r10: %08lX  r11: %08lX \n", 
+		regs->irregs.r8, regs->irregs.r9, regs->irregs.r10, regs->irregs.r11);
+
+        printk (" r12: %08lX  r13: %08lX  r14: %08lX  r15: %08lX \n", 
+		regs->irregs.r12, regs->irregs.r13, regs->irregs.r14, regs->irregs.r15);
 
 }
 
@@ -88,6 +96,7 @@ print_backtrace(unsigned long *sp)
 //        unsigned long i;
 
         printk("Call Backtrace:\n");
+        printk("    xxxx not implemented\n");
 #ifdef BOGUS_XXX
         while (sp) {
                 if (__get_user( i, &sp[1] ))
@@ -286,7 +295,7 @@ release_thread(struct task_struct *t)
 void 
 i370_sys_exit (void) 
 {
-	asm volatile ("SVC	23"); /* fault on purpose */
+	i370_halt();
 }
 
 /* =================================================================== */
@@ -460,7 +469,7 @@ i370_sys_clone (unsigned long clone_flags)
  * misc important kernel threads. 
  *
  * The child is supposed to then call the arg fn(), and never return.
- * If for anyreason fn() returns, the child thread is supposed to be 
+ * If for any reason fn() returns, the child thread is supposed to be 
  * cleaned up and discarded. Thus we don't have to worry about copying
  * all of the kernel stack; simply setting up a minimally configured
  * stack should do. (??) (we don't actually do this)

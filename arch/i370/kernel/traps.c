@@ -56,8 +56,8 @@ void instruction_dump (unsigned short *pc)
    int i;
 
    printk("Instruction DUMP:");
-   for(i = -6; i < 12; i++)
-      printk("%c%04x%c",i?' ':'<',pc[i],i?' ':'>');
+   for(i = -12; i < 6; i++)
+      printk("%c%04x%c", i?' ':'<', pc[i], i?' ':'>' );
    printk("\n");
 }
 
@@ -77,8 +77,8 @@ _exception(int signr, struct pt_regs *regs)
 #endif
 		// print_backtrace((unsigned long *)regs->gpr[0]);
 		instruction_dump((unsigned short *)instruction_pointer(regs));
-		panic ("Exception in kernel psw.addr=%lx signal %d",
-			regs->psw.addr,signr);
+		printk ("Exception in kernel \n");
+		i370_halt();
 	}
 	force_sig(signr, current);
 }
@@ -87,6 +87,7 @@ void
 MachineCheckException(i370_interrupt_state_t *saved_regs)
 {
 	printk ("machine check \n");
+	show_regs (saved_regs);
 	i370_halt();
 }
 
@@ -94,8 +95,8 @@ MachineCheckException(i370_interrupt_state_t *saved_regs)
 void
 ProgramCheckException(i370_interrupt_state_t *saved_regs)
 {
-	long pfx_prg_code = *((long *) PFX_PRG_CODE);
-	long pfx_prg_trans = *((long *) PFX_PRG_TRANS);
+	unsigned long pfx_prg_code = *((unsigned long *) PFX_PRG_CODE);
+	unsigned long pfx_prg_trans = *((unsigned long *) PFX_PRG_TRANS);
 
 #ifdef JUNK_XXX_RIMPLEMENT_THIS_SOMEDAY
 	if (regs->msr & 0x100000) {
@@ -111,7 +112,9 @@ ProgramCheckException(i370_interrupt_state_t *saved_regs)
 	} else {
 		_exception(SIGILL, regs);
 	}
-#endif 
+#endif /* JUNK .. */
+
+	show_regs (saved_regs);
 	printk ("Program Check code=0x%x trans=0x%x\n", 
 		pfx_prg_code, pfx_prg_trans);
 
@@ -122,6 +125,12 @@ ProgramCheckException(i370_interrupt_state_t *saved_regs)
 			break;
 		case PIC_ADDRESSING:
 			printk ("addressing\n");
+			break;
+		case PIC_SPECIFICATION:
+			printk ("specification\n");
+			break;
+		case PIC_OPERAND:
+			printk ("operand\n");
 			break;
 		default:
 			printk ("unexpected prgram check code\n");
@@ -134,7 +143,6 @@ void
 RestartException(i370_interrupt_state_t *saved_regs)
 {
 	printk ("restart exception\n");
-	panic("restart");
 	i370_halt();
 }
 
@@ -160,7 +168,6 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 	/* currently we only handle and expect clock interrupts */
 	if ( EI_CLOCK_COMP != code) {
 		printk ("unexpected external exception code=0x%x\n", code);
-		panic ("unexpected external exception\n");
 		i370_halt();
 	}
 
@@ -221,15 +228,15 @@ void ret_from_syscall (void)
 void
 StackOverflow(struct pt_regs *regs)
 {
-	// printk(KERN_CRIT "Kernel stack overflow in process %p, sp=%lx\n",
-	//        current, regs->gpr[1]);
+	printk(KERN_CRIT "Kernel stack overflow in process %p, sp=%lx\n",
+	        current, regs->irregs.r13);
 #if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
 	debugger(regs);
 #endif
 	show_regs(regs);
 	// print_backtrace((unsigned long *)regs->gpr[1]);
 	// instruction_dump((unsigned long *)regs->psw.addr);
-	panic("kernel stack overflow");
+	i370_halt();
 }
 
 /* ================================================================ */

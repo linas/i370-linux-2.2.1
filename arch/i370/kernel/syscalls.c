@@ -66,13 +66,34 @@ asmlinkage int i370_sys_execve(unsigned long a0, unsigned long a1,
 	return error;
 }
 
-asmlinkage int i370_sys_ptrace (void) { asm volatile ("SVC 56");  return 1; }
-asmlinkage int i370_sys_sigaction (void) { asm volatile ("SVC 56");  return 1; }
-asmlinkage int i370_sys_sigsuspend (void) { asm volatile ("SVC 56");  return 1; }
-asmlinkage int i370_sys_rt_sigsuspend (void) { asm volatile ("SVC 56");  return 1; }
-asmlinkage int i370_sys_sigreturn (void) { asm volatile ("SVC 56");  return 1; }
-asmlinkage int i370_sys_rt_sigreturn (void) { asm volatile ("SVC 56");  return 1; }
-asmlinkage int i370_sys_sigaltstack (void) { asm volatile ("SVC 56");  return 1; }
+asmlinkage int i370_sys_ptrace (void) { 
+	i370_halt();
+	return 1;
+}
+asmlinkage int i370_sys_sigaction (void) { 
+	i370_halt();
+	return 1;
+}
+asmlinkage int i370_sys_sigsuspend (void) { 
+	i370_halt();
+	return 1;
+}
+asmlinkage int i370_sys_rt_sigsuspend (void) { 
+	i370_halt();
+	return 1;
+}
+asmlinkage int i370_sys_sigreturn (void) { 
+	i370_halt();
+	return 1;
+}
+asmlinkage int i370_sys_rt_sigreturn (void) { 
+	i370_halt();
+	return 1;
+}
+asmlinkage int i370_sys_sigaltstack (void) { 
+	i370_halt();
+	return 1;
+}
 
 asmlinkage int i370_sys_ioperm(unsigned long from, unsigned long num, int on)
 {

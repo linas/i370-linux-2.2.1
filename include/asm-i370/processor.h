@@ -120,9 +120,9 @@
 #define EN_PSW		PSW_VALID | PSW_IO | PSW_EXTERN | PSW_MACH 
 // XXX disable key 9 until the pte's are fixed up XXX
 // #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(9)
-#define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(3)
-#define KERN_PSW	EN_PSW | PSW_KEY(3)
-#define DISAB_PSW	PSW_VALID | PSW_KEY(3)
+#define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(6)
+#define KERN_PSW	EN_PSW | PSW_KEY(6)
+#define DISAB_PSW	PSW_VALID | PSW_KEY(6)
 #define HALT_PSW	PSW_VALID | PSW_WAIT 
 
 
@@ -188,15 +188,15 @@
 
 typedef struct
 {
- short int ei_code;
- void (*ei_flih)(i370_interrupt_state_t *, unsigned short);
+	short int ei_code;
+	void (*ei_flih)(i370_interrupt_state_t *, unsigned short);
 } ei_handler;
 
 typedef struct
 {
- short int iucv_path;        /* IUCV path identifier          */
- unsigned long iucv_uword;   /* User word                     */
- void  *iucv_buffer;         /* Pointer to the IUCV DCLBFR    */
+	short int iucv_path;        /* IUCV path identifier          */
+	unsigned long iucv_uword;   /* User word                     */
+	void  *iucv_buffer;         /* Pointer to the IUCV DCLBFR    */
 } iucv_path;
 
 /*------------------------------------------------------------*/
@@ -205,8 +205,8 @@ typedef struct
  
 typedef struct
 {
- short int pc_code;
- void (*pc_flih)(i370_interrupt_state_t *, unsigned long, unsigned short);
+	short int pc_code;
+	int (*pc_flih)(i370_interrupt_state_t *, unsigned long, unsigned short);
 } pc_handler;
  
 /*------------------------------------------------------------*/

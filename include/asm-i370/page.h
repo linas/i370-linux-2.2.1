@@ -18,12 +18,12 @@
 
 /* When running the kernel in real mode, use storage keys
  * to protect the text segment from acidental corruption.
- * Kernel executes in key 3.
+ * Kernel executes in key 6.
  * User segment runs in key 9.
  * The four-bit key is stored in bits 24-28 of sske.
  */
 #define KTEXT_STORAGE_KEY	0x00
-#define KDATA_STORAGE_KEY	0x30
+#define KDATA_STORAGE_KEY	0x60
 #define USER_STORAGE_KEY	0x90
 
 #ifndef __ASSEMBLY__

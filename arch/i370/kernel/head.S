@@ -4,11 +4,6 @@
 
 #include <asm/processor.h>
 
-/* start of text section */
-        .text
-        .globl  _stext
-_stext:
-
 /* first instruction executed is here */
 /* 
  * We set up just enough to let a C lang call to be made.
@@ -26,10 +21,10 @@ _stext:
  * sp == r13 == stack pointer
  * rtca == r12 
  */
-	.section .data.init	// we throw this section away after init
-	.balign	8
-
-        .text			// back to the text section
+/* start of text section */
+        .text
+        .globl  _stext
+_stext:
 	.globl	_start
 _start:
 	BASR	r15,0		// load r15 with PSW 
@@ -196,11 +191,13 @@ InputOutput:
 
 
 /*
- * XXX ??? XXX not aligned any more, huh ??
  * We put a few things here that have to be page-aligned.
  * This stuff goes at the beginning of the data segment,
  * which is page-aligned.
  */
+	.section .data.init	// we throw this section away after init
+	.balign	8
+
 	.data
 	.globl	sdata
 sdata:

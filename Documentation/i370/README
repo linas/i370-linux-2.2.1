@@ -1,14 +1,12 @@
 
 i370 port of the Linux Kernel for the IBM ESA/390 Architecture Mainframes
 -------------------------------------------------------------------------
-By Linas Vepstas linas@linas.org & others ....
-
 Some things work. Most things don't.
 
 Cross-compiling
 ---------------
   Currrently, the only way to build this kernel is by cross-compiling
-  it on a different platform.  You need binutils-2.9.4.0.3 or later, 
+  it on a different platform.  You need binutils-2.9.5.0.7 or later, 
   and the patches for egcs-1.1.2 from http://linas.org/linux/i370/
   To build and install egcs and binutils, go into thier directories,
   and type:
@@ -57,4 +55,9 @@ The ESA/390 TRACE instruction is used to capture traces of interruptions.
 See head.S for details.
 
 
+Credits:
+--------
+Linas Vepstas <linas@linas.org>  maintain gcc, bintuils & initial port
+Neale Ferguson <neale@VMA.TABNSW.COM.AU> 3210 support, misc patches
+Arty Ecock ... boot loader
 

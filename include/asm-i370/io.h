@@ -6,4 +6,6 @@
 #define inb(port)		((int)(*((unsigned char *)(port))))
 #define outb(val, port)		((*((unsigned char *)(port))) = (val))
 
+#define sys_ioperm	i370_sys_ioperm
+
 #endif

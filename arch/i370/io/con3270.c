@@ -156,8 +156,11 @@ unsigned char ebcasc[256] =
 /* ===================================================== */
 
 static void console_write_3270(struct console *, const char *, unsigned);
+static void console_write_3210(struct console *, const char *, unsigned);
 static int console_setup_3270(struct console *, char *);
+static int console_setup_3210(struct console *, char *);
 static kdev_t console_device_3270(struct console *);
+static kdev_t console_device_3210(struct console *);
 
 static struct console cons3270 = {
         "3270",
@@ -173,7 +176,22 @@ static struct console cons3270 = {
         NULL
 };
 
+static struct console cons3210 = {
+        "3210",
+        console_write_3210,
+        NULL,
+        console_device_3210,
+        NULL,
+        NULL,
+        console_setup_3210,
+        CON_PRINTBUFFER,
+        1,
+        0,
+        NULL
+};
+ 
 long		pbufnext;	/* index of next line in prtlines */
+char		conBuffer[1920];
 pbuffer_t	prtlines[MAX_PRINT_LINES];	/* PRINTK buffer array */
 extern	char	scrn3270[1];	/* define 3270 screen */
 extern	char	scrln1[1];	/* define 3270 screen */
@@ -181,6 +199,7 @@ extern	char	screnda[1];     /* define 3270 screen end */
 prt_lne_t	*dbgline = (prt_lne_t *)scrln1;
 prt_lne_t	*dbglend = (prt_lne_t *)screnda;
 extern	long	cons_sid;
+extern	char	cons_devtype;
 long		cons_init =0;
 
 /* ===================================================== */
@@ -188,8 +207,11 @@ long		cons_init =0;
 long	
 console_3270_init(long mstart, long mend) 
 {
-	register_console(&cons3270);
 	cons_init = 1;
+	if (cons_devtype == t3270)
+		register_console(&cons3270);
+	else
+		register_console(&cons3210);
 	return(mstart);
 }
 
@@ -240,7 +262,6 @@ console_write_3270(struct console *c, const char *s,
 	memset((void *)&dbgline->scrnln[0],0x00,79);
 	dbgline->attribute = ATTRPRHI;
 	lastline = dbgline;   /* copy for attribute reset */
-	memcpy((void *)&dbgline->scrnln[0],s,count);
 
 	for (i=0; i<count; i++) {
 		dbgline->scrnln[i] = ascebc[(dbgline->scrnln[i])];
@@ -301,6 +322,75 @@ console_write_3270(struct console *c, const char *s,
 
 /* ===================================================== */
 
+static void
+console_write_3210(struct console *c, const char *s,
+				unsigned count)
+{
+	long	rc;
+	long	i;
+	long	flags;
+	ccw_t	ioccw[2];
+	orb_t	orb;
+	irb_t	irb;
+ 
+	if (!(cons_init)) {
+		return;
+	}
+ 
+//	flags = cli();	/* reset interrupts */
+	spin_lock_irqsave(NULL,flags);
+ 
+	/*
+	 *  Build the CCW for the 3210 Console I/O
+	 *  CCW = WRITE chained to NOP.
+	 */
+ 
+	for (i=0; i<count; i++) {
+		conBuffer[pbufnext] = ascebc[(s[i])];
+		if ((conBuffer[pbufnext] == 0x00) ||
+		    (pbufnext >= sizeof(conBuffer))) {
+			
+			ioccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
+			ioccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
+			ioccw[0].count   = pbufnext;
+			ioccw[0].dataptr = conBuffer;      /* address of 3210 buffer */
+			ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
+			ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
+			ioccw[1].dataptr = NULL;           /* buffer = 0 */
+			ioccw[1].count   = 1;              /* ?? */
+			pbufnext         = 0;
+			/*
+			 *  Clear and format the ORB
+			*/
+ 
+			memset(&orb,0x00,sizeof(orb_t));
+			orb.fpiau  = 0x80;		/* format 1 ORB */
+			orb.lpm    = 0xff;			/* Logical Path Mask */
+			orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
+ 
+			rc = _tsch(cons_sid,&irb);     /* hack for unsolicited DE */
+			rc = _ssch(cons_sid,&orb);    /* issue Start Subchannel */
+			while (1) {
+				rc = _tsch(cons_sid,&irb);	
+				if (!(irb.scsw.status & 0x1)) {
+					udelay (100);	/* spin 100 microseconds */
+					continue;
+				}
+				else {
+					break; /* assume it worked */
+				}
+			}
+		}
+		else
+			pbufnext++;
+	}
+ 
+	spin_unlock_irqrestore(NULL,flags);
+//	sti();
+}
+ 
+/* ===================================================== */
+ 
 static kdev_t 
 console_device_3270(struct console *c)
 {
@@ -309,6 +399,14 @@ console_device_3270(struct console *c)
 
 /* ===================================================== */
 
+static kdev_t
+console_device_3210(struct console *c)
+{
+        return MKDEV(TTYAUX_MAJOR, 64 + c->index);
+}
+ 
+/* ===================================================== */
+ 
 __initfunc(static int 
 console_setup_3270(struct console *co, char *options))
 {
@@ -318,6 +416,16 @@ console_setup_3270(struct console *co, char *options))
 	for (i=0; i<MAX_PRINT_LINES; i++) {
 		memset(&prtlines[i].prtbuf[0],0x0,MAX_LINE_SIZE);
 	}
+	return(0);
+}
+ 
+/* ===================================================== */
+ 
+__initfunc(static int
+console_setup_3210(struct console *co, char *options))
+{
+	
+	pbufnext = 0x0;		/* next line = zero */
 	return(0);
 }
 

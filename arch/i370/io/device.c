@@ -14,33 +14,15 @@
 #include <asm/unitblk.h>
 
 /*
- *	Issue a Read Device Characteristics to a specific subchannel
+ *	Construct an ORB for the SSCH, Issue the I/O and wait
  */
 
-int     i370_getrdc(int sid, schib_t *schib, devchar_t *rdc) 
+static int
+i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 {
 	int     rc;
-	ccw_t	ioccw[2];
 	orb_t	orb;
 	irb_t	irb;
-
-	/* 
-	 *	Build CCWS for Read Device Characteristics.
-	 */
-
-	ioccw[0].flags = CCW_CC | CCW_SLI;  /* Write chained to NOOP + SLI */
-	ioccw[0].cmd =   CCW_CMD_RDC;	    /* ccw command is read */
-	ioccw[0].count = sizeof(devchar_t); /* length of read bfr */
-	ioccw[0].dataptr = rdc;	/* address of read buffer */
-	ioccw[1].cmd =   CCW_CMD_NOP;	/* ccw is NOOP */
-	ioccw[1].flags = CCW_SLI;	/* Suppress Length Incorrect */
-	ioccw[1].dataptr = 0;	/* buffer = 0 */
-	ioccw[1].count =   1;
-
-
-	/* 
-	 *	Construct an ORB for the SSCH.
-	 */
 
 	memset(&orb,0x00,sizeof(orb_t));	/* clear the ORB */
 	orb.intparm = schib->interrupt_parm;
@@ -95,9 +77,63 @@ int     i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
 		}
 
 	}
-
         return rc;
+}
 
+
+/*
+ *	Issue a Sense ID to a specific subchannel
+ */
+ 
+static int i370_getsid(int sid, schib_t *schib, idchar_t *id)
+{
+	int     rc;
+	ccw_t	ioccw[2];
+ 
+	/*
+	 *	Build CCWS for Sense ID
+	 */
+
+	ioccw[0].flags   = CCW_CC | CCW_SLI;
+	ioccw[0].cmd     = CCW_CMD_SID;	    /* ccw command is read */
+	ioccw[0].count   = sizeof(idchar_t); /* length of read bfr */
+	ioccw[0].dataptr = id;	/* address of read buffer */
+	ioccw[1].cmd =   CCW_CMD_NOP;	/* ccw is NOOP */
+	ioccw[1].flags = CCW_SLI;	/* Suppress Length Incorrect */
+	ioccw[1].dataptr = 0;	/* buffer = 0 */
+	ioccw[1].count =   1;
+ 
+	rc = i370_doio(sid, schib, ioccw);
+ 
+	return rc;
+}
+ 
+/*
+ *	Issue a Read Device Characteristics to a specific subchannel
+ */
+ 
+int     i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
+{
+	int     rc;
+	ccw_t	ioccw[2];
+ 
+	/*
+	 *	Build CCWS for Read Device Characteristics.
+	 */
+ 
+	ioccw[0].flags = CCW_CC | CCW_SLI;  /* Write chained to NOOP + SLI */
+	ioccw[0].cmd =   CCW_CMD_RDC;	    /* ccw command is read */
+	ioccw[0].count = sizeof(devchar_t); /* length of read bfr */
+	ioccw[0].dataptr = rdc;	/* address of read buffer */
+	ioccw[1].cmd =   CCW_CMD_NOP;	/* ccw is NOOP */
+	ioccw[1].flags = CCW_SLI;	/* Suppress Length Incorrect */
+	ioccw[1].dataptr = 0;	/* buffer = 0 */
+	ioccw[1].count =   1;
+ 
+	rc = i370_doio(sid, schib, ioccw);
+ 
+	return rc;
+ 
 }
 
 /*
@@ -212,9 +248,7 @@ int     i370_getvol(int sid, schib_t *schib, devchar_t *rdc)
 		}
 
 	}
-
         return rc;
-
 }
 
 
@@ -224,7 +258,9 @@ int     i370_getvol(int sid, schib_t *schib, devchar_t *rdc)
 unitblk_t *unit_base;
 unitblk_t *dev_cons;
 long	  cons_sid = 0x0;   
+char	cons_devtype = 0x0;
 long	sid_count = 0;
+extern unsigned char CPUID[8];
 
 
 void	
@@ -236,7 +272,9 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	schib_t	schib;
 	unitblk_t *dev_cons;
 	unitblk_t *devices;
+	idchar_t dev_id;
 	devchar_t rdc;
+	static char dev_t3270[2] = {0x32, 0x74};
 
 
 	/* 
@@ -289,19 +327,40 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 				schib.interrupt_parm = (int)devices;
 				rc = _msch(sid,&schib);
 					
-				rc = i370_getrdc(sid,&schib,&rdc);	
-
-				/* 
-				 * Hard code Console to unit address 3e0.
-				 * This needs to change!
-	 			 */
-		
-				if (schib.devno == 0x3e0) {
-					dev_cons = devices;
-					cons_sid = sid;
+				/*----------------------------------------------------*/
+				/* If we can find a device '009' under VM             */
+				/*----------------------------------------------------*/
+				if ((schib.devno == 0x0009) && (CPUID[0] == 0xff))
+				{
+					dev_cons     = devices;
+					cons_sid     = sid;
+					cons_devtype = t3210;
 				}
 
-				if (!rc) {
+				rc = i370_getsid(sid,&schib,&dev_id);
+		
+				if (!rc)
+				{
+ 
+					/*----------------------------------------------------*/
+					/* We flag the first 3270 device as our console. This */
+					/* can be overridden by specification in the IPL load */
+					/* parameters.                                        */
+					/*----------------------------------------------------*/
+					if (memcmp(dev_id.idcuid, dev_t3270, sizeof(dev_id.idcuid)) == 0);
+					{
+						if (cons_sid == 0)
+						{
+					dev_cons = devices;
+					cons_sid = sid;
+							cons_devtype = t3270;
+				}
+					}
+
+					rc = i370_getrdc(sid,&schib,&rdc);	
+ 
+					if (!rc)
+					{
 				   devices->unitmodl = rdc.devcumod;
 				   devices->unitclas = rdc.devclcd;
 				   devices->unittycd = rdc.devtycod;
@@ -312,13 +371,14 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 					 memcpy(&devices->unitvol,rdc.devvol,6);
 				   }	
 				}
+				}
 				devices++;
 			}
 		}
 
 		sid++;
 	}
-
+	devices += 10;
 	*memory_start = devices; /* return new memory_start */
 
 	return;

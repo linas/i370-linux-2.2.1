@@ -36,10 +36,14 @@ BOOT_TARGETS = netboot znetboot zImage \
 
 $(BOOT_TARGETS): vmlinux
 
-.SUFFIXES:	.lst
+.SUFFIXES:	.lst .clst
 
 .s.lst:
 	$(AS) -ahls=$*.lst $< 
+
+.c.clst:
+	$(CC) $(CFLAGS) $(CFLAGSINC) $< -g -S -o $*.s
+	$(AS) -ahls $*.s | sed /stab/D | sed /"\.LM"/D | sed /"\.LB"/D > $*.clst
 
 
 tags:

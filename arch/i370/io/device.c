@@ -95,25 +95,25 @@ S390map_t s390_map[9] = {
 	{0,     0,     0, -1}
 };
 
-extern struct file_operations *fop_eckd;
-extern struct file_operations *fop_ckd;
-extern struct file_operations *fop_fba;
-extern struct file_operations *fop_graf;
-extern struct file_operations *fop_cons;
-extern struct file_operations *fop_tape;
-extern struct file_operations *fop_tss;
-extern struct file_operations *fop_osa;
-extern struct file_operations *fop_ctca;
+extern struct file_operations fop_eckd;
+extern struct file_operations fop_ckd;
+extern struct file_operations fop_fba;
+extern struct file_operations fop_graf;
+extern struct file_operations fop_cons;
+extern struct file_operations fop_tape;
+extern struct file_operations fop_tss;
+extern struct file_operations fop_osa;
+extern struct file_operations fop_ctca;
 
-extern void eckd_flih(int, void *, struct pt_regs *regs);
-extern void ckd_flih(int, void *, struct pt_regs *regs);
-extern void fba_flih(int, void *, struct pt_regs *regs);
-extern void graf_flih(int, void *, struct pt_regs *regs);
-extern void cons_flih(int, void *, struct pt_regs *regs);
-extern void tape_flih(int, void *, struct pt_regs *regs);
-extern void tss_flih(int, void *, struct pt_regs *regs);
-extern void osa_flih(int, void *, struct pt_regs *regs);
-extern void ctca_flih(int, void *, struct pt_regs *regs);
+extern void eckd_flih (int, void *, struct pt_regs *regs);
+extern void ckd_flih  (int, void *, struct pt_regs *regs);
+extern void fba_flih  (int, void *, struct pt_regs *regs);
+extern void graf_flih (int, void *, struct pt_regs *regs);
+extern void cons_flih (int, void *, struct pt_regs *regs);
+extern void tape_flih (int, void *, struct pt_regs *regs);
+extern void tss_flih  (int, void *, struct pt_regs *regs);
+extern void osa_flih  (int, void *, struct pt_regs *regs);
+extern void ctca_flih (int, void *, struct pt_regs *regs);
 
 S390dev_t s390_devices[10] = {
 	{MJ3990, 0, 255, BLKDEV, D3990, &fop_eckd,  7, eckd_flih},
@@ -160,9 +160,9 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	_msch(ipl_sid, &schib);
 
 	/*------------------------------------------------------*/
-	/* Set Unit Block base address to memory start	  */
+	/* Set Unit Block base address to memory start	        */
 	/* and calculate the number of subchannels in the       */
-	/* configuration set with device valid.		 */
+	/* configuration set with device valid.		        */
 	/*------------------------------------------------------*/
 
 	unit_base = (unitblk_t *) *memory_start;
@@ -182,7 +182,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 
 	/*------------------------------------------------------*/
 	/* Bump memory_start by count of valid subchannels.     */
-	/* Build Unit Blocks for all subchannels with	    */
+	/* Build Unit Blocks for all subchannels with	        */
 	/* device valid.					*/
 	/*------------------------------------------------------*/
 
@@ -216,7 +216,8 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 				devices->unitmajor = s390_devices[I_3210].major;
 				devices->unitminor = s390_devices[I_3210].curMinor;
 				devices->unitirqh  = (void *) s390_devices[I_3210].irqh;
-				strcpy(devices->unitname,s390_devices[I_3210].devName);
+				strncpy(devices->unitname,s390_devices[I_3210].devName,7);
+				devices->unitname[7] = 0x0;
 				devices->unitstat  = UNIT_READY;
 			}
 			else {
@@ -230,7 +231,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 
 	sid++;
 	}
-	devices += 10;
+	devices += 1;
 	*memory_start = (unsigned long) devices; /* return new memory_start */
 
 	return;
@@ -537,7 +538,7 @@ register_driver(long sid, schib_t *schib,
 	devchar_t rdc;
 
        /*----------------------------------------------------------*/
-       /* Map the control unit ID to a major node entry	    */
+       /* Map the control unit ID to a major node entry	           */
        /*----------------------------------------------------------*/
        for (i_map = 0; s390_map[i_map].cuid != 0; i_map++) {
 	       if ((s390_map[i_map].cuid == dev_id->idcuid) &&
@@ -548,7 +549,7 @@ register_driver(long sid, schib_t *schib,
 
 
 	/*----------------------------------------------------------*/
-	/* Use the major node entry to register the device	*/
+	/* Use the major node entry to register the device          */
 	/*----------------------------------------------------------*/
 	i_dev = s390_map[i_map].i_s390dev;
 	if ((i_dev > -1) &&
@@ -561,7 +562,9 @@ register_driver(long sid, schib_t *schib,
 			s390_devices[i_dev].devName,
 			s390_devices[i_dev].curMinor++);
 
-printk ("register %s at major=%d\n", devices->unitname, devices->unitmajor);
+// this prints garbage to the screen why ??? 
+// printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitmajor, i_dev);
+// printk ("register %s at major=%d i_dev=%d\n",  s390_devices[i_dev].devName, devices->unitmajor, i_dev);
 		if (s390_devices[i_dev].drvType == CHRDEV)
 		{
 			rc = register_chrdev(s390_devices[i_dev].major,

@@ -35,64 +35,21 @@
 /*		 (2) Refer To ........................... */
 /*							  */
 /************************************************************/
-/************************************************************/
-/*							  */
-/*		       DEFINES			    */
-/*		       -------			    */
-/*							  */
-/************************************************************/
-
-/*=============== End of Defines ===========================*/
-
-/************************************************************/
-/*							  */
-/*		INCLUDE STATEMENTS			*/
-/*		------------------			*/
-/*							  */
-/************************************************************/
 
 #include <linux/fs.h>
 
 /*================== End of Include Statements =============*/
 
-/************************************************************/
-/*							  */
-/*		TYPE DEFINITIONS			  */
-/*		----------------			  */
-/*							  */
-/************************************************************/
 
-
-
-/*================== End of Type Definitions ===============*/
-
-
-struct file_operations fop_cons =
+void i370_cons_open (struct inode *tty, struct file *filp) 
 {
-   NULL,		 /* lseek - default */
-   NULL,		 /* read - general block-dev read */
-   NULL,		 /* write - general block-dev write */
-   NULL,		 /* readdir - bad */
-   NULL,		 /* poll */
-   NULL,		 /* ioctl */
-   NULL,		 /* mmap */
-   NULL,		 /* open */
-   NULL,		 /* flush */
-   NULL,		 /* release */
-   NULL,		 /* fsync */
-   NULL,		 /* fasync */
-   NULL,		 /* check_media_change */
-   NULL,		 /* revalidate */
-};
+	printk ("console_open\n");
+}
 
-/*============== End of Variable Declarations ==============*/
-
-/************************************************************/
-/*							  */
-/*		     M A I N L I N E		      */
-/*		     ---------------		      */
-/*							  */
-/************************************************************/
+void i370_cons_write (struct file *filp, const char *str, size_t len, loff_t n) 
+{
+	printk ("console_write: len=%d %s<<<\n", len, str);
+}
 
 void
 console_driver(void)
@@ -118,5 +75,25 @@ void
 cons_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
+
+/*===================== End of Mainline ====================*/
+
+struct file_operations fop_cons =
+{
+   NULL,		 /* lseek - default */
+   NULL,		 /* read - general block-dev read */
+   i370_cons_write,	 /* write */
+   NULL,		 /* readdir - bad */
+   NULL,		 /* poll */
+   NULL,		 /* ioctl */
+   NULL,		 /* mmap */
+   i370_cons_open,	 /* open */
+   NULL,		 /* flush */
+   NULL,		 /* release */
+   NULL,		 /* fsync */
+   NULL,		 /* fasync */
+   NULL,		 /* check_media_change */
+   NULL,		 /* revalidate */
+};
 
 /*===================== End of Function ====================*/

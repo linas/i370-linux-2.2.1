@@ -43,43 +43,35 @@ n:
 #define PSW_HOME	PSW_DAT || (3<<14)	/* Home Space Mode */
 
 
+/* USER_PSW sets up flags for the user mode */
+#define EN_PSW		PSW_IO | PSW_EXTERN | PSW_MACH | PSW_WAIT
+#define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB
+#define KERN_PSW	EN_PSW | PSW_KEY(3)
+
 /* XXX The rest of this file is garbage XXX */
 /* copied from powerpc it should be trashed ... */
 
 
 #ifndef __ASSEMBLY__
-/*
- * If we've configured for a specific machine set things
- * up so the compiler can optimize away the other parts.
- * -- Cort
- */
-
-extern int _machine;
-
 struct task_struct;
-void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp);
+void start_thread(struct pt_regs *regs, unsigned long psw, unsigned long sp);
 void release_thread(struct task_struct *);
 
-/* Lazy FPU handling on uni-processor */
-extern struct task_struct *last_task_used_math;
-
 /*
- * this is the minimum allowable io space due to the location
- * of the io areas on prep (first one at 0x80000000) but
- * as soon as I get around to remapping the io areas with the BATs
- * to match the mac we can raise this. -- Cort
+ *  ??? 
  */
 #define TASK_SIZE	(0x80000000UL)
 
 /* This decides where the kernel will search for a free chunk of vm
  * space during mmap's.
  */
-#define TASK_UNMAPPED_BASE	(TASK_SIZE / 8 * 3)
+#define TASK_UNMAPPED_BASE	(TASK_SIZE)
 
 typedef struct {
 	unsigned long seg;
 } mm_segment_t;
 
+/* the thread_struct is inlined into the arch-independent task_struct */
 struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer */
 	unsigned long	*pg_tables;	/* Base of page-table tree */
@@ -97,10 +89,10 @@ struct thread_struct {
 	INIT_SP, /* ksp */ \
 	(unsigned long *) swapper_pg_dir, /* pg_tables */ \
 	0, /* wchan */ \
-	(struct pt_regs *)INIT_SP - 1, /* regs */ \
+	(struct pt_regs *)INIT_SP, /* regs */ \
 	KERNEL_DS, /*fs*/ \
 	0, /* last_syscall */ \
-	{0}, 0, 0, 0 \
+	{0.0,0.0,0.0,0.0},  0 \
 }
 
 /*
@@ -137,7 +129,7 @@ void ll_puts(const char *);
 #define init_task	(init_task_union.task)
 #define init_stack	(init_task_union.stack)
 
-#endif /* ndef ASSEMBLY*/
+#endif /* endif ASSEMBLY*/
 
   
 #endif /* __ASM_I370_PROCESSOR_H */

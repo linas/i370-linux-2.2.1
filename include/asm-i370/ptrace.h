@@ -74,9 +74,6 @@ struct pt_regs {
 #define PT_FPR0	18	/* each FP reg occupies 2 slots in this space */
 
 #define PT_PSW	25
-#ifdef __KERNEL__
-#define PT_ORIG_R3 34
-#endif
 
 #endif
 

@@ -1,6 +1,7 @@
 #ifndef _I370_UACCESS_H
 #define _I370_UACCESS_H
 
+/* copied brazenly from the powerpc implementation */
 /* XXX mostly all wrong for i370*/
 
 #ifndef __ASSEMBLY__
@@ -28,6 +29,8 @@
 
 #define segment_eq(a,b)	((a).seg == (b).seg)
 
+/* XXX what does this have to do with userok ??? what's with the address
+ * ?? */
 #define __kernel_ok (segment_eq(get_fs(), KERNEL_DS))
 #define __user_ok(addr,size) (((size) <= 0x80000000)&&((addr) <= 0x80000000-(size)))
 #define __access_ok(addr,size) (__kernel_ok || __user_ok((addr),(size)))

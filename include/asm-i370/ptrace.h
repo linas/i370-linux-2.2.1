@@ -20,7 +20,7 @@ struct _i370_psw_s {
 };
 typedef struct _i370_psw_s psw_t;
 
-
+/* ---------------------------------------------------------------- */
 /* Control register zero bit definitions */
 struct _i370_cr0_s {
 	/* LSB */
@@ -56,6 +56,7 @@ union _i370_cr0_u {
 };
 typedef union _i370_cr0_u cr0_t;
 
+/* ---------------------------------------------------------------- */
 /* Control register one bit definitions */
 struct _i370_cr1_s {
 	/* LSB */
@@ -76,17 +77,27 @@ union _i370_cr1_u {
 };
 typedef union _i370_cr1_u cr1_t;
 
+/* ---------------------------------------------------------------- */
+
+struct _i370_irregs_s {
+	unsigned long	r13;
+	unsigned long	r14;
+	unsigned long	r15;
+	unsigned long	r0;
+	unsigned long	r1;
+	unsigned long	r2;
+};
+typedef struct _i370_irregs_s irregs_t;
+
+
+/* ---------------------------------------------------------------- */
 /*
- * NOTE that this structure is accessed in binary in head.S and
- * changes to it may break the exception handling code. Modify
- * at your own risk.
  */
 struct _i370_regs_s {
-	psw_t         psw;	/* process status word */
-	unsigned long gpr[16];  /* general purpose regs */
-	double   fpr[4];        /* floating point regs */
-	cr0_t    cr0;		/* control register 0 */
-	cr1_t    cr1;		/* control register 1 */
+	psw_t   	psw;	/* process status word */
+	irregs_t	irregs;	/* some of the GPR's */
+	cr0_t		cr0;	/* control register 0 */
+	cr1_t		cr1;	/* control register 1 */
 
 /* XXX all wrong for 370 but we need something like this? */
 //	unsigned long orig_gpr3; /* Used for restarting system calls */
@@ -98,42 +109,12 @@ typedef struct _i370_regs_s i370_regs_t;
 
 #define pt_regs _i370_regs_s
 
-
-#endif
-
-#define STACK_FRAME_OVERHEAD	148	/* size of minimum stack frame */
-
-/* Size of stack frame allocated when calling signal handler. */
-#define __SIGNAL_FRAMESIZE	64   /* XXX whoa all wrong */
+/* ---------------------------------------------------------------- */
 
 #define instruction_pointer(regs) (((regs)->psw.addr) & 0x7fffffff)
 #define user_mode(regs) ((regs)->psw.flags & 0x10000)
 
-/*
- * Offsets used by 'ptrace' system call interface.
- * These can't be changed without breaking binary compatibility
- */
-#define PT_R0	0
-#define PT_R1	1
-#define PT_R2	2
-#define PT_R3	3
-#define PT_R4	4
-#define PT_R5	5
-#define PT_R6	6
-#define PT_R7	7
-#define PT_R8	8
-#define PT_R9	9
-#define PT_R10	10
-#define PT_R11	11
-#define PT_R12	12
-#define PT_R13	13
-#define PT_R14	14
-#define PT_R15	15
-#define PT_R16	16
-
-#define PT_FPR0	18	/* each FP reg occupies 2 slots in this space */
-
-#define PT_PSW	25
+#endif
 
 #endif
 

@@ -23,10 +23,22 @@
 #define MACH_PSW_NEW	0x70	/* Machine Check new PSW */
 #define IO_PSW_NEW	0x78	/* IO Exception new PSW */
 
+#define EXT_INT_CODE	0x86	/* External Interruption Codes location */
 
-#define _GLOBAL(n)\
-	.globl n;\
-n:
+#define INTERRUPT_BASE	0xf00	/* scratch area */
+
+/* External Interruption Codes */
+#define EI_INTERRUPT_KEY	0x0040	/* Interrupt Key */
+#define EI_TOD_CLOCK_SYNC	0x1003	/* TOD clock sync check */
+#define EI_CLOCK_COMP		0x1004	/* Clock Comparator */
+#define	EI_CPU_TIMER		0x1005	/* CPU Timer */
+#define	EI_MALFUNCTION		0x1200	/* Malfunction Alert */
+#define	EI_EMERGENCY		0x1201	/* Emerency Signal */
+#define	EI_CALL			0x1202	/* External Call */
+#define	EI_SERVICE		0x2401	/* Service Signal */
+
+
+#ifndef __ASSEMBLY__
 
 /* Bit encodings in the PSW */
 #define PSW_PER		(1<<30)		/* Program Event Recording Mask */
@@ -52,7 +64,6 @@ n:
 /* copied from powerpc it should be trashed ... */
 
 
-#ifndef __ASSEMBLY__
 struct task_struct;
 void start_thread(struct pt_regs *regs, unsigned long psw, unsigned long sp);
 void release_thread(struct task_struct *);

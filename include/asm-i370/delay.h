@@ -16,9 +16,7 @@ extern unsigned long loops_per_sec;
 
 extern __inline__ void __delay(unsigned int loops)
 {
-	if (loops != 0)
-		__asm__ __volatile__("bctr %0,0" : :
-				     "r" (loops) );
+	while (loops) loops --;
 }
 
 extern __inline__ void udelay(unsigned long usecs)

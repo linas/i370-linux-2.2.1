@@ -2,8 +2,10 @@
 /*
  * wrappers for misc assembly
  * Linas Vepstas February 1998
+ * Copyright (C) Linas Vepstas 1999
  */
 
+/* -------------------------------------------------------- */
 /* get the current value of the stack pointer */
 /* since this inlines, it will basically copy r13 to where-ever */
 extern inline unsigned long _get_SP(void)
@@ -20,6 +22,22 @@ extern inline void _set_SP (unsigned long newsp)
         asm volatile ("LR	sp,%0" : : "r" (newsp) : "memory");
 }
 
+/* -------------------------------------------------------- */
+/* Store Clock Comparator */
+extern inline unsigned long long _stckc (void)
+{
+   unsigned long long tickee;
+   asm volatile ("STCKC	%0" : "=m" (tickee) );
+   return tickee;
+}
+
+/* Set Clock Comparator */
+extern inline void _sckc (unsigned long long tickee)
+{
+   asm volatile ("SCKC	%0" : : "m" (tickee) );
+}
+
+/* -------------------------------------------------------- */
 /* set storage key extended */
 extern inline void _sske (unsigned int key, unsigned int realaddr)
 {
@@ -35,6 +53,7 @@ extern inline unsigned int _iske (unsigned int realaddr)
    return key;
 }
 
+/* -------------------------------------------------------- */
 /* load control registers */
 #define _lctl(REGNO)						\
 extern inline void _lctl##REGNO (unsigned int value)		\

@@ -1,9 +1,8 @@
 #ifndef _I370_CURRENT_H
 #define _I370_CURRENT_H
 
-/* XXX this is probably all wrong */
 /*
- * We keep `current' in r2 for speed.
+ * Put `current' in a well-known, convenient register ... r2.
 register struct task_struct *current asm ("r2");
  */
 struct task_struct *current;

@@ -17,7 +17,7 @@
 #include <asm/mmu_context.h>
 #include <asm/pgtable.h>
 #include <asm/uaccess.h>
-
+#include <asm/vmdiag.h>
 extern unsigned long free_area_init(unsigned long, unsigned long);
 extern __initfunc(void i370_trap_init(int key));
 
@@ -62,26 +62,9 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 	/* disk from a shared segment (isn't VM wonderful!)      */
 	/*-------------------------------------------------------*/
 	if (CPUID[0] == 0xff)
-	{
-		static char NSSID[8] = {0xd9, 0xc1, 0xd4, 0xc4,
-		                        0xc9, 0xe2, 0xd2, 0x40};
-		static struct {
-			  double alignment;
-			  char RAMNSS[8];
-		} NSS;
- 
-		memcpy(NSS.RAMNSS, NSSID, 8);
-		__asm__ __volatile__ ("
-			LA	r14,%2;
-			LA	r15,4(0);
-			SLR	r0,r0;
-			EX	r0,=X'83EF0064';
-			ST	r14,%0;
-			ST	r15,%1"
-			: "=m" (initrd_start), "=m" (initrd_end)
-			: "m" (*NSS.RAMNSS)
-			: "memory", "r0", "r14", "r15");
- 
+        {
+	        VM_Diagnose_Code_64(VMDIAG_LOADNSHR,"RAMDISK ",
+				    &initrd_start, &initrd_end);
 		printk("RAMDISK NSS loaded\n");
 	}
 #endif /* CONFIG_VM */

@@ -122,12 +122,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 	/* We'll get a cpu id only if running under VM, in which
 	 * case we can DIAGNOSE the amount of available memory */
 	if (CPUID[0] == 0xff) {
-		__asm__ __volatile__ ("
-		SLR	r15,r15;
-		EX	r15,=X'83F00060';
-		LR	%0,r15"
-		: "=r" (*memory_end_p) :
-		: "r0", "memory", "r15");
+	        *memory_end_p = VM_Diagnose_Code_60();
 	} else {
 		/* hardcode the memory size */
 		*memory_end_p = 0x2000000;  // 32M

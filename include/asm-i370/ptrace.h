@@ -17,8 +17,8 @@
 struct _i370_psw_s {
 	unsigned long flags;
 	unsigned long addr;
-};
-typedef struct _i370_psw_s psw_t;
+} __attribute__ ((aligned (8)));
+typedef struct _i370_psw_s psw_t __attribute__ ((aligned (8)));
 
 /* ---------------------------------------------------------------- */
 /* Control register zero bit definitions */
@@ -91,13 +91,19 @@ typedef struct _i370_irregs_s irregs_t;
 
 
 /* ---------------------------------------------------------------- */
-/*
+/* This structure (i370_interrupt_state_t) stores just enough
+ * info to be able to take multiple nested interrupts, and move
+ * on.  The rest of the interrupt state gets stored on the stack.
+ * Per-thread state gets stored in the thread_struct and task_struct.
  */
-struct _i370_regs_s {
+typedef struct _i370_interrupt_state_s i370_interrupt_state_t;
+
+struct _i370_interrupt_state_s {
 	psw_t   	psw;	/* process status word */
 	irregs_t	irregs;	/* some of the GPR's */
 	cr0_t		cr0;	/* control register 0 */
 	cr1_t		cr1;	/* control register 1 */
+	i370_interrupt_state_t *oldregs;	/* backchain */
 
 /* XXX all wrong for 370 but we need something like this? */
 //	unsigned long orig_gpr3; /* Used for restarting system calls */
@@ -105,9 +111,14 @@ struct _i370_regs_s {
 //	unsigned long result;   /* Result of a system call */
 };
 
-typedef struct _i370_regs_s i370_regs_t;
 
-#define pt_regs _i370_regs_s
+#define pt_regs _i370_interrupt_state_s
+
+#define INIT_REGS { 			\
+	{0,0},	/* psw */ 		\
+	{0,0,0,0,0,0}, /* irregs */	\
+	0,0, /* cr */			\
+	0}
 
 /* ---------------------------------------------------------------- */
 

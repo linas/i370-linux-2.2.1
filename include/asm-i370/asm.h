@@ -26,7 +26,7 @@ extern inline void _set_SP (unsigned long newsp)
 /* Store Clock */
 extern inline unsigned long long _stck (void)
 {
-   unsigned long long tickee;
+   unsigned long long tickee __attribute__ ((aligned (8)));
    asm volatile ("STCK	%0" : "=m" (tickee) );
    return tickee;
 }
@@ -34,7 +34,7 @@ extern inline unsigned long long _stck (void)
 /* Store Clock Comparator */
 extern inline unsigned long long _stckc (void)
 {
-   unsigned long long tickee;
+   unsigned long long tickee __attribute__ ((aligned (8)));
    asm volatile ("STCKC	%0" : "=m" (tickee) );
    return tickee;
 }
@@ -42,7 +42,8 @@ extern inline unsigned long long _stckc (void)
 /* Set Clock Comparator */
 extern inline void _sckc (unsigned long long tickee)
 {
-   asm volatile ("SCKC	%0" : : "m" (tickee) );
+   unsigned long long tockee __attribute__ ((aligned (8))) = tickee;
+   asm volatile ("SCKC	%0" : : "m" (tockee) );
 }
 
 /* -------------------------------------------------------- */

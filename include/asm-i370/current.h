@@ -5,6 +5,6 @@
  * Put `current' in a well-known, convenient register ... r2.
 register struct task_struct *current asm ("r2");
  */
-struct task_struct *current;
+extern struct task_struct *current;
 
 #endif /* !(_I370_CURRENT_H) */

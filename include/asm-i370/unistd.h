@@ -428,14 +428,6 @@ type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
 #ifdef __KERNEL_SYSCALLS__
 
 /*
- * Forking from kernel space will result in the child getting a new,
- * empty kernel stack area.  Thus the child cannot access automatic
- * variables set in the parent unless they are in registers, and the
- * procedure where the fork was done cannot return to its caller in
- * the child.
- */
-
-/*
  * Create a new kernel thread.
  */
 extern long i370_kernel_thread(unsigned long, int (*)(void *), void *);

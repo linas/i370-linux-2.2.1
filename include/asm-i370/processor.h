@@ -46,6 +46,7 @@
 #define PSW_IO		(1<<25)		/* Input/Output Mask */
 #define	PSW_EXTERN	(1<<24)		/* External Mask */
 #define PSW_KEY(key)	((key&0xf)<<20)	/* PSW Protection Key */
+#define PSW_VALID	(1<<19)		/* Must be set to one always */
 #define PSW_MACH	(1<<18)		/* Machine Check Mask */
 #define PSW_WAIT	(1<<17)		/* Wait State */
 #define PSW_PROB	(1<<16)		/* Problem State (user Mode) */
@@ -56,7 +57,7 @@
 
 
 /* USER_PSW sets up flags for the user mode */
-#define EN_PSW		PSW_IO | PSW_EXTERN | PSW_MACH | PSW_WAIT
+#define EN_PSW		PSW_VALID | PSW_IO | PSW_EXTERN | PSW_MACH | PSW_WAIT
 #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB
 #define KERN_PSW	EN_PSW | PSW_KEY(3)
 
@@ -86,25 +87,33 @@ typedef struct {
 /* ??? Its not at all clear to me when things should go here, and when thry
  * should go into pt_regs ... 
  * for example, the control regs ... here or in pt_regs ??
+ * I think we need to inline pt_regs ...
  */
 struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer */
+	struct pt_regs *regs;		/* Pointer to saved register state */
+
+	/* XXX still not clear on the stuff below ... */
 	unsigned long	*pg_tables;	/* Base of page-table tree */
 	unsigned long	wchan;		/* Event task is sleeping on */
-	struct pt_regs	*regs;		/* Pointer to saved register state */
 	mm_segment_t	fs;		/* for get_fs() validation */
 	signed long     last_syscall;
 	double		fpr[4];		/* Complete floating point set */
 	unsigned long	smp_fork_ret;
 };
 
-#define INIT_SP		(sizeof(init_stack) + (unsigned long) &init_stack)
+/* the kernel stack starts immediately after the end of the task struct */
+#define init_task	(init_task_union.task)
+#define init_stack	((unsigned long) &(init_task_union.stack) \
+			+ (sizeof(init_task)))
+
+#define INIT_SP		init_stack
 
 #define INIT_TSS  { \
 	INIT_SP, /* ksp */ \
+	0, /* regs */ \
 	(unsigned long *) swapper_pg_dir, /* pg_tables */ \
 	0, /* wchan */ \
-	(struct pt_regs *)INIT_SP, /* regs */ \
 	KERNEL_DS, /*fs*/ \
 	0, /* last_syscall */ \
 	{0.0,0.0,0.0,0.0},  0 \
@@ -132,6 +141,8 @@ static inline unsigned long thread_saved_pc(struct thread_struct *t)
 
 /*
  * NOTE! The task struct and the stack go together
+ * alloc_task_struct is only invoked inside of do_fork() in 
+ * the arch-indy code.
  */
 #define alloc_task_struct() \
 	((struct task_struct *) __get_free_pages(GFP_KERNEL,1))
@@ -140,9 +151,6 @@ static inline unsigned long thread_saved_pc(struct thread_struct *t)
 /* in process.c - for early bootup debug -- Cort */
 int ll_printk(const char *, ...);
 void ll_puts(const char *);
-
-#define init_task	(init_task_union.task)
-#define init_stack	(init_task_union.stack)
 
 #endif /* endif ASSEMBLY*/
 

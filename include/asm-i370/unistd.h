@@ -201,15 +201,28 @@
 	return (__sc_err & 0x10000000 ? errno = __sc_ret, __sc_ret = -1 : 0), \
 	       (type) __sc_ret
 
+/* the register layout that gcc uses is kooky and needs fixing ... */
 #define __syscall_clobbers \
-	"r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
+	"r0", "r1", "r3", "r4", "r6", "r7", "r11", "r12", "r13", "r14", "r15"
 
-/* XXX NOOP FIXME */
-/* use SVC, what should the interruption code be ?? */
+/* XXX THIS IS ALL WRONG FIXME */
 #define _syscall0(type,name)						\
 type name(void)								\
 {									\
 	unsigned long __sc_ret, __sc_err;				\
+	{								\
+		register unsigned long __sc_0 __asm__ ("r0");		\
+		register unsigned long __sc_15 __asm__ ("r15");		\
+									\
+		__sc_0 = __NR_##name;					\
+		__asm__ __volatile__					\
+			("	SVC	0\n"				\
+			: "=&r" (__sc_15), "=&r" (__sc_0)		\
+			: "0"   (__sc_15), "1"   (__sc_0)		\
+			: __syscall_clobbers);				\
+		__sc_ret = __sc_15;					\
+		__sc_err = __sc_0;					\
+	}								\
 	__syscall_return (type);					\
 }
 

@@ -1,0 +1,22 @@
+
+
+
+
+	Support for Virtual Machine Environments
+	--------------------------------------------------------------
+
+	
+	Addition of a file `vmdiag.h´ containing definitions for diagnose 
+	op-codes. Simple applications.
+
+
+	Pre-requisite: ptr006 (for EBCDIC translation)
+
+	Files
+	-----
+
+	New:	include/asm-i370/vmdiag.h
+	Changed:Documentation/Configure.help
+		arch/i370/config.in
+		arch/i370/kernel/setup.c
+		arch/i370/kernel/mm.c

@@ -32,5 +32,4 @@ EXPORT_SYMBOL(strlen);
 EXPORT_SYMBOL(strcmp);   
 EXPORT_SYMBOL(memset);
 
-EXPORT_SYMBOL(__copy_tofrom_user);
 

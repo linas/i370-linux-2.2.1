@@ -275,6 +275,7 @@ struct thread_struct {
 	cr0_t		cr0;		/* control register 0               */
 	cr1_t		cr1;		/* control register 1               */
 	double		fpr[16];	/* Complete floating point set      */
+	int		in_slih;	/* set if we are in bottom half     */
 
 	/* XXX what the stuff below???? why do we needed it ??? see PowerPC */
 	unsigned long	wchan;		/* Event task is sleeping on        */
@@ -300,6 +301,7 @@ struct thread_struct {
 	 0.0, 0.0, 0.0, 0.0,   /* FPR's */ 			\
 	 0.0, 0.0, 0.0, 0.0,   /* FPR's */ 			\
 	 0.0, 0.0, 0.0, 0.0,}, /* FPR's */ 			\
+	0, /* in_slih */ 					\
 					\
 	0, /* wchan */ 						\
 	KERNEL_DS, /*fs*/ 					\

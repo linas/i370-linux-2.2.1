@@ -45,7 +45,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
    num_physpages = max_mapnr;      /* RAM is assumed contiguous */
 
    /* mark the first page RO since all vectors have been set up by now */
-   _sske (0x0, KTEXT_STORAGE_KEY);
+   _sske (KTEXT_STORAGE_KEY, 0x0);
 
    for (addr = 0x0; addr < end_mem; addr += PAGE_SIZE) 
    {
@@ -55,29 +55,29 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
          set_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);                
          if (addr < (ulong) _text)
          {
-            _sske (addr, KTEXT_STORAGE_KEY);
+            _sske (KTEXT_STORAGE_KEY, addr);
             lowpages++;
          }
          else if (addr < (ulong) _etext)
          {
-            _sske (addr, KTEXT_STORAGE_KEY);
+            _sske (KTEXT_STORAGE_KEY, addr);
             codepages++;
          }
          else if (addr >= (ulong) __init_text_begin
                && addr < (ulong) __init_text_end)
          {
-            _sske (addr, KTEXT_STORAGE_KEY);
+            _sske (KTEXT_STORAGE_KEY, addr);
             initpages++;
          }
          else if (addr >= (ulong) __init_data_begin
                && addr < (ulong) __init_data_end)
          {
-            _sske (addr, KDATA_STORAGE_KEY);
+            _sske (KDATA_STORAGE_KEY, addr);
             initpages++;
          }
          else 
          {
-            _sske (addr, KDATA_STORAGE_KEY);
+            _sske (KDATA_STORAGE_KEY, addr);
             datapages++;
          }
       } else {
@@ -90,6 +90,8 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
               addr < (initrd_start & PAGE_MASK) || addr >= initrd_end)
 #endif /* CONFIG_BLK_DEV_INITRD */
           free_page(addr);
+
+          _sske (KDATA_STORAGE_KEY, addr);
       }
    }
 

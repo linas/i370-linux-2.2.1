@@ -215,9 +215,6 @@ extern int errno;
 	if (0 > __sc_ret) { errno = -__sc_ret; __sc_ret = -1; } \
 	return ((type) __sc_ret)
 
-#define __syscall_clobbers \
-	"r1", "r5", "r6", "r7", "r8", "r9", "r15"
-
 #define _syscall0(type,name)						\
 type name(void)								\
 {									\
@@ -231,7 +228,7 @@ type name(void)								\
 			("	SVC	0\n"				\
 			: "=&r" (__reg_15), "=&r" (__reg_1)		\
 			: "0"   (__reg_15), "1"   (__reg_1)		\
-			: __syscall_clobbers);				\
+			: "r1", "r15");		 			\
 		__sc_ret = __reg_15;					\
 	}								\
 	__syscall_return (type);					\
@@ -251,8 +248,9 @@ type name(type1 arg1)							\
 		__asm__ __volatile__					\
 			("	SVC	0\n"				\
 			: "=&r" (__reg_15), "=&r" (__reg_1)		\
-			: "0"   (__reg_15), "1"   (__reg_1)		\
-			: __syscall_clobbers);				\
+			: "0"   (__reg_15), "1"   (__reg_1),		\
+                          "r"   (__reg_5)				\
+			: "r1","r5","r15");				\
 		__sc_ret = __reg_15;					\
 	}								\
 	__syscall_return (type);					\
@@ -274,8 +272,9 @@ type name(type1 arg1, type2 arg2)					\
 		__asm__ __volatile__					\
 			("	SVC	0\n"				\
 			: "=&r" (__reg_15), "=&r" (__reg_1)		\
-			: "0"   (__reg_15), "1"   (__reg_1)		\
-			: __syscall_clobbers);				\
+			: "0"   (__reg_15), "1"   (__reg_1),		\
+                          "r"   (__reg_5),  "r"   (__reg_6)		\
+			: "r1","r5","r6","r15");			\
 		__sc_ret = __reg_15;					\
 	}								\
 	__syscall_return (type);					\
@@ -299,8 +298,10 @@ type name(type1 arg1, type2 arg2, type3 arg3)				\
 		__asm__ __volatile__					\
 			("	SVC	0\n"				\
 			: "=&r" (__reg_15), "=&r" (__reg_1)		\
-			: "0"   (__reg_15), "1"   (__reg_1)		\
-			: __syscall_clobbers);				\
+			: "0"   (__reg_15), "1"   (__reg_1),		\
+                          "r"   (__reg_5),  "r"   (__reg_6),		\
+                          "r"   (__reg_7)				\
+			: "r1","r5","r6","r7","r15");			\
 		__sc_ret = __reg_15;					\
 	}								\
 	__syscall_return (type);					\
@@ -326,8 +327,10 @@ type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4)		\
 		__asm__ __volatile__					\
 			("	SVC	0\n"				\
 			: "=&r" (__reg_15), "=&r" (__reg_1)		\
-			: "0"   (__reg_15), "1"   (__reg_1)		\
-			: __syscall_clobbers);				\
+			: "0"   (__reg_15), "1"   (__reg_1),		\
+                          "r"   (__reg_5),  "r"   (__reg_6),		\
+                          "r"   (__reg_7),  "r"   (__reg_8)		\
+			: "r1","r5","r6","r7","r8","r15");		\
 		__sc_ret = __reg_15;					\
 	}								\
 	__syscall_return (type);					\
@@ -355,8 +358,11 @@ type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
 		__asm__ __volatile__					\
 			("	SVC	0\n"				\
 			: "=&r" (__reg_15), "=&r" (__reg_1)		\
-			: "0"   (__reg_15), "1"   (__reg_1)		\
-			: __syscall_clobbers);				\
+			: "0"   (__reg_15), "1"   (__reg_1),		\
+                          "r"   (__reg_5),  "r"   (__reg_6),		\
+                          "r"   (__reg_7),  "r"   (__reg_8),		\
+                          "r"   (__reg_9)				\
+			: "r1","r5","r6","r7","r8","r9","r15");		\
 		__sc_ret = __reg_15;					\
 	}								\
 	__syscall_return (type);					\

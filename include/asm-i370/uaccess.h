@@ -216,8 +216,8 @@ do {								\
 
 #define __get_user_size(x,ptr,size,retval)			\
 do {								\
-	if (__copy_from_user (&x, ptr, size)) {			\
-		(x) = __get_user_bad();				\
+	if (__copy_from_user (&(x), ptr, size)) {		\
+		(x) = 0;					\
 	} else {						\
 		retval = 0;					\
 	}							\

@@ -8,6 +8,7 @@
 #include <linux/fs.h>
 #include <linux/major.h>
 #include <asm/iorb.h>
+#define  _PACK __attribute__ ((packed))
 
 /*
  *	Define Unit Control Block
@@ -34,7 +35,7 @@ typedef struct _unitblk {
 	unsigned char   unitflg2;	/* Flag byte */
 	unsigned char   unitid;		/* Unit ID */
 	unsigned char   unitstat;	/* Device Status */
-    u16          unitdtyp;      /* Device type from RDC */
+	unsigned short  unitdtyp _PACK;	/* Device type from RDC */
 	unsigned short  unitdev;	/* Device Number */
 	unsigned char   unitmodl;	/* Device Model from RDC */
 	unsigned char   unitclas;	/* Device Class code from RDC */
@@ -54,9 +55,9 @@ typedef struct _unitblk {
 typedef	struct _idchar
 {
 	unsigned char	idctrl;	/* Function control byte */
-    u16            idcuid;      /* Control unit ID */
+	unsigned short	idcuid _PACK;	/* Control unit ID */
 	unsigned char	idcumdl;	/* Control unit model */
-    u16            iddevid;     /* Device ID */
+	unsigned short	iddevid _PACK;	/* Device ID */
 	unsigned char	iddevmdl;	/* Device Model */
 	unsigned char	idxxxx;		/* Unused */
 	unsigned char	idextid;	/* Extended ID entry type */
@@ -77,7 +78,7 @@ typedef	struct _idchar
 typedef	struct _devchar {
 	unsigned short	devcutyp;	/* Control Unit Type */
 	unsigned char   devcumod;	/* Control Unit Model */
-    u16          devtype;       /* Device type */
+	unsigned short	devtype _PACK;	/* Device type */
 	unsigned char	devmodel;	/* Device Model */
 	unsigned char	devfeat[3];	/* Reserved */
 	unsigned char   devsubfe;	/* Subsystem Features */
@@ -87,7 +88,7 @@ typedef	struct _devchar {
 	short 		devtrk;		/* number of tracks/cylinder */
 	unsigned char	devsect;        /* number of sectors */
 	unsigned char	devtrkln[3];	/* Total usable track length */
-    u16          devhar0;       /* Length for HA and R0 */
+	unsigned short	devhar0 _PACK;	/* Length for HA and R0 */
 	unsigned char	devmode;	/* Track Capacity Mode */
 	unsigned char	devmodr;	/* Track Capacity Mode changed */
 	short		devnkey;	/* Non-Keyed Record Overhead */
@@ -103,6 +104,7 @@ typedef	struct _devchar {
 	unsigned char	devcuid;	/* Control Unit Id */
 	unsigned char	fill[21];	/* Rest of RDC block */
 	unsigned char   devvol[6];      /* add volume id */
+	unsigned char   devvtype[4];    /* Volume type */
 	unsigned char   fill1[2];       /* fill to boundary */
 } devchar_t;
 
@@ -112,7 +114,7 @@ typedef	struct _devchar {
 typedef struct {
     unsigned short int cuid;   /* Control unit ID (idcuid)    */
 	unsigned char	model;		/* Control unit model		*/
-    u16           dev;         /* Device ID (iddevid)         */
+	unsigned short	dev _PACK;     /* Device ID (iddevid)         */
 	int      	i_s390dev;	/* Index into s390dev table	*/
 } S390map_t;
 
@@ -164,4 +166,5 @@ typedef struct {
 
 #define MOSAD 0xe0
 #define MCTCA 0x66
+#undef  _PACK
 #endif /* I370_UNITB_H_ */

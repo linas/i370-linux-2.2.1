@@ -178,7 +178,7 @@ typedef struct
 {
 	short int iucv_path;        /* IUCV path identifier          */
 	unsigned long iucv_uword;   /* User word                     */
-	void  *iucv_buffer;         /* Pointer to the IUCV DCLBFR    */
+	void  *iucv_buffer;         /* Pointer to the IUCV IPARML    */
 } iucv_path;
 
 /*------------------------------------------------------------*/

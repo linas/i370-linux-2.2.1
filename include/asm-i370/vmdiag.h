@@ -221,8 +221,9 @@ int    VM_Diagnose_Code_64(const enum VM_DIAGNOSE_64_FUNCTION  subfunction,
     __asm__ __volatile__(
            " .set _i370_implied_op,%5;
              .set _i370_implied_op,%6;
-             MVC  %O1(8,%R1),%2;
-             TR   %O1(8,%R1),%3;
+             L    %0,%2;
+             MVC  %O1(8,%R1),0(%0);
+             TR   %O1(8,%R1),0(%3);
              .short 0x8310;.short 0x0064
              IPM  %0;
              SRL  %0,26;

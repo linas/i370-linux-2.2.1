@@ -87,3 +87,11 @@ asmlinkage int sys_idle(void)
 	return 0; /* should never execute this but it makes gcc happy -- Cort */
 }
 
+/*
+ * Returns a pre-zero'd page from the list otherwise returns
+ * NULL.
+ */
+unsigned long get_zero_page_fast(void)
+{
+return 0; /* XXX */
+}

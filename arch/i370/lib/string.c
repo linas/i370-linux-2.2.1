@@ -5,6 +5,22 @@
 
 typedef int size_t;
 
+int memcmp(const void *vs1, const void *vs2, size_t n) 
+{
+   int i=0;
+   char * s1 = (char *) vs1;
+   char * s2 = (char *) vs2;
+
+   while ((s1[i] == s2[i]) && (i<n)) i++;
+
+   if (i == n) return 0;
+   if (s1[i] != s2[i]) {
+       return (s1[i] < s2[i]) ? 1 : -1 ;
+   } 
+   return 0;
+}
+
+
 void* memcpy (void *dest, const void *src, size_t n)
 {
    int i=0;
@@ -75,4 +91,7 @@ __copy_tofrom_user (char * to, char * from, int len)
   return 0;
 }
 int __strncpy_from_user(char *dst, const char *src, long count)
+{ return 0; }
+
+ unsigned long __clear_user(void *addr, unsigned long size)
 { return 0; }

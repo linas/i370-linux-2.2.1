@@ -1,9 +1,13 @@
 
 #include <linux/init.h>
+#include <linux/kernel.h>
+#include <linux/sched.h>
 
 #include <asm/atomic.h>
+#include <asm/pgtable.h>
 
 atomic_t next_mmu_context; 
+struct pgtable_cache_struct quicklists;
 
 __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 {
@@ -105,5 +109,87 @@ local_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
         else
                 flush_hash_page(0, vmaddr);
 #endif
+}
+
+/*
+ * for each page addr in the range, call MMU_invalidate_page()
+ * if the range is very large and the hash table is small it might be
+ * faster to do a search of the hash table and just invalidate pages
+ * that are in the range but that's for study later.
+ * -- Cort
+ */
+void
+local_flush_tlb_range(struct mm_struct *mm, unsigned long start, unsigned
+long end)
+{
+#if 0
+        start &= PAGE_MASK;
+
+        if (end - start > 20 * PAGE_SIZE)
+        {
+                flush_tlb_mm(mm);
+                return;
+        }
+
+        for (; start < end && start < TASK_SIZE; start += PAGE_SIZE)
+        {
+                flush_hash_page(mm->context, start);
+        }
+#endif
+}
+
+int do_check_pgt_cache(int low, int high)
+{
+  return 0;
+}
+
+/*
+ * Flush a particular page from the DATA cache
+ * Note: this is necessary because the instruction cache does *not*
+ * snoop from the data cache.
+ *
+ *      void flush_page_to_ram(void *page)
+ */
+void flush_page_to_ram(unsigned long page) {}
+
+
+void __bad_pte(pmd_t *pmd)
+{
+//        printk("Bad pmd in pte_alloc: %08lx\n", pmd_val(*pmd));
+//         pmd_val(*pmd) = (unsigned long) BAD_PAGETABLE;
+}
+
+pte_t *get_pte_slow(pmd_t *pmd, unsigned long offset)
+{
+return 0x0;
+}
+
+/*
+ * BAD_PAGE is the page that is used for page faults when linux
+ * is out-of-memory. Older versions of linux just did a
+ * do_exit(), but using this instead means there is less risk
+ * for a process dying in kernel mode, possibly leaving a inode
+ * unused etc..
+ *
+ * BAD_PAGETABLE is the accompanying page-table: it is initialized
+ * to point to BAD_PAGE entries.
+ *
+ * ZERO_PAGE is a special page that is used for zero-initialized
+ * data and COW.
+ */
+unsigned long empty_bad_page_table;
+
+pte_t * __bad_pagetable(void)
+{
+        __clear_user((void *)empty_bad_page_table, PAGE_SIZE);
+        return (pte_t *) empty_bad_page_table;
+}
+
+unsigned long empty_bad_page;
+
+pte_t __bad_page(void)
+{
+//        __clear_user((void *)empty_bad_page, PAGE_SIZE);
+//        return pte_mkdirty(mk_pte(empty_bad_page, PAGE_SHARED));
 }
 

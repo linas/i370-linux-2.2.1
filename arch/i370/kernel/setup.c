@@ -78,10 +78,9 @@ __initfunc(void setup_arch(char **cmdline_p,
 	/* reboot on panic */	
 	panic_timeout = 180;
 	
-__asm__ __volatile__ ("
-	STIDP	%0"
-	: "=m" (CPUID) :
-	: "memory");
+	__asm__ __volatile__ ("
+		STIDP	%0"
+		: "=m" (CPUID) );
  
 	init_task.mm->start_code = PAGE_OFFSET;
 	init_task.mm->end_code = (unsigned long) _etext;
@@ -110,7 +109,7 @@ __asm__ __volatile__ ("
 
 	/* hard-code an initrd into the system */
 	initrd_start  =  0x200000;  // 2M
-	initrd_end    =  0x400000;  // 4M
+	initrd_end    =  0x500000;  // 5M
 
 	/* init_task ksp hasn't been set & its bogus; set it */
 	ksp = init_stack;

@@ -1,7 +1,7 @@
 #include <linux/config.h>
 /* 
  * Page Table mamangement stuff for the ESA/390.  
- * XXX under constructions, some things here might be very wrong ...
+ * XXX under constructions, some things need fixin
  */
 
 #ifndef _I370_PGTABLE_H
@@ -134,6 +134,12 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
  * Also, write permissions imply read permissions.
  * If we go fancy, maybe we can do better but this will hold for now.
  * P macros imply copy-on-write, S macros for shared access
+ *
+ * XXX Some future data, we should consider using sske to 
+ * mark pages exectable.  Thus data segments would get loaded
+ * with a data storage key, text segments with a different key (?)
+ * This would give nice security protection against buffer overrun 
+ * stack-smashing attacks.
  */
 #define __P000	PAGE_NONE
 #define __P001	PAGE_READONLY
@@ -179,7 +185,9 @@ extern unsigned long empty_zero_page[1024];
 /* sizeof(void*) == 1<<SIZEOF_PTR_LOG2 */
 #define SIZEOF_PTR_LOG2	2
 
-/* to set the page-dir */
+#ifndef __ASSEMBLY__
+
+/* SET_PAGE_DIR is used to set the segment table orign and length */
 /* tsk is a task_struct and pgdir is a pgd_t* */
 #define SET_PAGE_DIR(tsk,pgdir)  { 				\
 	(tsk)->tss.pg_tables = (unsigned long *)(pgdir);	\
@@ -189,11 +197,14 @@ extern unsigned long empty_zero_page[1024];
 	_lctl_r1 ((tsk)->tss.regs->cr1.raw);			\
 }
      
-#ifndef __ASSEMBLY__
 
-/* Unused pte's must have the invalid bit set ...  */
+/* Unused pte's must have the invalid bit set ...  
+ * Cleared PTE's must be marked invlaid, and have zeros in all other bit
+ * positions.  This distinguishes them from swaped-out pte's, which don't 
+ * contain 'true' ptes, but instead contain swapfile info.
+ */
 extern inline int 
-	pte_none(pte_t pte)	{ return (pte_val(pte) & _PAGE_INVALID); }
+	pte_none(pte_t pte)	{ return !((pte_val(pte) & ~(_PAGE_INVVALID |_PAGE_RO))); }
 extern inline int 
 	pte_present(pte_t pte)	{ return !((pte_val(pte) & _PAGE_INVALID)); }
 extern inline void 
@@ -271,8 +282,20 @@ extern inline pte_t
  * For the ESA/390, I think we're supposed to set/reset the
  * reference & change bits in the key storage at this time ...
  * XXX right ?? implement this ... 
+ *
+ * Note that the swapping code might call set_pte with an argument
+ * of zero, in which case we need to set teh invalid bit.
+ * (grep for set_pte (__pte(0));
  */
-#define set_pte(pteptr, pteval)	((*(pteptr)) = (pteval))
+extern inline void 
+set_pte (pte_t * pteptr, pte_t pteval)	 
+{
+	if (pteval) { 
+		((*(pteptr)) = (pteval));
+	} else {
+		pte_clear (pteptr));
+	}
+}
 
 /*
  * Conversion functions: convert a page and protection to a page entry,
@@ -459,29 +482,30 @@ printk ("find_pte got pmd for va=%lx pte=%p\n", va, pte);
 }
 
 /*
- * XXX is this correct ???
- * Page tables may have changed.  We don't need to do anything here
- * as entries are faulted into the hash table by the low-level
- * data/instruction access exception handlers.
+ * The ESA/390 architecture has no external MMU that needs to be updated
  */
 #define update_mmu_cache(vma, addr, pte)	do { } while (0)
 
 
-/* XXX what's this ??? */
-#define SWP_TYPE(entry) (((entry) >> 1) & 0x7f)
-#define SWP_OFFSET(entry) ((entry) >> 8)
-#define SWP_ENTRY(type,offset) (((type) << 1) | ((offset) << 8))
+/* Page table entries that have been swapped out need to be marked invalid.
+ * The other bits in the entry are used to store the swap location.
+ * We'll have a 20-bit offset, which in practical terms means that
+ * the max effective swapfile size is 2^20 pages = 4GBytes.
+ * See for example try_to_swap_out() -> get_swap_page()
+ *
+ * Note that this scheme misidentifies swapfile 0, offset 0 as a 
+ * non-existant pte (pte_none()==true).  
+ */
+
+#define SWP_TYPE(entry) ((entry) & 0xff)
+#define SWP_OFFSET(entry) ((entry) >> 12)
+#define SWP_ENTRY(type,offset) (((offset) << 12) | _PAGE_INVALID | _PAGE_RO | (type))
 
 #define module_map      vmalloc
 #define module_unmap    vfree
 
 /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
 #define PageSkip(page)		(0)
-
-#if 0
-/* XXX junk delete me */
-#define kern_addr_valid(addr)	(1)
-#endif
 
 #endif __ASSEMBLY__
 #endif /* _I370_PGTABLE_H */

@@ -223,7 +223,8 @@ console_write_3270(struct console *c, const char *s,
 	long	rc;
 	long	i;
 	long	flags;
-	ccw_t   ioccw[2];
+	int     lign_ccw[5];
+	ccw_t   *ioccw;
 	orb_t   orb;
 	irb_t   irb;
 	prt_lne_t	*lastline;
@@ -231,6 +232,9 @@ console_write_3270(struct console *c, const char *s,
 	if (!(cons_init)) {
 		return;
 	}
+
+        /* double-word align the ccw array */
+        ioccw = (ccw_t *) ((((unsigned long) lign_ccw) >>3) << 3);
 
 //	flags = cli();	/* reset interrupts */
 	spin_lock_irqsave(NULL,flags);
@@ -330,13 +334,17 @@ console_write_3210(struct console *c, const char *s,
 	long	rc;
 	long	i;
 	long	flags;
-	ccw_t	ioccw[2];
+        int     lign_ccw[5];
+	ccw_t	*ioccw;
 	orb_t	orb;
 	irb_t	irb;
  
 	if (!(cons_init)) {
 		return;
 	}
+
+        /* double-word align the ccw array */
+        ioccw = (ccw_t *) ((((unsigned long) &lign_ccw[0]) >>3) << 3);
  
 //	flags = cli();	/* reset interrupts */
 	spin_lock_irqsave(NULL,flags);

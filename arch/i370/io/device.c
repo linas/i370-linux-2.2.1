@@ -1,30 +1,30 @@
 /************************************************************/
-/*                                                       */
+/*                                                          */
 /* Module ID  - device.                                     */
-/*                                                       */
+/*                                                          */
 /* Function   - Initialize device support for the system.   */
-/*                                                       */
-/* Parameters - N/A.                                   */
-/*                                                       */
+/*                                                          */
+/* Parameters - N/A.                                        */
+/*                                                          */
 /* Called By  - Kernel.                                     */
-/*                                                       */
+/*                                                          */
 /* Notes      - (1) ....................................... */
-/*                                                       */
-/*           (2) ....................................... */
-/*                                                       */
+/*                                                          */
+/*              (2) ....................................... */
+/*                                                          */
 /* Name       - Neale Ferguson.                             */
-/* Date       - August, 1999.                         */
-/*                                                       */
+/* Date       - August, 1999.                               */
+/*                                                          */
 /* Associated    - (1) Refer To ........................... */
-/* Documentation                                           */
-/*              (2) Refer To ........................... */
-/*                                                       */
+/* Documentation                                            */
+/*                 (2) Refer To ........................... */
+/*                                                          */
 /************************************************************/
 /************************************************************/
-/*                                                       */
-/*                    DEFINES                      */
-/*                    -------                      */
-/*                                                       */
+/*                                                          */
+/*                       DEFINES                            */
+/*                       -------                            */
+/*                                                          */
 /************************************************************/
 
 #define ON     1
@@ -34,10 +34,10 @@
 /*=============== End of Defines ===========================*/
 
 /************************************************************/
-/*                                                       */
-/*             INCLUDE STATEMENTS                      */
-/*             ------------------                      */
-/*                                                       */
+/*                                                          */
+/*                INCLUDE STATEMENTS                        */
+/*                ------------------                        */
+/*                                                          */
 /************************************************************/
 
 #include <linux/init.h>
@@ -54,10 +54,10 @@
 #include <asm/unitblk.h>
 
 /************************************************************/
-/*							  */
-/*	       FUNCTION PROTOTYPES			*/
-/*	       -------------------			*/
-/*							  */
+/*							    */
+/*	         FUNCTION PROTOTYPES	                    */
+/*	         -------------------	                    */
+/*							    */
 /************************************************************/
 
 static int i370_doio(int, schib_t *, ccw_t *);
@@ -227,7 +227,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	sid++;
 	}
 	devices += 10;
-	*memory_start = devices; /* return new memory_start */
+	*memory_start = (unsigned long) devices; /* return new memory_start */
 
 	return;
 }
@@ -321,8 +321,12 @@ static int
 i370_getsid(int sid, schib_t *schib, idchar_t *id)
 {
 	int     rc;
-	ccw_t	ioccw[2];
+	int     lign_ccw[5];
+	ccw_t	*ioccw;
  
+        /* double-word align the ccw's */
+        ioccw = (ccw_t *) ((((unsigned long) &lign_ccw[0]) >>3) << 3);
+
 	/*
 	 *	Build CCWS for Sense ID
 	 */
@@ -356,7 +360,11 @@ int
 i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
 {
 	int     rc;
-	ccw_t	ioccw[2];
+	int     lign_ccw[5];
+	ccw_t	*ioccw;
+ 
+        /* double-word align the ccw's */
+        ioccw = (ccw_t *) ((((unsigned long) &lign_ccw[0]) >>3) << 3);
  
 	/*
 	 *	Build CCWS for Read Device Characteristics.
@@ -392,12 +400,16 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 {
 	int     rc;
 
-	ccw_t	ioccw[3];	/* DE, LOCR, READ DATA */
 	orb_t	orb;
 	irb_t	irb;
 	de_t	debuf;		/* Define Extent Structure */
 	locr_t	locbuf;		/* Locate Record Structure */
 	char 	label[12];
+	int     lign_ccw[7];
+	ccw_t	*ioccw;	        /* DE, LOCR, READ DATA */
+ 
+        /* double-word align the ccw's */
+        ioccw = (ccw_t *) ((((unsigned long) &lign_ccw[0]) >>3) << 3);
 
 	/* 
 	 *	Build CCWS to Read DASD Volume Label. Start with 

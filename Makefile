@@ -99,7 +99,7 @@ endif
 # size in blocks.
 #
 
-#RAMDISK = -DRAMDISK=512
+RAMDISK = -DRAMDISK=512
 
 # Include the make variables (CC, etc...)
 #

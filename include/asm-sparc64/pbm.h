@@ -1,4 +1,4 @@
-/* $Id: pbm.h,v 1.1 1999/02/08 06:19:10 linas Exp $
+/* $Id: pbm.h,v 1.1.1.1 1999/02/08 06:19:10 linas Exp $
  * pbm.h: U2P PCI bus module pseudo driver software state.
  *
  * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)

@@ -1,4 +1,4 @@
-/* $Id: floppy.h,v 1.1 1999/02/08 06:18:52 linas Exp $
+/* $Id: floppy.h,v 1.1.1.1 1999/02/08 06:18:52 linas Exp $
  *
  * Architecture specific parts of the Floppy driver
  *

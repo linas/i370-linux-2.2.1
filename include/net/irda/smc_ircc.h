@@ -1,5 +1,5 @@
 #if 0
-static char *rcsid = "$Id: smc_ircc.h,v 1.1 1999/02/08 06:19:05 linas Exp $";
+static char *rcsid = "$Id: smc_ircc.h,v 1.1.1.1 1999/02/08 06:19:05 linas Exp $";
 #endif
 
 #ifndef SMC_IRCC_H

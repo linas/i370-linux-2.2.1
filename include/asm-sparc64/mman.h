@@ -1,4 +1,4 @@
-/* $Id: mman.h,v 1.1 1999/02/08 06:19:08 linas Exp $ */
+/* $Id: mman.h,v 1.1.1.1 1999/02/08 06:19:08 linas Exp $ */
 #ifndef __SPARC64_MMAN_H__
 #define __SPARC64_MMAN_H__
 

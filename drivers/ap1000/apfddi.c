@@ -6,7 +6,7 @@
    * Public License version 2 or later
   */
 /*
- * $Id: apfddi.c,v 1.1 1999/02/08 06:20:53 linas Exp $
+ * $Id: apfddi.c,v 1.1.1.1 1999/02/08 06:20:53 linas Exp $
  *
  * Network interface definitions for AP1000 fddi device.
  */

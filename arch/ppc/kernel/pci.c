@@ -1,5 +1,5 @@
 /*
- * $Id: pci.c,v 1.1 1999/02/08 06:21:25 linas Exp $
+ * $Id: pci.c,v 1.1.1.1 1999/02/08 06:21:25 linas Exp $
  * Common pmac/prep/chrp pci routines. -- Cort
  */
 

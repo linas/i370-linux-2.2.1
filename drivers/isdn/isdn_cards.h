@@ -1,4 +1,4 @@
-/* $Id: isdn_cards.h,v 1.1 1999/02/08 06:20:38 linas Exp $
+/* $Id: isdn_cards.h,v 1.1.1.1 1999/02/08 06:20:38 linas Exp $
 
  * Linux ISDN subsystem, initialization for non-modularized drivers.
  *
@@ -19,8 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: isdn_cards.h,v $
- * Revision 1.1  1999/02/08 06:20:38  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:38  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1997/02/03 23:31:55  fritz
  * Reformatted according CodingStyle

@@ -3,7 +3,7 @@
  *
  * Copyright (C) 1996 David S. Miller (dm@engr.sgi.com)
  *
- * $Id: sgiseeq.c,v 1.1 1999/02/08 06:19:46 linas Exp $
+ * $Id: sgiseeq.c,v 1.1.1.1 1999/02/08 06:19:46 linas Exp $
  */
 
 #include <linux/kernel.h>

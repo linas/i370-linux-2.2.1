@@ -1,4 +1,4 @@
-/* $Id: bitops.h,v 1.1 1999/02/08 06:18:58 linas Exp $
+/* $Id: bitops.h,v 1.1.1.1 1999/02/08 06:18:58 linas Exp $
  * bitops.h: Bit string operations on the Sparc.
  *
  * Copyright 1995 David S. Miller (davem@caip.rutgers.edu)

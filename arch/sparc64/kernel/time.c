@@ -1,4 +1,4 @@
-/* $Id: time.c,v 1.1 1999/02/08 06:21:35 linas Exp $
+/* $Id: time.c,v 1.1.1.1 1999/02/08 06:21:35 linas Exp $
  * time.c: UltraSparc timer and TOD clock support.
  *
  * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)

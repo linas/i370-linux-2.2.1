@@ -1,13 +1,13 @@
 /*
- * $Id: capidev.h,v 1.1 1999/02/08 06:20:44 linas Exp $
+ * $Id: capidev.h,v 1.1.1.1 1999/02/08 06:20:44 linas Exp $
  *
  * CAPI 2.0 Interface for Linux
  *
  * (c) Copyright 1996 by Carsten Paeth (calle@calle.in-berlin.de)
  *
  * $Log: capidev.h,v $
- * Revision 1.1  1999/02/08 06:20:44  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:44  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.1  1997/03/04 21:50:30  calle
  * Frirst version in isdn4linux

@@ -7,7 +7,7 @@
  *		PROC file system.  This is very similar to the IPv4 version,
  *		except it reports the sockets in the INET6 address family.
  *
- * Version:	$Id: proc.c,v 1.1 1999/02/08 06:19:27 linas Exp $
+ * Version:	$Id: proc.c,v 1.1.1.1 1999/02/08 06:19:27 linas Exp $
  *
  * Authors:	David S. Miller (davem@caip.rutgers.edu)
  *

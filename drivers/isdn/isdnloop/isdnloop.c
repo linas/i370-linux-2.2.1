@@ -1,4 +1,4 @@
-/* $Id: isdnloop.c,v 1.1 1999/02/08 06:20:50 linas Exp $
+/* $Id: isdnloop.c,v 1.1.1.1 1999/02/08 06:20:50 linas Exp $
 
  * ISDN low-level module implementing a dummy loop driver.
  *
@@ -19,8 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: isdnloop.c,v $
- * Revision 1.1  1999/02/08 06:20:50  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:50  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.4  1998/02/24 21:39:05  he
  * L2_PROT_X25DTE / DCE
@@ -45,7 +45,7 @@
 #include "isdnloop.h"
 
 static char
-*revision = "$Revision: 1.1 $";
+*revision = "$Revision: 1.1.1.1 $";
 
 static int isdnloop_addcard(char *);
 

@@ -1,10 +1,10 @@
-/* $Id: l3_1tr6.h,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: l3_1tr6.h,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
  *
  *  German 1TR6 D-channel protocol defines
  *
  * $Log: l3_1tr6.h,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.0  1997/07/27 21:15:47  keil
  * New Callref based layer3

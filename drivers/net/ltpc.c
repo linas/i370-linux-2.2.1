@@ -62,8 +62,8 @@
 /***
  *
  * $Log: ltpc.c,v $
- * Revision 1.1  1999/02/08 06:19:45  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:19:45  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.8  1997/01/28 05:44:54  bradford
  * Clean up for non-module a little.

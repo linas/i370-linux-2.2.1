@@ -1,4 +1,4 @@
-/* $Id: socket.c,v 1.1 1999/02/08 06:21:37 linas Exp $
+/* $Id: socket.c,v 1.1.1.1 1999/02/08 06:21:37 linas Exp $
  * socket.c: Socket syscall emulation for Solaris 2.6+
  *
  * Copyright (C) 1998 Jakub Jelinek (jj@ultra.linux.cz)

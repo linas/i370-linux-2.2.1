@@ -1,4 +1,4 @@
-/* $Id: ptifddi.h,v 1.1 1999/02/08 06:19:46 linas Exp $
+/* $Id: ptifddi.h,v 1.1.1.1 1999/02/08 06:19:46 linas Exp $
  * ptifddi.c: Defines for Performance Technologies FDDI sbus cards.
  *
  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)

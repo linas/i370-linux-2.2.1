@@ -1,4 +1,4 @@
-/* $Id: ebus.h,v 1.1 1999/02/08 06:19:01 linas Exp $
+/* $Id: ebus.h,v 1.1.1.1 1999/02/08 06:19:01 linas Exp $
  * ebus.h: PCI to Ebus pseudo driver software state.
  *
  * Copyright (C) 1997 Eddie C. Dost (ecd@skynet.be) 

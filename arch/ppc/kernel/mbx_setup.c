@@ -1,5 +1,5 @@
 /*
- * $Id: mbx_setup.c,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: mbx_setup.c,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  *
  *  linux/arch/ppc/kernel/setup.c
  *

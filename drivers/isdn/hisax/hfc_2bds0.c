@@ -1,4 +1,4 @@
-/* $Id: hfc_2bds0.c,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: hfc_2bds0.c,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
  *
  *  specific routines for CCD's HFC 2BDS0
  *
@@ -6,8 +6,8 @@
  *
  *
  * $Log: hfc_2bds0.c,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.3  1998/02/12 23:07:22  keil
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()

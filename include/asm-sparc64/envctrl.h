@@ -1,4 +1,4 @@
-/* $Id: envctrl.h,v 1.1 1999/02/08 06:19:10 linas Exp $
+/* $Id: envctrl.h,v 1.1.1.1 1999/02/08 06:19:10 linas Exp $
  *
  * envctrl.h: Definitions for access to the i2c environment
  *            monitoring on Ultrasparc systems.

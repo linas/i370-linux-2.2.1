@@ -17,7 +17,7 @@
 
  *
  * $Source: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/char/ftape/lowlevel/ftape-format.c,v $
- * $Revision: 1.1 $
+ * $Revision: 1.1.1.1 $
  * $Date: 1999/02/08 06:20:06 $
  *
  *      This file contains the code to support formatting of floppy

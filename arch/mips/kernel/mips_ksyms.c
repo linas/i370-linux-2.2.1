@@ -1,4 +1,4 @@
-/* $Id: mips_ksyms.c,v 1.1 1999/02/08 06:21:23 linas Exp $
+/* $Id: mips_ksyms.c,v 1.1.1.1 1999/02/08 06:21:23 linas Exp $
  *
  * Export MIPS-specific functions needed for loadable modules.
  *

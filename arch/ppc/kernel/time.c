@@ -1,5 +1,5 @@
 /*
- * $Id: time.c,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: time.c,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  * Common time routines among all ppc machines.
  *
  * Written by Cort Dougan (cort@cs.nmt.edu) to merge

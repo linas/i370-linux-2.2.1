@@ -1,4 +1,4 @@
-/* $Id: isac.c,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: isac.c,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * isac.c   ISAC specific routines
  *
@@ -6,8 +6,8 @@
  *
  *
  * $Log: isac.c,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.12  1998/02/12 23:07:40  keil
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()

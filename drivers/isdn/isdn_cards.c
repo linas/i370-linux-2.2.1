@@ -1,4 +1,4 @@
-/* $Id: isdn_cards.c,v 1.1 1999/02/08 06:20:38 linas Exp $
+/* $Id: isdn_cards.c,v 1.1.1.1 1999/02/08 06:20:38 linas Exp $
 
  * Linux ISDN subsystem, initialization for non-modularized drivers.
  *
@@ -19,8 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: isdn_cards.c,v $
- * Revision 1.1  1999/02/08 06:20:38  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:38  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.7  1998/02/20 17:24:28  fritz
  * Added ACT2000 init.

@@ -1,4 +1,4 @@
-/*  $Id: signal32.c,v 1.1 1999/02/08 06:21:34 linas Exp $
+/*  $Id: signal32.c,v 1.1.1.1 1999/02/08 06:21:34 linas Exp $
  *  arch/sparc64/kernel/signal32.c
  *
  *  Copyright (C) 1991, 1992  Linus Torvalds

@@ -1,8 +1,8 @@
-/* $Id: isdnl3.h,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: isdnl3.h,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * $Log: isdnl3.h,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.0  1997/07/27 21:15:42  keil
  * New Callref based layer3

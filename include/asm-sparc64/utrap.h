@@ -1,4 +1,4 @@
-/* $Id: utrap.h,v 1.1 1999/02/08 06:19:10 linas Exp $
+/* $Id: utrap.h,v 1.1.1.1 1999/02/08 06:19:10 linas Exp $
  * include/asm-sparc64/utrap.h
  *
  * Copyright (C) 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)

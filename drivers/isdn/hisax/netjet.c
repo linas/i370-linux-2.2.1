@@ -1,4 +1,4 @@
-/* $Id: netjet.c,v 1.1 1999/02/08 06:20:48 linas Exp $
+/* $Id: netjet.c,v 1.1.1.1 1999/02/08 06:20:48 linas Exp $
 
  * netjet.c     low level stuff for Traverse Technologie NETJet ISDN cards
  *
@@ -8,8 +8,8 @@
  *
  *
  * $Log: netjet.c,v $
- * Revision 1.1  1999/02/08 06:20:48  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:48  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.3  1998/02/12 23:08:05  keil
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()
@@ -36,7 +36,7 @@ extern __u16 ppp_crc16_table[256]; /* from ppp code */
 
 extern const char *CardType[];
 
-const char *NETjet_revision = "$Revision: 1.1 $";
+const char *NETjet_revision = "$Revision: 1.1.1.1 $";
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)

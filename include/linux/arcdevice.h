@@ -5,7 +5,7 @@
  *
  *		Definitions for the ARCnet handlers.
  *
- * Version:	$Id: arcdevice.h,v 1.1 1999/02/08 06:18:44 linas Exp $
+ * Version:	$Id: arcdevice.h,v 1.1.1.1 1999/02/08 06:18:44 linas Exp $
  *
  * Authors:	Avery Pennarun <apenwarr@bond.net>
  *              David Woodhouse <dwmw2@cam.ac.uk>

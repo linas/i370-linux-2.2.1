@@ -47,7 +47,7 @@ static void query_lsapsel(struct ircomm_cb * self);
 void ircomm_getvalue_confirm( __u16 obj_id, struct ias_value *value, void *priv );
 
 #if 0
-static char *rcsid = "$Id: attach.c,v 1.1 1999/02/08 06:19:33 linas Exp $";
+static char *rcsid = "$Id: attach.c,v 1.1.1.1 1999/02/08 06:19:33 linas Exp $";
 #endif
 
 

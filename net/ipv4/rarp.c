@@ -3,7 +3,7 @@
  * Copyright (C) 1994 by Ross Martin
  * Based on linux/net/inet/arp.c, Copyright (C) 1994 by Florian La Roche
  *
- * $Id: rarp.c,v 1.1 1999/02/08 06:19:21 linas Exp $
+ * $Id: rarp.c,v 1.1.1.1 1999/02/08 06:19:21 linas Exp $
  *
  * This module implements the Reverse Address Resolution Protocol 
  * (RARP, RFC 903), which is used to convert low level addresses such

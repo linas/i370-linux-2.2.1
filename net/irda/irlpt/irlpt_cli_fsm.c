@@ -32,7 +32,7 @@
 #include <net/irda/irda.h>
 
 #if 0
-static char *rcsid = "$Id: irlpt_cli_fsm.c,v 1.1 1999/02/08 06:19:34 linas Exp $";
+static char *rcsid = "$Id: irlpt_cli_fsm.c,v 1.1.1.1 1999/02/08 06:19:34 linas Exp $";
 #endif
 
 static int irlpt_client_state_idle  ( struct irlpt_cb *self, IRLPT_EVENT event,

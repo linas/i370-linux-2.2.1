@@ -1,4 +1,4 @@
-/* $Id: elf.h,v 1.1 1999/02/08 06:19:07 linas Exp $ */
+/* $Id: elf.h,v 1.1.1.1 1999/02/08 06:19:07 linas Exp $ */
 #ifndef __ASM_SPARC64_ELF_H
 #define __ASM_SPARC64_ELF_H
 

@@ -1,4 +1,4 @@
-/* $Id: teles3.c,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: teles3.c,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * teles3.c     low level stuff for Teles 16.3 & PNP isdn cards
  *
@@ -11,8 +11,8 @@
  *              Beat Doebeli
  *
  * $Log: teles3.c,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.7  1998/02/02 13:29:48  keil
  * fast io
@@ -72,7 +72,7 @@
 #include "isdnl1.h"
 
 extern const char *CardType[];
-const char *teles3_revision = "$Revision: 1.1 $";
+const char *teles3_revision = "$Revision: 1.1.1.1 $";
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)

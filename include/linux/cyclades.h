@@ -1,4 +1,4 @@
-/* $Revision: 1.1 $$Date: 1999/02/08 06:18:43 $
+/* $Revision: 1.1.1.1 $$Date: 1999/02/08 06:18:43 $
  * linux/include/linux/cyclades.h
  *
  * This file is maintained by Ivan Passos <ivan@cyclades.com>, 
@@ -7,8 +7,8 @@
  *
  * This file contains the general definitions for the cyclades.c driver
  *$Log: cyclades.h,v $
- *Revision 1.1  1999/02/08 06:18:43  linas
- **** empty log message ***
+ *Revision 1.1.1.1  1999/02/08 06:18:43  linas
+ *stock linux 2.2.1 kernel
  *
  *Revision 2.5  1998/08/03 16:57:01  ivan
  *added cyclades_idle_stats structure;

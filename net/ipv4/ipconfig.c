@@ -1,5 +1,5 @@
 /*
- *  $Id: ipconfig.c,v 1.1 1999/02/08 06:19:25 linas Exp $
+ *  $Id: ipconfig.c,v 1.1.1.1 1999/02/08 06:19:25 linas Exp $
  *
  *  Automatic Configuration of IP -- use BOOTP or RARP or user-supplied
  *  information to configure own IP address and routes.

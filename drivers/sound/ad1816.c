@@ -33,7 +33,7 @@ Please report any bugs to: tek@rbg.informatik.tu-darmstadt.de
 -------------------------------------------------------------------------------
 
 version: 1.2
-cvs: $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/sound/ad1816.c,v 1.1 1999/02/08 06:20:27 linas Exp $
+cvs: $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/sound/ad1816.c,v 1.1.1.1 1999/02/08 06:20:27 linas Exp $
 status: experimental
 date: 1999/01/16
 
@@ -1091,7 +1091,7 @@ int probe_ad1816 ( struct address_info *hw_config )
 	int tmp;
 	
 	printk("ad1816: AD1816 sounddriver Copyright (C) 1998 by Thorsten Knabe\n");
-	printk("ad1816: $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/sound/ad1816.c,v 1.1 1999/02/08 06:20:27 linas Exp $\n");
+	printk("ad1816: $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/sound/ad1816.c,v 1.1.1.1 1999/02/08 06:20:27 linas Exp $\n");
 	printk("ad1816: io=0x%x, irq=%d, dma=%d, dma2=%d, isadmabug=%d\n",
 	       hw_config->io_base,
 	       hw_config->irq,

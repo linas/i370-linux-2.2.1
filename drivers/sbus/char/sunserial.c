@@ -1,4 +1,4 @@
-/* $Id: sunserial.c,v 1.1 1999/02/08 06:20:50 linas Exp $
+/* $Id: sunserial.c,v 1.1.1.1 1999/02/08 06:20:50 linas Exp $
  * serial.c: Serial port driver infrastructure for the Sparc.
  *
  * Copyright (C) 1997  Eddie C. Dost  (ecd@skynet.be)

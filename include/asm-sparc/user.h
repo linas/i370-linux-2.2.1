@@ -1,4 +1,4 @@
-/* $Id: user.h,v 1.1 1999/02/08 06:19:00 linas Exp $
+/* $Id: user.h,v 1.1.1.1 1999/02/08 06:19:00 linas Exp $
  * asm-sparc/user.h: Core file definitions for the Sparc.
  *
  * Keep in sync with reg.h.  Actually, we could get rid of this

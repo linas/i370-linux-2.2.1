@@ -113,7 +113,7 @@ int irlpt_common_debug = 4;  /* want to change this? please don't!
 static struct wait_queue *irlpt_wait;
 
 #if 0
-static char *rcsid = "$Id: irlpt_common.c,v 1.1 1999/02/08 06:19:34 linas Exp $";
+static char *rcsid = "$Id: irlpt_common.c,v 1.1.1.1 1999/02/08 06:19:34 linas Exp $";
 #endif
 
 struct irlpt_cb *irlpt_find_handle(unsigned int minor)

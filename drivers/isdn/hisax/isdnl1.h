@@ -1,8 +1,8 @@
-/* $Id: isdnl1.h,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: isdnl1.h,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * $Log: isdnl1.h,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.5  1998/02/02 13:36:58  keil
  * more debug

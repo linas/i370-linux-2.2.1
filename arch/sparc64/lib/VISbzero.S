@@ -1,4 +1,4 @@
-/* $Id: VISbzero.S,v 1.1 1999/02/08 06:21:36 linas Exp $
+/* $Id: VISbzero.S,v 1.1.1.1 1999/02/08 06:21:36 linas Exp $
  * VISbzero.S: High speed clear operations utilizing the UltraSparc
  *        Visual Instruction Set.
  *

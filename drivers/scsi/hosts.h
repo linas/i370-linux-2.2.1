@@ -22,7 +22,7 @@
 #define _HOSTS_H
 
 /*
-    $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/scsi/hosts.h,v 1.1 1999/02/08 06:20:10 linas Exp $
+    $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/scsi/hosts.h,v 1.1.1.1 1999/02/08 06:20:10 linas Exp $
 */
 
 #include <linux/config.h>

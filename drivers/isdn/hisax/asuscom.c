@@ -1,4 +1,4 @@
-/* $Id: asuscom.c,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: asuscom.c,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * asuscom.c     low level stuff for ASUSCOM NETWORK INC. ISDNLink cards
  *
@@ -8,8 +8,8 @@
  *
  *
  * $Log: asuscom.c,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1998/02/02 13:27:06  keil
  * New
@@ -25,7 +25,7 @@
 
 extern const char *CardType[];
 
-const char *Asuscom_revision = "$Revision: 1.1 $";
+const char *Asuscom_revision = "$Revision: 1.1.1.1 $";
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)

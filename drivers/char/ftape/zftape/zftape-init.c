@@ -52,7 +52,7 @@
 #include "../zftape/zftape_syms.h"
 
 char zft_src[] __initdata = "$Source: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/char/ftape/zftape/zftape-init.c,v $";
-char zft_rev[] __initdata = "$Revision: 1.1 $";
+char zft_rev[] __initdata = "$Revision: 1.1.1.1 $";
 char zft_dat[] __initdata = "$Date: 1999/02/08 06:20:07 $";
 
 #if LINUX_VERSION_CODE >= KERNEL_VER(2,1,18)

@@ -1,4 +1,4 @@
-/* $Id: newport_con.c,v 1.1 1999/02/08 06:20:57 linas Exp $
+/* $Id: newport_con.c,v 1.1.1.1 1999/02/08 06:20:57 linas Exp $
  *
  * newport_con.c: Abscon for newport hardware
  * 

@@ -1,4 +1,4 @@
-/* $Id: ranges.c,v 1.1 1999/02/08 06:21:19 linas Exp $
+/* $Id: ranges.c,v 1.1.1.1 1999/02/08 06:21:19 linas Exp $
  * ranges.c: Handle ranges in newer proms for obio/sbus.
  *
  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)

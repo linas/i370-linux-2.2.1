@@ -1,5 +1,5 @@
 /*
- *	$Id: oldproc.c,v 1.1 1999/02/08 06:20:31 linas Exp $
+ *	$Id: oldproc.c,v 1.1.1.1 1999/02/08 06:20:31 linas Exp $
  *
  *	Backward-compatible procfs interface for PCI.
  *

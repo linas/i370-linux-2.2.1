@@ -1,4 +1,4 @@
-/* $Id: central.c,v 1.1 1999/02/08 06:21:35 linas Exp $
+/* $Id: central.c,v 1.1.1.1 1999/02/08 06:21:35 linas Exp $
  * central.c: Central FHC driver for Sunfire/Starfire/Wildfire.
  *
  * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)

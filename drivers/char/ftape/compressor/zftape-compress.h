@@ -20,7 +20,7 @@
 
  *
  * $Source: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/char/ftape/compressor/zftape-compress.h,v $
- * $Revision: 1.1 $
+ * $Revision: 1.1.1.1 $
  * $Date: 1999/02/08 06:20:05 $
  *
  * This file contains macros and definitions for zftape's

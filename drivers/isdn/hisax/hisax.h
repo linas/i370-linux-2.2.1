@@ -1,10 +1,10 @@
-/* $Id: hisax.h,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: hisax.h,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  *   Basic declarations, defines and prototypes
  *
  * $Log: hisax.h,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.14  1998/02/11 17:28:04  keil
  * Niccy PnP/PCI support

@@ -1,4 +1,4 @@
-/* $Id: act2000.h,v 1.1 1999/02/08 06:20:49 linas Exp $
+/* $Id: act2000.h,v 1.1.1.1 1999/02/08 06:20:49 linas Exp $
  *
  * ISDN lowlevel-module for the IBM ISDN-S0 Active 2000.
  *
@@ -20,8 +20,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  * $Log: act2000.h,v $
- * Revision 1.1  1999/02/08 06:20:49  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:49  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.5  1997/10/09 22:22:59  fritz
  * New HL<->LL interface:

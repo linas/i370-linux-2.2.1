@@ -1,5 +1,5 @@
 /*
- *	$Id: pci.c,v 1.1 1999/02/08 06:20:31 linas Exp $
+ *	$Id: pci.c,v 1.1.1.1 1999/02/08 06:20:31 linas Exp $
  *
  *	PCI Bus Services, see include/linux/pci.h for further explanation.
  *

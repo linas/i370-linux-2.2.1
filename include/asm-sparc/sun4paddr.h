@@ -1,4 +1,4 @@
-/* $Id: sun4paddr.h,v 1.1 1999/02/08 06:19:01 linas Exp $
+/* $Id: sun4paddr.h,v 1.1.1.1 1999/02/08 06:19:01 linas Exp $
  * sun4paddr.h:  Various physical addresses on sun4 machines
  *
  * Copyright (C) 1997 Anton Blanchard (anton@progsoc.uts.edu.au)

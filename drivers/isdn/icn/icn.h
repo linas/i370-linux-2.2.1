@@ -1,4 +1,4 @@
-/* $Id: icn.h,v 1.1 1999/02/08 06:20:42 linas Exp $
+/* $Id: icn.h,v 1.1.1.1 1999/02/08 06:20:42 linas Exp $
 
  * ISDN lowlevel-module for the ICN active ISDN-Card.
  *
@@ -19,8 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: icn.h,v $
- * Revision 1.1  1999/02/08 06:20:42  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:42  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.28  1997/10/10 15:56:18  fritz
  * New HL<->LL interface:

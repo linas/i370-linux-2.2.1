@@ -1,4 +1,4 @@
-/* $Id: pbm.h,v 1.1 1999/02/08 06:19:01 linas Exp $
+/* $Id: pbm.h,v 1.1.1.1 1999/02/08 06:19:01 linas Exp $
  * pbm.h: PCI bus module pseudo driver software state
  *        Adopted from sparc64 by V. Roganov and G. Raiko
  *

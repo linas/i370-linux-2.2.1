@@ -1,4 +1,4 @@
-/* $Id: irq.h,v 1.1 1999/02/08 06:19:08 linas Exp $
+/* $Id: irq.h,v 1.1.1.1 1999/02/08 06:19:08 linas Exp $
  * irq.h: IRQ registers on the 64-bit Sparc.
  *
  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)

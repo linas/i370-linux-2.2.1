@@ -23,8 +23,8 @@
 
 /*
  * $Log: NCR5380.h,v $
- * Revision 1.1  1999/02/08 06:20:13  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:13  linas
+ * stock linux 2.2.1 kernel
  *
  */
 

@@ -1,4 +1,4 @@
-/* $Id: parport_share.c,v 1.1 1999/02/08 06:21:00 linas Exp $
+/* $Id: parport_share.c,v 1.1.1.1 1999/02/08 06:21:00 linas Exp $
  * Parallel-port resource manager code.
  * 
  * Authors: David Campbell <campbell@tirian.che.curtin.edu.au>

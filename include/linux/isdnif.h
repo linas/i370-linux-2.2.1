@@ -2,7 +2,7 @@
    Added constants ISDN_PROTO_L2_X25DTE/DCE and corresponding ISDN_FEATURE_..
    */
 
-/* $Id: isdnif.h,v 1.1 1999/02/08 06:18:45 linas Exp $
+/* $Id: isdnif.h,v 1.1.1.1 1999/02/08 06:18:45 linas Exp $
  *
  * Linux ISDN subsystem
  *
@@ -26,8 +26,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  * $Log: isdnif.h,v $
- * Revision 1.1  1999/02/08 06:18:45  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:18:45  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.23  1998/02/20 17:36:52  fritz
  * Added L2-protocols for V.110, changed FEATURE-Flag-constants.

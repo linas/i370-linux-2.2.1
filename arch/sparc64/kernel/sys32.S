@@ -1,4 +1,4 @@
-/* $Id: sys32.S,v 1.1 1999/02/08 06:21:35 linas Exp $
+/* $Id: sys32.S,v 1.1.1.1 1999/02/08 06:21:35 linas Exp $
  * sys32.S: I-cache tricks for 32-bit compatability layer simple
  *          conversions.
  *

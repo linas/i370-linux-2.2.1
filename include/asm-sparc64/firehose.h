@@ -1,4 +1,4 @@
-/* $Id: firehose.h,v 1.1 1999/02/08 06:19:09 linas Exp $
+/* $Id: firehose.h,v 1.1.1.1 1999/02/08 06:19:09 linas Exp $
  * firehose.h: Defines for the Fire Hose Controller (FHC) found
  *             on Sunfire/Starfire/Wildfire systems.
  *

@@ -12,7 +12,7 @@
  *
  *	Copyright (c) 1998 Richard Guenther <richard.guenther@student.uni-tuebingen.de>
  *
- * $Id: saa5249.c,v 1.1 1999/02/08 06:20:03 linas Exp $
+ * $Id: saa5249.c,v 1.1.1.1 1999/02/08 06:20:03 linas Exp $
  *
  *	Derived From
  *

@@ -1,13 +1,13 @@
 /*
- * $Id: capi.c,v 1.1 1999/02/08 06:20:43 linas Exp $
+ * $Id: capi.c,v 1.1.1.1 1999/02/08 06:20:43 linas Exp $
  *
  * CAPI 2.0 Interface for Linux
  *
  * Copyright 1996 by Carsten Paeth (calle@calle.in-berlin.de)
  *
  * $Log: capi.c,v $
- * Revision 1.1  1999/02/08 06:20:43  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:43  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.10  1998/02/13 07:09:13  calle
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()

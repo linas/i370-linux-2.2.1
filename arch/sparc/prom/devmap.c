@@ -1,4 +1,4 @@
-/* $Id: devmap.c,v 1.1 1999/02/08 06:21:19 linas Exp $
+/* $Id: devmap.c,v 1.1.1.1 1999/02/08 06:21:19 linas Exp $
  * promdevmap.c:  Map device/IO areas to virtual addresses.
  *
  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)

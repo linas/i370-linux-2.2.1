@@ -1,4 +1,4 @@
-/* $Id: viking.S,v 1.1 1999/02/08 06:21:19 linas Exp $
+/* $Id: viking.S,v 1.1.1.1 1999/02/08 06:21:19 linas Exp $
  * viking.S: High speed Viking cache/mmu operations
  *
  * Copyright (C) 1997  Eddie C. Dost  (ecd@skynet.be)

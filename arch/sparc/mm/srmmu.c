@@ -1,4 +1,4 @@
-/* $Id: srmmu.c,v 1.1 1999/02/08 06:21:19 linas Exp $
+/* $Id: srmmu.c,v 1.1.1.1 1999/02/08 06:21:19 linas Exp $
  * srmmu.c:  SRMMU specific routines for memory management.
  *
  * Copyright (C) 1995 David S. Miller  (davem@caip.rutgers.edu)

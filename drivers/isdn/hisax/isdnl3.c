@@ -1,4 +1,4 @@
-/* $Id: isdnl3.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: isdnl3.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * Author       Karsten Keil (keil@temic-ech.spacenet.de)
  *              based on the teles driver from Jan den Ouden
@@ -7,8 +7,8 @@
  *              Fritz Elfert
  *
  * $Log: isdnl3.c,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.5  1998/02/12 23:07:52  keil
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()
@@ -50,7 +50,7 @@
 #include "isdnl3.h"
 #include <linux/config.h>
 
-const char *l3_revision = "$Revision: 1.1 $";
+const char *l3_revision = "$Revision: 1.1.1.1 $";
 
 u_char *
 findie(u_char * p, int size, u_char ie, int wanted_set)

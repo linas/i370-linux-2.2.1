@@ -1,4 +1,4 @@
-/* $Id: elsa.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: elsa.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * elsa.c     low level stuff for Elsa isdn cards
  *
@@ -8,8 +8,8 @@
  *
  *
  * $Log: elsa.c,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.6  1998/02/02 13:29:40  keil
  * fast io
@@ -58,7 +58,7 @@
 
 extern const char *CardType[];
 
-const char *Elsa_revision = "$Revision: 1.1 $";
+const char *Elsa_revision = "$Revision: 1.1.1.1 $";
 const char *Elsa_Types[] =
 {"None", "PC", "PCC-8", "PCC-16", "PCF", "PCF-Pro",
  "PCMCIA", "QS 1000", "QS 3000", "QS 1000 PCI"};

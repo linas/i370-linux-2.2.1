@@ -1,4 +1,4 @@
-/* $Id: sbus.c,v 1.1 1999/02/08 06:20:50 linas Exp $
+/* $Id: sbus.c,v 1.1.1.1 1999/02/08 06:20:50 linas Exp $
  * sbus.c:  SBus support routines.
  *
  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)

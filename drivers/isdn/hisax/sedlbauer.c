@@ -1,4 +1,4 @@
-/* $Id: sedlbauer.c,v 1.1 1999/02/08 06:20:48 linas Exp $
+/* $Id: sedlbauer.c,v 1.1.1.1 1999/02/08 06:20:48 linas Exp $
 
  * sedlbauer.c  low level stuff for Sedlbauer cards
  *              includes Support for the Sedlbauer Speed Star 
@@ -14,8 +14,8 @@
  *            Edgar Toernig
  *
  * $Log: sedlbauer.c,v $
- * Revision 1.1  1999/02/08 06:20:48  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:48  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.6  1998/02/09 18:46:06  keil
  * Support for Sedlbauer PCMCIA (Marcus Niemann)
@@ -46,7 +46,7 @@
 
 extern const char *CardType[];
 
-const char *Sedlbauer_revision = "$Revision: 1.1 $";
+const char *Sedlbauer_revision = "$Revision: 1.1.1.1 $";
 
 const char *Sedlbauer_Types[] =
 {"None", "Speed Card", "Speed Win", "Speed Star"};

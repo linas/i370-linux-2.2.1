@@ -1,4 +1,4 @@
-/* $Id: isdn_v110.c,v 1.1 1999/02/08 06:20:41 linas Exp $
+/* $Id: isdn_v110.c,v 1.1.1.1 1999/02/08 06:20:41 linas Exp $
 
  * Linux ISDN subsystem, V.110 related functions (linklevel).
  *
@@ -19,8 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: isdn_v110.c,v $
- * Revision 1.1  1999/02/08 06:20:41  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:41  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1998/02/22 19:44:25  fritz
  * Bugfixes and improvements regarding V.110, V.110 now running.
@@ -39,7 +39,7 @@
 
 #undef ISDN_V110_DEBUG
 
-char *isdn_v110_revision = "$Revision: 1.1 $";
+char *isdn_v110_revision = "$Revision: 1.1.1.1 $";
 
 #define V110_38400 255
 #define V110_19200  15

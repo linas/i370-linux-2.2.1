@@ -1,4 +1,4 @@
-/*  $Id: init.c,v 1.1 1999/02/08 06:21:37 linas Exp $
+/*  $Id: init.c,v 1.1.1.1 1999/02/08 06:21:37 linas Exp $
  *  arch/sparc64/mm/init.c
  *
  *  Copyright (C) 1996,1997 David S. Miller (davem@caip.rutgers.edu)

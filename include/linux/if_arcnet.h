@@ -5,7 +5,7 @@
  *
  *		Global definitions for the ARCnet interface.
  *
- * Version:	$Id: if_arcnet.h,v 1.1 1999/02/08 06:18:47 linas Exp $
+ * Version:	$Id: if_arcnet.h,v 1.1.1.1 1999/02/08 06:18:47 linas Exp $
  *
  * Author:	David Woodhouse <dwmw2@cam.ac.uk>
  *		Avery Pennarun <apenwarr@bond.net>	

@@ -6,7 +6,7 @@
  *
  * Module         : sk_g16.c
  *
- * Version        : $Revision: 1.1 $
+ * Version        : $Revision: 1.1.1.1 $
  *
  * Author         : Patrick J.D. Weichmann
  *
@@ -21,7 +21,7 @@
  *
 -*/
 
-static const char *rcsid = "$Id: sk_g16.c,v 1.1 1999/02/08 06:19:39 linas Exp $";
+static const char *rcsid = "$Id: sk_g16.c,v 1.1.1.1 1999/02/08 06:19:39 linas Exp $";
 
 /*
  * The Schneider & Koch (SK) G16 Network device driver is based

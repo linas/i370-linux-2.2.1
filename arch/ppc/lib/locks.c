@@ -1,5 +1,5 @@
 /*
- * $Id: locks.c,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: locks.c,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  *
  * Locks for smp ppc 
  * 

@@ -4,7 +4,7 @@
  *
  * Author:  Marco van Wieringen <mvw@planets.elm.net>
  *
- * Version: $Id: quotaops.h,v 1.1 1999/02/08 06:18:48 linas Exp $
+ * Version: $Id: quotaops.h,v 1.1.1.1 1999/02/08 06:18:48 linas Exp $
  *
  */
 #ifndef _LINUX_QUOTAOPS_

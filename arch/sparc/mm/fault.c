@@ -1,4 +1,4 @@
-/* $Id: fault.c,v 1.1 1999/02/08 06:21:19 linas Exp $
+/* $Id: fault.c,v 1.1.1.1 1999/02/08 06:21:19 linas Exp $
  * fault.c:  Page fault handlers for the Sparc.
  *
  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)

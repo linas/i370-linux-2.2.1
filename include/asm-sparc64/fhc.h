@@ -1,4 +1,4 @@
-/* $Id: fhc.h,v 1.1 1999/02/08 06:19:10 linas Exp $
+/* $Id: fhc.h,v 1.1.1.1 1999/02/08 06:19:10 linas Exp $
  * fhc.h: Structures for central/fhc pseudo driver on Sunfire/Starfire/Wildfire.
  *
  * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)

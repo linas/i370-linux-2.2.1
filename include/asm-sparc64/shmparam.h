@@ -1,4 +1,4 @@
-/* $Id: shmparam.h,v 1.1 1999/02/08 06:19:09 linas Exp $ */
+/* $Id: shmparam.h,v 1.1.1.1 1999/02/08 06:19:09 linas Exp $ */
 #ifndef _ASMSPARC64_SHMPARAM_H
 #define _ASMSPARC64_SHMPARAM_H
 

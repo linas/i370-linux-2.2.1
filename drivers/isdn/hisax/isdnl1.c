@@ -1,4 +1,4 @@
-/* $Id: isdnl1.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: isdnl1.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * isdnl1.c     common low level stuff for Siemens Chipsetbased isdn cards
  *              based on the teles driver from Jan den Ouden
@@ -11,8 +11,8 @@
  *
  *
  * $Log: isdnl1.c,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.18  1998/02/12 23:07:42  keil
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()
@@ -82,7 +82,7 @@
  *
  */
 
-const char *l1_revision = "$Revision: 1.1 $";
+const char *l1_revision = "$Revision: 1.1.1.1 $";
 
 #define __NO_VERSION__
 #include <linux/config.h>

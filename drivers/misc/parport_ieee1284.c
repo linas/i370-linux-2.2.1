@@ -1,4 +1,4 @@
-/* $Id: parport_ieee1284.c,v 1.1 1999/02/08 06:21:00 linas Exp $
+/* $Id: parport_ieee1284.c,v 1.1.1.1 1999/02/08 06:21:00 linas Exp $
  * IEEE-1284 implementation for parport.
  *
  * Authors: Phil Blundell <Philip.Blundell@pobox.com>

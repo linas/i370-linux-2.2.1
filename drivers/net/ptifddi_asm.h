@@ -1,4 +1,4 @@
-/* $Id: ptifddi_asm.h,v 1.1 1999/02/08 06:19:46 linas Exp $ */
+/* $Id: ptifddi_asm.h,v 1.1.1.1 1999/02/08 06:19:46 linas Exp $ */
 #ifndef _PTIFDDI_ASM_H
 #define _PTIFDDI_ASM_H
 

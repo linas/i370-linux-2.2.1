@@ -15,7 +15,7 @@
  *
  * See 3c523.c for details.
  *
- * $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/net/3c523.h,v 1.1 1999/02/08 06:19:43 linas Exp $
+ * $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/net/3c523.h,v 1.1.1.1 1999/02/08 06:19:43 linas Exp $
  */
 
 /*

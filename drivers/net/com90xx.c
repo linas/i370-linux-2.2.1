@@ -1,4 +1,4 @@
-/*      $Id: com90xx.c,v 1.1 1999/02/08 06:19:46 linas Exp $
+/*      $Id: com90xx.c,v 1.1.1.1 1999/02/08 06:19:46 linas Exp $
 
    Derived from the original arcnet.c,
    Written 1994-1996 by Avery Pennarun,

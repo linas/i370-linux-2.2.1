@@ -1,4 +1,4 @@
-/* $Id: atomic.h,v 1.1 1999/02/08 06:19:07 linas Exp $
+/* $Id: atomic.h,v 1.1.1.1 1999/02/08 06:19:07 linas Exp $
  * atomic.h: Thankfully the V9 is at least reasonable for this
  *           stuff.
  *

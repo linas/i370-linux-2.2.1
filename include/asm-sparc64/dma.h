@@ -1,4 +1,4 @@
-/* $Id: dma.h,v 1.1 1999/02/08 06:19:07 linas Exp $
+/* $Id: dma.h,v 1.1.1.1 1999/02/08 06:19:07 linas Exp $
  * include/asm-sparc64/dma.h
  *
  * Copyright 1996 (C) David S. Miller (davem@caip.rutgers.edu)

@@ -1,4 +1,4 @@
-/* $Id: sunkbd.h,v 1.1 1999/02/08 06:20:51 linas Exp $
+/* $Id: sunkbd.h,v 1.1.1.1 1999/02/08 06:20:51 linas Exp $
  * sunkbd.h: Defines needed by SUN Keyboard drivers
  *
  * Copyright (C) 1997  Eddie C. Dost  (ecd@skynet.be)

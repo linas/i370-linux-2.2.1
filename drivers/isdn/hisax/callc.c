@@ -1,4 +1,4 @@
-/* $Id: callc.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: callc.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * Author       Karsten Keil (keil@temic-ech.spacenet.de)
  *              based on the teles driver from Jan den Ouden
@@ -7,8 +7,8 @@
  *              Fritz Elfert
  *
  * $Log: callc.c,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.13  1998/02/12 23:07:16  keil
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()
@@ -68,7 +68,7 @@
 #define MOD_USE_COUNT ( GET_USE_COUNT (&__this_module))
 #endif				/* MODULE */
 
-const char *lli_revision = "$Revision: 1.1 $";
+const char *lli_revision = "$Revision: 1.1.1.1 $";
 
 extern struct IsdnCard cards[];
 extern int nrcards;

@@ -1,5 +1,5 @@
 /*
- *  $Id: message.h,v 1.1 1999/02/08 06:20:49 linas Exp $
+ *  $Id: message.h,v 1.1.1.1 1999/02/08 06:20:49 linas Exp $
  *  Copyright (C) 1996  SpellCaster Telecommunications Inc.
  *
  *  message.h - structures, macros and defines useful for sending

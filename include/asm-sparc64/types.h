@@ -1,4 +1,4 @@
-/* $Id: types.h,v 1.1 1999/02/08 06:19:08 linas Exp $ */
+/* $Id: types.h,v 1.1.1.1 1999/02/08 06:19:08 linas Exp $ */
 #ifndef _SPARC64_TYPES_H
 #define _SPARC64_TYPES_H
 

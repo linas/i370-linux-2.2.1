@@ -1,4 +1,4 @@
-/* $Id: memscan.S,v 1.1 1999/02/08 06:21:36 linas Exp $
+/* $Id: memscan.S,v 1.1.1.1 1999/02/08 06:21:36 linas Exp $
  * memscan.S: Optimized memscan for Sparc64.
  *
  * Copyright (C) 1997,1998 Jakub Jelinek (jj@ultra.linux.cz)

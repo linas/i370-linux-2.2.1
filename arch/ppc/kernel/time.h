@@ -1,5 +1,5 @@
 /*
- * $Id: time.h,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: time.h,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  * Common time prototypes and such for all ppc machines.
  *
  * Written by Cort Dougan (cort@cs.nmt.edu) to merge

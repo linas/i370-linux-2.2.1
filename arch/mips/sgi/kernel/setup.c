@@ -1,4 +1,4 @@
-/* $Id: setup.c,v 1.1 1999/02/08 06:21:24 linas Exp $
+/* $Id: setup.c,v 1.1.1.1 1999/02/08 06:21:24 linas Exp $
  *
  * setup.c: SGI specific setup, including init of the feature struct.
  *

@@ -1,4 +1,4 @@
-/* $Id: reg.h,v 1.1 1999/02/08 06:19:08 linas Exp $
+/* $Id: reg.h,v 1.1.1.1 1999/02/08 06:19:08 linas Exp $
  * linux/asm-sparc64/reg.h
  * Layout of the registers as expected by gdb on the Sparc
  * we should replace the user.h definitions with those in

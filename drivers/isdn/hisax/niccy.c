@@ -1,4 +1,4 @@
-/* $Id: niccy.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: niccy.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * niccy.c  low level stuff for Dr. Neuhaus NICCY PnP and NICCY PCI and
  *          compatible (SAGEM cybermodem)
@@ -8,8 +8,8 @@
  * Thanks to Dr. Neuhaus and SAGEM for informations
  *
  * $Log: niccy.c,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1998/02/11 17:31:04  keil
  * new file
@@ -28,7 +28,7 @@
 #include <linux/bios32.h>
 
 extern const char *CardType[];
-const char *niccy_revision = "$Revision: 1.1 $";
+const char *niccy_revision = "$Revision: 1.1.1.1 $";
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)

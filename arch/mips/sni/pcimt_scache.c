@@ -7,7 +7,7 @@
  *
  * Copyright (c) 1997 by Ralf Baechle
  *
- * $Id: pcimt_scache.c,v 1.1 1999/02/08 06:21:24 linas Exp $
+ * $Id: pcimt_scache.c,v 1.1.1.1 1999/02/08 06:21:24 linas Exp $
  */
 #include <linux/init.h>
 #include <linux/kernel.h>

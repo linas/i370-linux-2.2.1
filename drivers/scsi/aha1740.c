@@ -1,4 +1,4 @@
-/*  $Id: aha1740.c,v 1.1 1999/02/08 06:20:13 linas Exp $
+/*  $Id: aha1740.c,v 1.1.1.1 1999/02/08 06:20:13 linas Exp $
  *  1993/03/31
  *  linux/kernel/aha1740.c
  *
@@ -60,7 +60,7 @@ struct proc_dir_entry proc_scsi_aha1740 = {
 #endif
 
 /*
-static const char RCSid[] = "$Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/scsi/aha1740.c,v 1.1 1999/02/08 06:20:13 linas Exp $";
+static const char RCSid[] = "$Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/scsi/aha1740.c,v 1.1.1.1 1999/02/08 06:20:13 linas Exp $";
 */
 
 struct aha1740_hostdata {

@@ -1,4 +1,4 @@
-/* $Id: clock.h,v 1.1 1999/02/08 06:18:58 linas Exp $
+/* $Id: clock.h,v 1.1.1.1 1999/02/08 06:18:58 linas Exp $
  * clock.h:  Definitions for clock operations on the Sparc.
  *
  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)

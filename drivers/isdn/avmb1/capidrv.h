@@ -1,13 +1,13 @@
 /*
- * $Id: capidrv.h,v 1.1 1999/02/08 06:20:44 linas Exp $
+ * $Id: capidrv.h,v 1.1.1.1 1999/02/08 06:20:44 linas Exp $
  *
  * ISDN4Linux Driver, using capi20 interface (kernelcapi)
  *
  * Copyright 1997 by Carsten Paeth (calle@calle.in-berlin.de)
  *
  * $Log: capidrv.h,v $
- * Revision 1.1  1999/02/08 06:20:44  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:44  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.1  1997/03/04 21:50:33  calle
  * Frirst version in isdn4linux

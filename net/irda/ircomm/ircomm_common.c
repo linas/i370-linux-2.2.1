@@ -41,9 +41,9 @@
 #include <net/irda/ircomm_common.h>
 
 #if 0
-static char *rcsid = "$Id: ircomm_common.c,v 1.1 1999/02/08 06:19:33 linas Exp $";
+static char *rcsid = "$Id: ircomm_common.c,v 1.1.1.1 1999/02/08 06:19:33 linas Exp $";
 #endif
-static char *version = "IrCOMM_common, $Revision: 1.1 $ $Date: 1999/02/08 06:19:33 $ (Takahide Higuchi)";
+static char *version = "IrCOMM_common, $Revision: 1.1.1.1 $ $Date: 1999/02/08 06:19:33 $ (Takahide Higuchi)";
 
 
 

@@ -3,7 +3,7 @@
  *
  * Copyright (C) 1996 David S. Miller (dm@engr.sgi.com)
  *
- * $Id: cons_newport.c,v 1.1 1999/02/08 06:21:02 linas Exp $
+ * $Id: cons_newport.c,v 1.1.1.1 1999/02/08 06:21:02 linas Exp $
  */
 
 #include <linux/kernel.h>

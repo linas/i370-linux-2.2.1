@@ -1,4 +1,4 @@
-/* $Id: fsm.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: fsm.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * Author       Karsten Keil (keil@temic-ech.spacenet.de)
  *              based on the teles driver from Jan den Ouden
@@ -7,8 +7,8 @@
  *              Fritz Elfert
  *
  * $Log: fsm.c,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.7  1997/11/06 17:09:13  keil
  * New 2.1 init code

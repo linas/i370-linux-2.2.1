@@ -1,4 +1,4 @@
-/* $Id: q931.c,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: q931.c,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * q931.c       code to decode ITU Q.931 call control messages
  *
@@ -14,8 +14,8 @@
  *
  *
  * $Log: q931.c,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.6  1997/07/27 21:09:44  keil
  * move functions to isdnl3.c

@@ -1,4 +1,4 @@
-/* $Id: bootinfo.h,v 1.1 1999/02/08 06:18:52 linas Exp $
+/* $Id: bootinfo.h,v 1.1.1.1 1999/02/08 06:18:52 linas Exp $
  *
  * bootinfo.h -- Definition of the Linux/MIPS boot information structure
  *

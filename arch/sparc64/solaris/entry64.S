@@ -1,4 +1,4 @@
-/* $Id: entry64.S,v 1.1 1999/02/08 06:21:37 linas Exp $
+/* $Id: entry64.S,v 1.1.1.1 1999/02/08 06:21:37 linas Exp $
  * entry64.S:  Solaris syscall emulation entry point.
  *
  * Copyright (C) 1996,1997,1998 Jakub Jelinek   (jj@sunsite.mff.cuni.cz)

@@ -1,4 +1,4 @@
-/* $Id: memscan.S,v 1.1 1999/02/08 06:21:18 linas Exp $
+/* $Id: memscan.S,v 1.1.1.1 1999/02/08 06:21:18 linas Exp $
  * memscan.S: Optimized memscan for the Sparc.
  *
  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)

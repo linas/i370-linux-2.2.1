@@ -1,4 +1,4 @@
-/* $Id: tpqic02.h,v 1.1 1999/02/08 06:18:42 linas Exp $
+/* $Id: tpqic02.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
  *
  * Include file for QIC-02 driver for Linux.
  *

@@ -1,4 +1,4 @@
-/* $Id: ppc-stub.c,v 1.1 1999/02/08 06:21:26 linas Exp $
+/* $Id: ppc-stub.c,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  * ppc-stub.c:  KGDB support for the Linux kernel.
  *
  * adapted from arch/sparc/kernel/sparc-stub.c for the PowerPC

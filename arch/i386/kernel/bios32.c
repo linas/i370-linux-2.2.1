@@ -1,7 +1,7 @@
 /*
  * bios32.c - Low-Level PCI Access
  *
- * $Id: bios32.c,v 1.1 1999/02/08 06:21:09 linas Exp $
+ * $Id: bios32.c,v 1.1.1.1 1999/02/08 06:21:09 linas Exp $
  *
  * Copyright 1993, 1994 Drew Eckhardt
  *      Visionary Computing

@@ -1,4 +1,4 @@
-/* $Id: irqlock.S,v 1.1 1999/02/08 06:21:19 linas Exp $
+/* $Id: irqlock.S,v 1.1.1.1 1999/02/08 06:21:19 linas Exp $
  * irqlock.S: High performance IRQ global locking and interrupt entry.
  *
  * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)

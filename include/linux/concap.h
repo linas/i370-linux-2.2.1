@@ -1,4 +1,4 @@
-/* $Id: concap.h,v 1.1 1999/02/08 06:18:48 linas Exp $
+/* $Id: concap.h,v 1.1.1.1 1999/02/08 06:18:48 linas Exp $
 */
 #ifndef _LINUX_CONCAP_H
 #define _LINUX_CONCAP_H

@@ -1,5 +1,5 @@
 /*
- * $Id: quirks.c,v 1.1 1999/02/08 06:20:31 linas Exp $
+ * $Id: quirks.c,v 1.1.1.1 1999/02/08 06:20:31 linas Exp $
  *
  * PCI Chipset-Specific Quirks
  *

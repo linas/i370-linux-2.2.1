@@ -1,13 +1,13 @@
 /*
- * $Id: b1capi.c,v 1.1 1999/02/08 06:20:42 linas Exp $
+ * $Id: b1capi.c,v 1.1.1.1 1999/02/08 06:20:42 linas Exp $
  * 
  * CAPI 2.0 Module for AVM B1-card.
  * 
  * (c) Copyright 1997 by Carsten Paeth (calle@calle.in-berlin.de)
  * 
  * $Log: b1capi.c,v $
- * Revision 1.1  1999/02/08 06:20:42  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:42  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.10  1998/02/13 07:09:10  calle
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()
@@ -79,7 +79,7 @@
 #include "capicmd.h"
 #include "capiutil.h"
 
-static char *revision = "$Revision: 1.1 $";
+static char *revision = "$Revision: 1.1.1.1 $";
 
 /* ------------------------------------------------------------- */
 

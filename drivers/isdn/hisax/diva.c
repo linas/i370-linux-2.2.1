@@ -1,4 +1,4 @@
-/* $Id: diva.c,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: diva.c,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * diva.c     low level stuff for Eicon.Diehl Diva Family ISDN cards
  *
@@ -8,8 +8,8 @@
  *
  *
  * $Log: diva.c,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.5  1998/02/02 13:29:38  keil
  * fast io
@@ -40,7 +40,7 @@
 
 extern const char *CardType[];
 
-const char *Diva_revision = "$Revision: 1.1 $";
+const char *Diva_revision = "$Revision: 1.1.1.1 $";
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)

@@ -1,4 +1,4 @@
-/* $Id: sportster.c,v 1.1 1999/02/08 06:20:48 linas Exp $
+/* $Id: sportster.c,v 1.1.1.1 1999/02/08 06:20:48 linas Exp $
 
  * sportster.c     low level stuff for USR Sportster internal TA
  *
@@ -7,8 +7,8 @@
  * Thanks to Christian "naddy" Weisgerber (3Com, US Robotics) for documentation
  *
  * $Log: sportster.c,v $
- * Revision 1.1  1999/02/08 06:20:48  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:48  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.5  1998/02/02 13:29:46  keil
  * fast io
@@ -33,7 +33,7 @@
 #include "isdnl1.h"
 
 extern const char *CardType[];
-const char *sportster_revision = "$Revision: 1.1 $";
+const char *sportster_revision = "$Revision: 1.1.1.1 $";
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)

@@ -1,4 +1,4 @@
-/* $Id: newport.h,v 1.1 1999/02/08 06:21:02 linas Exp $
+/* $Id: newport.h,v 1.1.1.1 1999/02/08 06:21:02 linas Exp $
  * newport.h: Defines and register layout for NEWPORT graphics
  *            hardware.
  *

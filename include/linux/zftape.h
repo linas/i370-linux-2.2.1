@@ -20,7 +20,7 @@
 
  *
  * $Source: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/include/linux/zftape.h,v $
- * $Revision: 1.1 $
+ * $Revision: 1.1.1.1 $
  * $Date: 1999/02/08 06:18:47 $
  *
  *      Special ioctl and other global info for the zftape VFS

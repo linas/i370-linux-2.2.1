@@ -1,7 +1,7 @@
 /*
  * sysctl_net_ipv4.c: sysctl interface to net IPV4 subsystem.
  *
- * $Id: sysctl_net_ipv4.c,v 1.1 1999/02/08 06:19:22 linas Exp $
+ * $Id: sysctl_net_ipv4.c,v 1.1.1.1 1999/02/08 06:19:22 linas Exp $
  *
  * Begun April 1, 1996, Mike Shaver.
  * Added /proc/sys/net/ipv4 directory entry (empty =) ). [MS]

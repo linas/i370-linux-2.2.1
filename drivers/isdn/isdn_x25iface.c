@@ -1,4 +1,4 @@
-/* $Id: isdn_x25iface.c,v 1.1 1999/02/08 06:20:41 linas Exp $
+/* $Id: isdn_x25iface.c,v 1.1.1.1 1999/02/08 06:20:41 linas Exp $
  * stuff needed to support the Linux X.25 PLP code on top of devices that
  * can provide a lab_b service using the concap_proto mechanism.
  * This module supports a network interface wich provides lapb_sematics
@@ -10,8 +10,8 @@
  * goes to another -- device related -- concap_proto support source file.
  *
  * $Log: isdn_x25iface.c,v $
- * Revision 1.1  1999/02/08 06:20:41  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:41  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.3  1998/02/20 17:25:20  fritz
  * Changes for recent kernels.

@@ -1,4 +1,4 @@
-/* $Id: cypress.h,v 1.1 1999/02/08 06:18:59 linas Exp $
+/* $Id: cypress.h,v 1.1.1.1 1999/02/08 06:18:59 linas Exp $
  * cypress.h: Cypress module specific definitions and defines.
  *
  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)

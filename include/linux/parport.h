@@ -1,4 +1,4 @@
-/* $Id: parport.h,v 1.1 1999/02/08 06:18:46 linas Exp $ */
+/* $Id: parport.h,v 1.1.1.1 1999/02/08 06:18:46 linas Exp $ */
 
 #ifndef _PARPORT_H_
 #define _PARPORT_H_

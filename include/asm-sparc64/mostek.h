@@ -1,4 +1,4 @@
-/* $Id: mostek.h,v 1.1 1999/02/08 06:19:08 linas Exp $
+/* $Id: mostek.h,v 1.1.1.1 1999/02/08 06:19:08 linas Exp $
  * mostek.h:  Describes the various Mostek time of day clock registers.
  *
  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)

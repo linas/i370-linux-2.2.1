@@ -1,5 +1,5 @@
 /*
- *  $Id: ipconfig.h,v 1.1 1999/02/08 06:19:04 linas Exp $
+ *  $Id: ipconfig.h,v 1.1.1.1 1999/02/08 06:19:04 linas Exp $
  *
  *  Copyright (C) 1997 Martin Mares
  *

@@ -1,4 +1,4 @@
-/* $Id: sparc-stub.c,v 1.1 1999/02/08 06:21:15 linas Exp $
+/* $Id: sparc-stub.c,v 1.1.1.1 1999/02/08 06:21:15 linas Exp $
  * sparc-stub.c:  KGDB support for the Linux kernel.
  *
  * Modifications to run under Linux

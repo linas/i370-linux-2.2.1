@@ -1,12 +1,12 @@
 #ifndef _ATP870U_H
 
-/* $Id: atp870u.h,v 1.1 1999/02/08 06:20:24 linas Exp $
+/* $Id: atp870u.h,v 1.1.1.1 1999/02/08 06:20:24 linas Exp $
  *
  * Header file for the ACARD 870U/W driver for Linux
  *
  * $Log: atp870u.h,v $
- * Revision 1.1  1999/02/08 06:20:24  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:24  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.0  1997/05/07  15:09:00  root
  * Initial revision

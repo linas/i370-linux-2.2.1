@@ -1,4 +1,4 @@
-/* $Id: ultra.h,v 1.1 1999/02/08 06:19:00 linas Exp $
+/* $Id: ultra.h,v 1.1.1.1 1999/02/08 06:19:00 linas Exp $
  * ultra.h: Definitions and defines for the TI V9 UltraSparc.
  *
  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)

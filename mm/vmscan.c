@@ -7,7 +7,7 @@
  *  kswapd added: 7.1.96  sct
  *  Removed kswapd_ctl limits, and swap out as many pages as needed
  *  to bring the system back to freepages.high: 2.4.97, Rik van Riel.
- *  Version: $Id: vmscan.c,v 1.1 1999/02/08 06:18:39 linas Exp $
+ *  Version: $Id: vmscan.c,v 1.1.1.1 1999/02/08 06:18:39 linas Exp $
  */
 
 #include <linux/slab.h>
@@ -424,7 +424,7 @@ done:
 void __init kswapd_setup(void)
 {
        int i;
-       char *revision="$Revision: 1.1 $", *s, *e;
+       char *revision="$Revision: 1.1.1.1 $", *s, *e;
 
        swap_setup();
        

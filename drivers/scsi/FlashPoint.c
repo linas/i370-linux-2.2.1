@@ -165,7 +165,7 @@
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 #ifndef __GLOBALS_H__
@@ -404,7 +404,7 @@ extern void     OS_OutPortLong(unsigned long ioport, unsigned long val);
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -722,7 +722,7 @@ typedef struct _SCCB {
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -879,7 +879,7 @@ typedef struct _SCCB {
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -1078,7 +1078,7 @@ typedef struct SCCBscam_info {
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -1210,7 +1210,7 @@ typedef struct SCCBscam_info {
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -1295,7 +1295,7 @@ typedef struct SCCBscam_info {
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -2326,7 +2326,7 @@ void Debug_Load(UCHAR p_card, UCHAR p_bug_data);
 extern unsigned int SccbGlobalFlags;
 
 
-#ident "$Id: FlashPoint.c,v 1.1 1999/02/08 06:20:21 linas Exp $"
+#ident "$Id: FlashPoint.c,v 1.1.1.1 1999/02/08 06:20:21 linas Exp $"
 /*----------------------------------------------------------------------
  *
  *
@@ -2342,7 +2342,7 @@ extern unsigned int SccbGlobalFlags;
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -5352,7 +5352,7 @@ void Debug_Load(UCHAR p_card, UCHAR p_bug_data)
 }
 
 #endif
-#ident "$Id: FlashPoint.c,v 1.1 1999/02/08 06:20:21 linas Exp $"
+#ident "$Id: FlashPoint.c,v 1.1.1.1 1999/02/08 06:20:21 linas Exp $"
 /*----------------------------------------------------------------------
  *
  *
@@ -5368,7 +5368,7 @@ void Debug_Load(UCHAR p_card, UCHAR p_bug_data)
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -5424,7 +5424,7 @@ UCHAR    debug_int[MAX_CARDS][debug_size] = { 0 };
 UCHAR    debug_index[MAX_CARDS] = { 0 };
 UCHAR    reserved_1[3] = { 0 };
 #endif
-#ident "$Id: FlashPoint.c,v 1.1 1999/02/08 06:20:21 linas Exp $"
+#ident "$Id: FlashPoint.c,v 1.1.1.1 1999/02/08 06:20:21 linas Exp $"
 /*----------------------------------------------------------------------
  *
  *
@@ -5441,7 +5441,7 @@ UCHAR    reserved_1[3] = { 0 };
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -7518,7 +7518,7 @@ void sinits(PSCCB p_sccb, UCHAR p_card)
 }
 
 
-#ident "$Id: FlashPoint.c,v 1.1 1999/02/08 06:20:21 linas Exp $"
+#ident "$Id: FlashPoint.c,v 1.1.1.1 1999/02/08 06:20:21 linas Exp $"
 /*----------------------------------------------------------------------
  *
  *
@@ -7535,7 +7535,7 @@ void sinits(PSCCB p_sccb, UCHAR p_card)
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -8267,7 +8267,7 @@ void phaseBusFree(ULONG port, UCHAR p_card)
 
 
 
-#ident "$Id: FlashPoint.c,v 1.1 1999/02/08 06:20:21 linas Exp $"
+#ident "$Id: FlashPoint.c,v 1.1.1.1 1999/02/08 06:20:21 linas Exp $"
 /*----------------------------------------------------------------------
  *
  *
@@ -8283,7 +8283,7 @@ void phaseBusFree(ULONG port, UCHAR p_card)
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -8659,7 +8659,7 @@ void autoCmdCmplt(ULONG p_port, UCHAR p_card)
 
    queueCmdComplete(&BL_Card[p_card], currSCCB, p_card);
 }
-#ident "$Id: FlashPoint.c,v 1.1 1999/02/08 06:20:21 linas Exp $"
+#ident "$Id: FlashPoint.c,v 1.1.1.1 1999/02/08 06:20:21 linas Exp $"
 /*----------------------------------------------------------------------
  *
  *
@@ -8674,7 +8674,7 @@ void autoCmdCmplt(ULONG p_port, UCHAR p_card)
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -9351,7 +9351,7 @@ void hostDataXferRestart(PSCCB currSCCB)
       currSCCB->Sccb_XferCnt = currSCCB->DataLength - currSCCB->Sccb_ATC;
       }
 }
-#ident "$Id: FlashPoint.c,v 1.1 1999/02/08 06:20:21 linas Exp $"
+#ident "$Id: FlashPoint.c,v 1.1.1.1 1999/02/08 06:20:21 linas Exp $"
 /*----------------------------------------------------------------------
  *
  *
@@ -9368,7 +9368,7 @@ void hostDataXferRestart(PSCCB currSCCB)
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -10581,7 +10581,7 @@ void scsavdi(UCHAR p_card, ULONG p_port)
    utilEEWrite(p_port, sum_data, EEPROM_CHECK_SUM/2);
    utilEEWriteOnOff(p_port,0);   /* Turn off write access */
 }
-#ident "$Id: FlashPoint.c,v 1.1 1999/02/08 06:20:21 linas Exp $"
+#ident "$Id: FlashPoint.c,v 1.1.1.1 1999/02/08 06:20:21 linas Exp $"
 /*----------------------------------------------------------------------
  *
  *
@@ -10597,7 +10597,7 @@ void scsavdi(UCHAR p_card, ULONG p_port)
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 
@@ -11026,7 +11026,7 @@ void DiagEEPROM(ULONG p_port)
 
 }
 
-#ident "$Id: FlashPoint.c,v 1.1 1999/02/08 06:20:21 linas Exp $"
+#ident "$Id: FlashPoint.c,v 1.1.1.1 1999/02/08 06:20:21 linas Exp $"
 /*----------------------------------------------------------------------
  *
  *
@@ -11042,7 +11042,7 @@ void DiagEEPROM(ULONG p_port)
  *
  *   $Date: 1999/02/08 06:20:21 $
  *
- *   $Revision: 1.1 $
+ *   $Revision: 1.1.1.1 $
  *
  *----------------------------------------------------------------------*/
 /*#include <globals.h>*/

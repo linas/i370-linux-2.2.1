@@ -1,4 +1,4 @@
-/* $Id: pcikbd.h,v 1.1 1999/02/08 06:20:51 linas Exp $
+/* $Id: pcikbd.h,v 1.1.1.1 1999/02/08 06:20:51 linas Exp $
  * pcikbd.h: PCI/PC 8042 keyboard/mouse driver stuff.  Mostly snarfed
  *           from the existing driver by Martin Mares.
  *

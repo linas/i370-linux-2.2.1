@@ -1,4 +1,4 @@
-/* $Id: dma.c,v 1.1 1999/02/08 06:18:37 linas Exp $
+/* $Id: dma.c,v 1.1.1.1 1999/02/08 06:18:37 linas Exp $
  * linux/kernel/dma.c: A DMA channel allocator. Inspired by linux/kernel/irq.c.
  *
  * Written by Hennus Bergman, 1992.

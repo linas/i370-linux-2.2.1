@@ -1,4 +1,4 @@
-/* $Id: isdn_net.c,v 1.1 1999/02/08 06:20:39 linas Exp $
+/* $Id: isdn_net.c,v 1.1.1.1 1999/02/08 06:20:39 linas Exp $
 
  * Linux ISDN subsystem, network interfaces and related functions (linklevel).
  *
@@ -25,8 +25,8 @@
  * from the repository and merged into this file. -- Henner Eisen
  *
  * $Log: isdn_net.c,v $
- * Revision 1.1  1999/02/08 06:20:39  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:39  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.55  1998/02/23 19:38:22  fritz
  * Corrected check for modified feature-flags.
@@ -275,7 +275,7 @@ static int isdn_net_xmit(struct device *, isdn_net_local *, struct sk_buff *);
 static void dev_purge_queues(struct device *dev);	/* move this to net/core/dev.c */
 #endif
 
-char *isdn_net_revision = "$Revision: 1.1 $";
+char *isdn_net_revision = "$Revision: 1.1.1.1 $";
 
  /*
   * Code for raw-networking over ISDN

@@ -1,4 +1,4 @@
-/* $Id: irix5sys.h,v 1.1 1999/02/08 06:21:22 linas Exp $
+/* $Id: irix5sys.h,v 1.1.1.1 1999/02/08 06:21:22 linas Exp $
  *
  * irix5sys.h: 32-bit IRIX5 ABI system call table.
  *

@@ -5,7 +5,7 @@
  * License.  See the file "COPYING" in the main directory of this archive
  * for more details.
  *
- * $Id: init.h,v 1.1 1999/02/08 06:18:52 linas Exp $
+ * $Id: init.h,v 1.1.1.1 1999/02/08 06:18:52 linas Exp $
  */
 #ifndef __MIPS_INIT_H
 #define __MIPS_INIT_H

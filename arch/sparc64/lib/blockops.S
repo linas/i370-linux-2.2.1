@@ -1,4 +1,4 @@
-/* $Id: blockops.S,v 1.1 1999/02/08 06:21:36 linas Exp $
+/* $Id: blockops.S,v 1.1.1.1 1999/02/08 06:21:36 linas Exp $
  * blockops.S: UltraSparc block zero optimized routines.
  *
  * Copyright (C) 1996,1998 David S. Miller (davem@caip.rutgers.edu)

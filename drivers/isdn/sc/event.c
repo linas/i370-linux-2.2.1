@@ -1,5 +1,5 @@
 /*
- *  $Id: event.c,v 1.1 1999/02/08 06:20:48 linas Exp $
+ *  $Id: event.c,v 1.1.1.1 1999/02/08 06:20:48 linas Exp $
  *  Copyright (C) 1996  SpellCaster Telecommunications Inc.
  *
  *  This program is free software; you can redistribute it and/or modify

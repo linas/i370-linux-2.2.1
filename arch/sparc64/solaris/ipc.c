@@ -1,4 +1,4 @@
-/* $Id: ipc.c,v 1.1 1999/02/08 06:21:37 linas Exp $
+/* $Id: ipc.c,v 1.1.1.1 1999/02/08 06:21:37 linas Exp $
  * ipc.c: Solaris IPC emulation
  *
  * Copyright (C) 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)

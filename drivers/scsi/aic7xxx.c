@@ -73,7 +73,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- *      $Id: aic7xxx.c,v 1.1 1999/02/08 06:20:11 linas Exp $
+ *      $Id: aic7xxx.c,v 1.1.1.1 1999/02/08 06:20:11 linas Exp $
  *---------------------------------------------------------------------------
  *
  *  Thanks also go to (in alphabetical order) the following:
@@ -93,7 +93,7 @@
  *
  *  Daniel M. Eischen, deischen@iworks.InterWorks.org, 1/23/97
  *
- *  $Id: aic7xxx.c,v 1.1 1999/02/08 06:20:11 linas Exp $
+ *  $Id: aic7xxx.c,v 1.1.1.1 1999/02/08 06:20:11 linas Exp $
  *-M*************************************************************************/
 
 /*+M**************************************************************************

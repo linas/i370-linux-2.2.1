@@ -79,7 +79,7 @@ static void irvtd_break(struct tty_struct *tty, int break_state);
 static void irvtd_send_xchar(struct tty_struct *tty, char ch);
 
 #if 0
-static char *rcsid = "$Id: irvtd_driver.c,v 1.1 1999/02/08 06:19:33 linas Exp $";
+static char *rcsid = "$Id: irvtd_driver.c,v 1.1.1.1 1999/02/08 06:19:33 linas Exp $";
 #endif
 
 

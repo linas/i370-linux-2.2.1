@@ -24,7 +24,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
- * $Id: msnd.h,v 1.1 1999/02/08 06:20:29 linas Exp $
+ * $Id: msnd.h,v 1.1.1.1 1999/02/08 06:20:29 linas Exp $
  *
  ********************************************************************/
 #ifndef __MSND_H

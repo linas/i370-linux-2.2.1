@@ -1,4 +1,4 @@
-/* $Id: sab82532.h,v 1.1 1999/02/08 06:19:10 linas Exp $
+/* $Id: sab82532.h,v 1.1.1.1 1999/02/08 06:19:10 linas Exp $
  * sab82532.h: Register Definitions for the Siemens SAB82532 DUSCC
  *
  * Copyright (C) 1997  Eddie C. Dost  (ecd@skynet.be)

@@ -6,7 +6,7 @@
 /*		board.  Everything that says "es4h" should really be	*/
 /*		"se4".  But we'll keep the old name for now.		*/
 /*									*/
-/*	$Id: dgrs_es4h.h,v 1.1 1999/02/08 06:19:42 linas Exp $		*/
+/*	$Id: dgrs_es4h.h,v 1.1.1.1 1999/02/08 06:19:42 linas Exp $		*/
 /*									*/
 /************************************************************************/
 

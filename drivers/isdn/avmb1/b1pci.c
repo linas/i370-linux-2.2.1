@@ -1,13 +1,13 @@
 /*
- * $Id: b1pci.c,v 1.1 1999/02/08 06:20:43 linas Exp $
+ * $Id: b1pci.c,v 1.1.1.1 1999/02/08 06:20:43 linas Exp $
  * 
  * Module for AVM B1 PCI-card.
  * 
  * (c) Copyright 1997 by Carsten Paeth (calle@calle.in-berlin.de)
  * 
  * $Log: b1pci.c,v $
- * Revision 1.1  1999/02/08 06:20:43  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:43  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.5  1998/01/31 11:14:43  calle
  * merged changes to 2.0 tree, prepare 2.1.82 to work.
@@ -47,7 +47,7 @@
 #define PCI_DEVICE_ID_AVM_B1	0x700
 #endif
 
-static char *revision = "$Revision: 1.1 $";
+static char *revision = "$Revision: 1.1.1.1 $";
 
 /* ------------------------------------------------------------- */
 

@@ -1,4 +1,4 @@
-/* $Id: ix1_micro.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: ix1_micro.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * ix1_micro.c  low level stuff for ITK ix1-micro Rev.2 isdn cards
  *              derived from the original file teles3.c from Karsten Keil
@@ -11,8 +11,8 @@
  *              Beat Doebeli
  *
  * $Log: ix1_micro.c,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.6  1998/02/11 17:28:09  keil
  * Niccy PnP/PCI support
@@ -84,7 +84,7 @@
 #include "isdnl1.h"
 
 extern const char *CardType[];
-const char *ix1_revision = "$Revision: 1.1 $";
+const char *ix1_revision = "$Revision: 1.1.1.1 $";
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)

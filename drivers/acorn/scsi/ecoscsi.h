@@ -20,8 +20,8 @@
 
 /*
  * $Log: ecoscsi.h,v $
- * Revision 1.1  1999/02/08 06:21:04  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:21:04  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.1  1998/02/23 02:45:24  davem
  * Merge to 2.1.88

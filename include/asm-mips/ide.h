@@ -1,4 +1,4 @@
-/* $Id: ide.h,v 1.1 1999/02/08 06:18:53 linas Exp $
+/* $Id: ide.h,v 1.1.1.1 1999/02/08 06:18:53 linas Exp $
  *
  *  linux/include/asm-mips/ide.h
  *

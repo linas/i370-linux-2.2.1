@@ -5,7 +5,7 @@
  *
  *		PACKET - implements raw packet sockets.
  *
- * Version:	$Id: af_packet.c,v 1.1 1999/02/08 06:19:31 linas Exp $
+ * Version:	$Id: af_packet.c,v 1.1.1.1 1999/02/08 06:19:31 linas Exp $
  *
  * Authors:	Ross Biro, <bir7@leland.Stanford.Edu>
  *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>

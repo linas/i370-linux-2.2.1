@@ -1,4 +1,4 @@
-/* $Id: cgfourteenfb.c,v 1.1 1999/02/08 06:20:57 linas Exp $
+/* $Id: cgfourteenfb.c,v 1.1.1.1 1999/02/08 06:20:57 linas Exp $
  * cgfourteenfb.c: CGfourteen frame buffer driver
  *
  * Copyright (C) 1996,1998 Jakub Jelinek (jj@ultra.linux.cz)

@@ -1,4 +1,4 @@
-/* $Id: ttable.S,v 1.1 1999/02/08 06:21:34 linas Exp $
+/* $Id: ttable.S,v 1.1.1.1 1999/02/08 06:21:34 linas Exp $
  * ttable.S: Sparc V9 Trap Table(s) with SpitFire extensions.
  *
  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)

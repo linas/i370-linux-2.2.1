@@ -1,10 +1,10 @@
-/* $Id: l3dss1.h,v 1.1 1999/02/08 06:20:48 linas Exp $
+/* $Id: l3dss1.h,v 1.1.1.1 1999/02/08 06:20:48 linas Exp $
  *
  *  DSS1 (Euro) D-channel protocol defines
  *
  * $Log: l3dss1.h,v $
- * Revision 1.1  1999/02/08 06:20:48  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:48  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.5  1998/02/02 13:34:30  keil
  * Support australian Microlink net and german AOCD

@@ -1,7 +1,7 @@
 /*
  * Helpfile for jazzdma.c -- Mips Jazz R4030 DMA controller support
  *
- * $Id: jazzdma.h,v 1.1 1999/02/08 06:18:52 linas Exp $
+ * $Id: jazzdma.h,v 1.1.1.1 1999/02/08 06:18:52 linas Exp $
  */
 #ifndef __ASM_MIPS_JAZZDMA_H
 #define __ASM_MIPS_JAZZDMA_H

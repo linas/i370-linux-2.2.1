@@ -1,5 +1,5 @@
 /*
- * $Id: idle.c,v 1.1 1999/02/08 06:21:25 linas Exp $
+ * $Id: idle.c,v 1.1.1.1 1999/02/08 06:21:25 linas Exp $
  *
  * Idle daemon for PowerPC.  Idle daemon will handle any action
  * that needs to be taken when the system becomes idle.

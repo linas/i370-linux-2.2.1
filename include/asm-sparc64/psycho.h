@@ -1,4 +1,4 @@
-/* $Id: psycho.h,v 1.1 1999/02/08 06:19:10 linas Exp $
+/* $Id: psycho.h,v 1.1.1.1 1999/02/08 06:19:10 linas Exp $
  * psycho.h: UltraSparc AX specific PCI definitions.
  *
  * Copyright (C) 1997 Eddie C. Dost (ecd@skynet.be)

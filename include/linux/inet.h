@@ -8,31 +8,31 @@
  *		This work was derived from Ross Biro's inspirational work
  *		for the LINUX operating system.  His version numbers were:
  *
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- * 		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- * 		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- * 		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- * 		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
- *		$Id: inet.h,v 1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ * 		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ * 		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ * 		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ * 		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
+ *		$Id: inet.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
  *
  *		This program is free software; you can redistribute it and/or
  *		modify it under the terms of the GNU General Public License

@@ -23,8 +23,8 @@
  * Tested with Linux 1.2.13, ..., 2.1.131                               *
  *                                                                      *
  * $Log: gdth.c,v $
- * Revision 1.1  1999/02/08 06:20:12  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:12  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.17  1998/12/17 15:58:11  achim
  * Command line parameters implemented
@@ -98,7 +98,7 @@
  * Initial revision
  *
  ************************************************************************/
-#ident "$Id: gdth.c,v 1.1 1999/02/08 06:20:12 linas Exp $" 
+#ident "$Id: gdth.c,v 1.1.1.1 1999/02/08 06:20:12 linas Exp $" 
 
 /* All GDT Disk Array Controllers are fully supported by this driver.
  * This includes the PCI/EISA/ISA SCSI Disk Array Controllers and the

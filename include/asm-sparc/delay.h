@@ -1,4 +1,4 @@
-/* $Id: delay.h,v 1.1 1999/02/08 06:18:59 linas Exp $
+/* $Id: delay.h,v 1.1.1.1 1999/02/08 06:18:59 linas Exp $
  * delay.h: Linux delay routines on the Sparc.
  *
  * Copyright (C) 1994 David S. Miller (davem@caip.rutgers.edu).

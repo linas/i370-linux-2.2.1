@@ -3,7 +3,7 @@
  * License.  See the file "COPYING" in the main directory of this archive
  * for more details.
  *
- * $Id: memcpy.S,v 1.1 1999/02/08 06:21:23 linas Exp $
+ * $Id: memcpy.S,v 1.1.1.1 1999/02/08 06:21:23 linas Exp $
  *
  * Unified implementation of memcpy, memmove and the __copy_user backend.
  * For __rmemcpy and memmove an exception is always a kernel bug, therefore

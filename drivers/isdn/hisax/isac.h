@@ -1,4 +1,4 @@
-/* $Id: isac.h,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: isac.h,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * isac.h   ISAC specific defines
  *
@@ -6,8 +6,8 @@
  *
  *
  * $Log: isac.h,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.4  1997/10/29 19:09:34  keil
  * new L1

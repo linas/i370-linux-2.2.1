@@ -1,4 +1,4 @@
-/* $Id: ns87303.h,v 1.1 1999/02/08 06:19:10 linas Exp $
+/* $Id: ns87303.h,v 1.1.1.1 1999/02/08 06:19:10 linas Exp $
  * ns87303.h: Configuration Register Description for the
  *            National Semiconductor PC87303 (SuperIO).
  *

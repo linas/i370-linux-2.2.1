@@ -1,7 +1,7 @@
 /*
  * misc.c
  *
- * $Id: misc.c,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: misc.c,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  * 
  * Adapted for PowerPC by Gary Thomas
  *

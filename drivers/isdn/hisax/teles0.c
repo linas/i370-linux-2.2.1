@@ -1,4 +1,4 @@
-/* $Id: teles0.c,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: teles0.c,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * teles0.c     low level stuff for Teles Memory IO isdn cards
  *              based on the teles driver from Jan den Ouden
@@ -10,8 +10,8 @@
  *              Beat Doebeli
  *
  * $Log: teles0.c,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.6  1998/02/03 23:27:47  keil
  * IRQ 9
@@ -51,7 +51,7 @@
 
 extern const char *CardType[];
 
-const char *teles0_revision = "$Revision: 1.1 $";
+const char *teles0_revision = "$Revision: 1.1.1.1 $";
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)

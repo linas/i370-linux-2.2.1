@@ -1,4 +1,4 @@
-/* $Id: ebus.c,v 1.1 1999/02/08 06:21:17 linas Exp $
+/* $Id: ebus.c,v 1.1.1.1 1999/02/08 06:21:17 linas Exp $
  * ebus.c: PCI to EBus bridge device.
  *
  * Copyright (C) 1997  Eddie C. Dost  (ecd@skynet.be)

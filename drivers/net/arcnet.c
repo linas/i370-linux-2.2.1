@@ -1,4 +1,4 @@
-/*	$Id: arcnet.c,v 1.1 1999/02/08 06:19:37 linas Exp $
+/*	$Id: arcnet.c,v 1.1.1.1 1999/02/08 06:19:37 linas Exp $
 
 	Written 1994-1996 by Avery Pennarun,
 	derived from skeleton.c by Donald Becker.

@@ -1,4 +1,4 @@
-/* $Id: head.S,v 1.1 1999/02/08 06:21:34 linas Exp $
+/* $Id: head.S,v 1.1.1.1 1999/02/08 06:21:34 linas Exp $
  * head.S: Initial boot code for the Sparc64 port of Linux.
  *
  * Copyright (C) 1996,1997 David S. Miller (davem@caip.rutgers.edu)

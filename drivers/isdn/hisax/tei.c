@@ -1,4 +1,4 @@
-/* $Id: tei.c,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: tei.c,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * Author       Karsten Keil (keil@temic-ech.spacenet.de)
  *              based on the teles driver from Jan den Ouden
@@ -7,8 +7,8 @@
  *              Fritz Elfert
  *
  * $Log: tei.c,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.7  1998/02/12 23:08:11  keil
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()
@@ -53,7 +53,7 @@
 #include "isdnl2.h"
 #include <linux/random.h>
 
-const char *tei_revision = "$Revision: 1.1 $";
+const char *tei_revision = "$Revision: 1.1.1.1 $";
 
 #define ID_REQUEST	1
 #define ID_ASSIGNED	2

@@ -1,4 +1,4 @@
-/* $Id: isdn_tty.c,v 1.1 1999/02/08 06:20:39 linas Exp $
+/* $Id: isdn_tty.c,v 1.1.1.1 1999/02/08 06:20:39 linas Exp $
 
  * Linux ISDN subsystem, tty functions and AT-command emulator (linklevel).
  *
@@ -20,8 +20,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: isdn_tty.c,v $
- * Revision 1.1  1999/02/08 06:20:39  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:39  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.47  1998/02/22 19:44:14  fritz
  * Bugfixes and improvements regarding V.110, V.110 now running.
@@ -257,7 +257,7 @@ static int bit2si[8] =
 static int si2bit[8] =
 {4, 1, 4, 4, 4, 4, 4, 4};
 
-char *isdn_tty_revision = "$Revision: 1.1 $";
+char *isdn_tty_revision = "$Revision: 1.1.1.1 $";
 
 #define DLE 0x10
 #define ETX 0x03

@@ -1,4 +1,4 @@
-/* $Id: isdn_ppp.c,v 1.1 1999/02/08 06:20:39 linas Exp $
+/* $Id: isdn_ppp.c,v 1.1.1.1 1999/02/08 06:20:39 linas Exp $
  *
  * Linux ISDN subsystem, functions for synchronous PPP (linklevel).
  *
@@ -23,8 +23,8 @@
  * from the repository and merged into this file. -- Henner Eisen
  *
  * $Log: isdn_ppp.c,v $
- * Revision 1.1  1999/02/08 06:20:39  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:39  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.33  1998/02/20 17:11:54  fritz
  * Changes for recent kernels.
@@ -202,7 +202,7 @@ static int isdn_ppp_fill_mpqueue(isdn_net_dev *, struct sk_buff **skb,
 static void isdn_ppp_free_mpqueue(isdn_net_dev *);
 #endif
 
-char *isdn_ppp_revision = "$Revision: 1.1 $";
+char *isdn_ppp_revision = "$Revision: 1.1.1.1 $";
 
 static struct ippp_struct *ippp_table[ISDN_MAX_CHANNELS];
 static struct isdn_ppp_compressor *ipc_head = NULL;

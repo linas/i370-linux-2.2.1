@@ -1,4 +1,4 @@
-/* $Id: VIScsumcopy.S,v 1.1 1999/02/08 06:21:36 linas Exp $
+/* $Id: VIScsumcopy.S,v 1.1.1.1 1999/02/08 06:21:36 linas Exp $
  * VIScsumcopy.S: High bandwidth IP checksumming with simultaneous
  *            copying utilizing the UltraSparc Visual Instruction Set.
  *

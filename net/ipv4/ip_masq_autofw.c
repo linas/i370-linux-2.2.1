@@ -2,7 +2,7 @@
  *		IP_MASQ_AUTOFW auto forwarding module
  *
  *
- * 	$Id: ip_masq_autofw.c,v 1.1 1999/02/08 06:19:25 linas Exp $
+ * 	$Id: ip_masq_autofw.c,v 1.1.1.1 1999/02/08 06:19:25 linas Exp $
  *
  * Author:	Richard Lynch
  *

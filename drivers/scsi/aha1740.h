@@ -1,6 +1,6 @@
 #ifndef _AHA1740_H
 
-/* $Id: aha1740.h,v 1.1 1999/02/08 06:20:09 linas Exp $
+/* $Id: aha1740.h,v 1.1.1.1 1999/02/08 06:20:09 linas Exp $
  *
  * Header file for the adaptec 1740 driver for Linux
  *

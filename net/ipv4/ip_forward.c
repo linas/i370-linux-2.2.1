@@ -5,7 +5,7 @@
  *
  *		The IP forwarding functionality.
  *		
- * Version:	$Id: ip_forward.c,v 1.1 1999/02/08 06:19:21 linas Exp $
+ * Version:	$Id: ip_forward.c,v 1.1.1.1 1999/02/08 06:19:21 linas Exp $
  *
  * Authors:	see ip.c
  *

@@ -1,4 +1,4 @@
-/* $Id: isdn_common.h,v 1.1 1999/02/08 06:20:39 linas Exp $
+/* $Id: isdn_common.h,v 1.1.1.1 1999/02/08 06:20:39 linas Exp $
 
  * header for Linux ISDN subsystem, common used functions and debugging-switches (linklevel).
  *
@@ -25,8 +25,8 @@
  * from the repository and merged into this file. -- Henner Eisen
  *
  * $Log: isdn_common.h,v $
- * Revision 1.1  1999/02/08 06:20:39  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:39  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.9  1998/02/20 17:19:01  fritz
  * Added common stub for sending commands to lowlevel.

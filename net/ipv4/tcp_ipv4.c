@@ -5,7 +5,7 @@
  *
  *		Implementation of the Transmission Control Protocol(TCP).
  *
- * Version:	$Id: tcp_ipv4.c,v 1.1 1999/02/08 06:19:24 linas Exp $
+ * Version:	$Id: tcp_ipv4.c,v 1.1.1.1 1999/02/08 06:19:24 linas Exp $
  *
  *		IPv4 specific functions
  *

@@ -16,7 +16,7 @@
 # the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 # $Source: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/char/ftape/zftape/Makefile,v $
-# $Revision: 1.1 $
+# $Revision: 1.1.1.1 $
 # $Date: 1999/02/08 06:20:06 $
 #
 #      Makefile for the QIC-40/80/3010/3020 zftape interface VFS to

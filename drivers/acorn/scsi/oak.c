@@ -33,8 +33,8 @@
 
 /*
  * $Log: oak.c,v $
- * Revision 1.1  1999/02/08 06:21:04  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:21:04  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.3  1998/05/03 20:45:37  alan
  * ARM SCSI update. This adds the eesox driver and massively updates the

@@ -28,7 +28,7 @@
  * Author: Rickard E. Faith, faith@cs.unc.edu
  * Copyright 1992, 1993, 1994, 1995, 1996 Rickard E. Faith
  *
- * $Id: fd_mcs.c,v 1.1 1999/02/08 06:20:24 linas Exp $
+ * $Id: fd_mcs.c,v 1.1.1.1 1999/02/08 06:20:24 linas Exp $
 
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the

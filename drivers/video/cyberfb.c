@@ -1,6 +1,6 @@
 /*
 * linux/drivers/video/cyberfb.c -- CyberVision64 frame buffer device
-* $Id: cyberfb.c,v 1.1 1999/02/08 06:20:54 linas Exp $
+* $Id: cyberfb.c,v 1.1.1.1 1999/02/08 06:20:54 linas Exp $
 *
 *    Copyright (C) 1998 Alan Bair
 *
@@ -33,8 +33,8 @@
 *   - 05 Jan 96: Geert: integration into the current source tree
 *   - 01 Aug 98: Alan: Merge in code from cvision.c and cvision_core.c
 * $Log: cyberfb.c,v $
-* Revision 1.1  1999/02/08 06:20:54  linas
-* *** empty log message ***
+* Revision 1.1.1.1  1999/02/08 06:20:54  linas
+* stock linux 2.2.1 kernel
 *
 * Revision 1.6  1998/09/11 04:54:58  abair
 * Update for 2.1.120 change in include file location.

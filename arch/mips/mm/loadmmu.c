@@ -3,7 +3,7 @@
  *
  * Copyright (C) 1996 David S. Miller (dm@engr.sgi.com)
  *
- * $Id: loadmmu.c,v 1.1 1999/02/08 06:21:22 linas Exp $
+ * $Id: loadmmu.c,v 1.1.1.1 1999/02/08 06:21:22 linas Exp $
  */
 #include <linux/init.h>
 #include <linux/kernel.h>

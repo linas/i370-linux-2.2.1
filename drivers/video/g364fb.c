@@ -1,4 +1,4 @@
-/* $Id: g364fb.c,v 1.1 1999/02/08 06:20:55 linas Exp $
+/* $Id: g364fb.c,v 1.1.1.1 1999/02/08 06:20:55 linas Exp $
  *
  * linux/drivers/video/g364fb.c -- Mips Magnum frame buffer device
  *

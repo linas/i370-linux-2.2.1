@@ -7,7 +7,7 @@
  *
  * Copyright (c) 1997 by Ralf Baechle
  *
- * $Id: bcache.h,v 1.1 1999/02/08 06:18:53 linas Exp $
+ * $Id: bcache.h,v 1.1.1.1 1999/02/08 06:18:53 linas Exp $
  */
 struct bcache_ops {
 	void (*bc_enable)(void);

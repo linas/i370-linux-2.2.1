@@ -57,7 +57,7 @@
 /*      Global vars.
  */
 char ft_src[] __initdata = "$Source: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/char/ftape/lowlevel/ftape-init.c,v $";
-char ft_rev[] __initdata = "$Revision: 1.1 $";
+char ft_rev[] __initdata = "$Revision: 1.1.1.1 $";
 char ft_dat[] __initdata = "$Date: 1999/02/08 06:20:05 $";
 
 

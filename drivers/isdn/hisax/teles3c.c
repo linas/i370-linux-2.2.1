@@ -1,4 +1,4 @@
-/* $Id: teles3c.c,v 1.1 1999/02/08 06:20:48 linas Exp $
+/* $Id: teles3c.c,v 1.1.1.1 1999/02/08 06:20:48 linas Exp $
 
  * teles3c.c     low level stuff for teles 16.3c
  *
@@ -6,8 +6,8 @@
  *
  *
  * $Log: teles3c.c,v $
- * Revision 1.1  1999/02/08 06:20:48  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:48  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1998/02/02 13:27:07  keil
  * New
@@ -23,7 +23,7 @@
 
 extern const char *CardType[];
 
-const char *teles163c_revision = "$Revision: 1.1 $";
+const char *teles163c_revision = "$Revision: 1.1.1.1 $";
 
 static void
 t163c_interrupt(int intno, void *dev_id, struct pt_regs *regs)

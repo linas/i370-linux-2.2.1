@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.1 1999/02/08 06:20:42 linas Exp $
+# $Id: Makefile,v 1.1.1.1 1999/02/08 06:20:42 linas Exp $
 #
 # Makefile for the CAPI and AVM-B1 device drivers.
 #
@@ -11,8 +11,8 @@
 # parent makes..
 #
 # $Log: Makefile,v $
-# Revision 1.1  1999/02/08 06:20:42  linas
-# *** empty log message ***
+# Revision 1.1.1.1  1999/02/08 06:20:42  linas
+# stock linux 2.2.1 kernel
 #
 # Revision 1.4  1997/03/30 17:10:40  calle
 # added support for AVM-B1-PCI card.

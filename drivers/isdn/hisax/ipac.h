@@ -1,4 +1,4 @@
-/* $Id: ipac.h,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: ipac.h,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * ipac.h   IPAC specific defines
  *
@@ -6,8 +6,8 @@
  *
  *
  * $Log: ipac.h,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1997/10/29 18:51:21  keil
  * New files

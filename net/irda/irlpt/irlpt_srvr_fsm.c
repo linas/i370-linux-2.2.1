@@ -35,7 +35,7 @@ static int irlpt_server_state_conn  ( struct irlpt_cb *self,
 				      struct irlpt_info *info);
 
 #if 0
-static char *rcsid = "$Id: irlpt_srvr_fsm.c,v 1.1 1999/02/08 06:19:34 linas Exp $";
+static char *rcsid = "$Id: irlpt_srvr_fsm.c,v 1.1.1.1 1999/02/08 06:19:34 linas Exp $";
 #endif
 
 int irlpt_server_fsm_debug = 3;

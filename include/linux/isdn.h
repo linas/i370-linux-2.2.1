@@ -1,4 +1,4 @@
-/* $Id: isdn.h,v 1.1 1999/02/08 06:18:43 linas Exp $
+/* $Id: isdn.h,v 1.1.1.1 1999/02/08 06:18:43 linas Exp $
  *
  * Main header for the Linux ISDN subsystem (linklevel).
  *
@@ -25,8 +25,8 @@
  * from the repository and merged into this file. -- Henner Eisen
  *
  * $Log: isdn.h,v $
- * Revision 1.1  1999/02/08 06:18:43  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:18:43  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.37  1998/02/22 19:45:24  fritz
  * Some changes regarding V.110

@@ -4,7 +4,7 @@
  *
  * 	Copyright (c) 1994 Pauline Middelink
  *
- *	$Id: ip_masq.c,v 1.1 1999/02/08 06:19:22 linas Exp $
+ *	$Id: ip_masq.c,v 1.1.1.1 1999/02/08 06:19:22 linas Exp $
  *
  *
  *	See ip_fw.c for original log

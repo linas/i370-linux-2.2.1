@@ -2,7 +2,7 @@
  *		IP_MASQ_FTP CUSeeMe masquerading module
  *
  *
- * Version:	@(#)$Id: ip_masq_cuseeme.c,v 1.1 1999/02/08 06:19:25 linas Exp $
+ * Version:	@(#)$Id: ip_masq_cuseeme.c,v 1.1.1.1 1999/02/08 06:19:25 linas Exp $
  *
  * Author:	Richard Lynch
  *		

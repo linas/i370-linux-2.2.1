@@ -6,7 +6,7 @@
  * Multi-cpu abstraction and macros for easier reading:
  * Copyright (C) 1996 David S. Miller (dm@engr.sgi.com)
  *
- * $Id: r2300_switch.S,v 1.1 1999/02/08 06:21:23 linas Exp $
+ * $Id: r2300_switch.S,v 1.1.1.1 1999/02/08 06:21:23 linas Exp $
  */
 #include <asm/asm.h>
 #include <asm/bootinfo.h>

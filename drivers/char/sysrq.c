@@ -1,6 +1,6 @@
 /* -*- linux-c -*-
  *
- *	$Id: sysrq.c,v 1.1 1999/02/08 06:20:00 linas Exp $
+ *	$Id: sysrq.c,v 1.1.1.1 1999/02/08 06:20:00 linas Exp $
  *
  *	Linux Magic System Request Key Hacks
  *

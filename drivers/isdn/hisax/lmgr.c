@@ -1,4 +1,4 @@
-/* $Id: lmgr.c,v 1.1 1999/02/08 06:20:48 linas Exp $
+/* $Id: lmgr.c,v 1.1.1.1 1999/02/08 06:20:48 linas Exp $
 
  * Author       Karsten Keil (keil@temic-ech.spacenet.de)
  *
@@ -6,8 +6,8 @@
  *  Layermanagement module
  *
  * $Log: lmgr.c,v $
- * Revision 1.1  1999/02/08 06:20:48  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:48  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1997/10/29 19:09:34  keil
  * new L1

@@ -1,4 +1,4 @@
-/* $Id: kdebug.h,v 1.1 1999/02/08 06:19:09 linas Exp $
+/* $Id: kdebug.h,v 1.1.1.1 1999/02/08 06:19:09 linas Exp $
  * kdebug.h:  Defines and definitions for debugging the Linux kernel
  *            under various kernel debuggers.
  *

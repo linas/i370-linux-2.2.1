@@ -1,4 +1,4 @@
-/* $Id: r6000.c,v 1.1 1999/02/08 06:21:22 linas Exp $
+/* $Id: r6000.c,v 1.1.1.1 1999/02/08 06:21:22 linas Exp $
  *
  * r6000.c: MMU and cache routines for the R6000 processors.
  *

@@ -1,4 +1,4 @@
-/* $Id: winfixup.S,v 1.1 1999/02/08 06:21:35 linas Exp $
+/* $Id: winfixup.S,v 1.1.1.1 1999/02/08 06:21:35 linas Exp $
  *
  * winfixup.S: Handle cases where user stack pointer is found to be bogus.
  *

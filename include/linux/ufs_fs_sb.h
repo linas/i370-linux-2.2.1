@@ -6,7 +6,7 @@
  * Laboratory for Computer Science Research Computing Facility
  * Rutgers, The State University of New Jersey
  *
- * $Id: ufs_fs_sb.h,v 1.1 1999/02/08 06:18:46 linas Exp $
+ * $Id: ufs_fs_sb.h,v 1.1.1.1 1999/02/08 06:18:46 linas Exp $
  *
  * Write support by Daniel Pirkl <daniel.pirkl@email.cz>
  */

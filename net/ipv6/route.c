@@ -5,7 +5,7 @@
  *	Authors:
  *	Pedro Roque		<roque@di.fc.ul.pt>	
  *
- *	$Id: route.c,v 1.1 1999/02/08 06:19:27 linas Exp $
+ *	$Id: route.c,v 1.1.1.1 1999/02/08 06:19:27 linas Exp $
  *
  *	This program is free software; you can redistribute it and/or
  *      modify it under the terms of the GNU General Public License

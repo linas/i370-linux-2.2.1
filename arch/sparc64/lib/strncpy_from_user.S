@@ -1,4 +1,4 @@
-/* $Id: strncpy_from_user.S,v 1.1 1999/02/08 06:21:36 linas Exp $
+/* $Id: strncpy_from_user.S,v 1.1.1.1 1999/02/08 06:21:36 linas Exp $
  * strncpy_from_user.S: Sparc64 strncpy from userspace.
  *
  *  Copyright (C) 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)

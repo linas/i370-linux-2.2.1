@@ -1,4 +1,4 @@
-/* $Id: cgsixfb.c,v 1.1 1999/02/08 06:20:55 linas Exp $
+/* $Id: cgsixfb.c,v 1.1.1.1 1999/02/08 06:20:55 linas Exp $
  * cgsixfb.c: CGsix (GX,GXplus) frame buffer driver
  *
  * Copyright (C) 1996,1998 Jakub Jelinek (jj@ultra.linux.cz)

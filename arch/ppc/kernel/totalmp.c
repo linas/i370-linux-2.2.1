@@ -1,5 +1,5 @@
 /*
- * $Id: totalmp.c,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: totalmp.c,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  *
  * Support for Total Impact's TotalMP PowerPC accelerator board.
  *

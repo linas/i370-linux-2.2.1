@@ -36,9 +36,9 @@ struct irvtd_cb **irvtd = NULL;
 extern struct ircomm_cb **ircomm;
 
 #if 0
-static char *rcsid = "$Id: irvtd.c,v 1.1 1999/02/08 06:19:33 linas Exp $";
+static char *rcsid = "$Id: irvtd.c,v 1.1.1.1 1999/02/08 06:19:33 linas Exp $";
 #endif
-static char *version = "IrVTD, $Revision: 1.1 $ $Date: 1999/02/08 06:19:33 $ (Takahide Higuchi)";
+static char *version = "IrVTD, $Revision: 1.1.1.1 $ $Date: 1999/02/08 06:19:33 $ (Takahide Higuchi)";
 
 
 /************************************************************

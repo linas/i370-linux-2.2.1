@@ -1,4 +1,4 @@
-/* $Id: sbus.h,v 1.1 1999/02/08 06:19:08 linas Exp $
+/* $Id: sbus.h,v 1.1.1.1 1999/02/08 06:19:08 linas Exp $
  * sbus.h:  Defines for the Sun SBus.
  *
  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)

@@ -1,5 +1,5 @@
 /*
- *	$Id: proc.c,v 1.1 1999/02/08 06:20:31 linas Exp $
+ *	$Id: proc.c,v 1.1.1.1 1999/02/08 06:20:31 linas Exp $
  *
  *	Procfs interface for the PCI bus.
  *

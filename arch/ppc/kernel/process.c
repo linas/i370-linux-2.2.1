@@ -1,5 +1,5 @@
 /*
- * $Id: process.c,v 1.1 1999/02/08 06:21:25 linas Exp $
+ * $Id: process.c,v 1.1.1.1 1999/02/08 06:21:25 linas Exp $
  *
  *  linux/arch/ppc/kernel/process.c
  *

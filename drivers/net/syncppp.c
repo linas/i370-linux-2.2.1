@@ -33,7 +33,7 @@
  *
  * Version 1.9, Wed Oct  4 18:58:15 MSK 1995
  *
- * $Id: syncppp.c,v 1.1 1999/02/08 06:19:48 linas Exp $
+ * $Id: syncppp.c,v 1.1.1.1 1999/02/08 06:19:48 linas Exp $
  */
 #undef DEBUG
 

@@ -7,7 +7,7 @@
 	.text
 
 /*
- * $Id: head.S,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: head.S,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  *	
  * This code is loaded by the ROM loader at some arbitrary location.
  * Move it to high memory so that it can load the kernel at 0x0000.

@@ -1,4 +1,4 @@
-/* $Id: piggyback.c,v 1.1 1999/02/08 06:21:37 linas Exp $
+/* $Id: piggyback.c,v 1.1.1.1 1999/02/08 06:21:37 linas Exp $
    Simple utility to make a single-image install kernel with initial ramdisk
    for Sparc64 tftpbooting without need to set up nfs.
    

@@ -1,4 +1,4 @@
-/* $Id: bwtwofb.c,v 1.1 1999/02/08 06:20:57 linas Exp $
+/* $Id: bwtwofb.c,v 1.1.1.1 1999/02/08 06:20:57 linas Exp $
  * bwtwofb.c: BWtwo frame buffer driver
  *
  * Copyright (C) 1998 Jakub Jelinek   (jj@ultra.linux.cz)

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.1 1999/02/08 06:21:23 linas Exp $
+# $Id: Makefile,v 1.1.1.1 1999/02/08 06:21:23 linas Exp $
 #
 # Makefile for MIPS-specific library files..
 #

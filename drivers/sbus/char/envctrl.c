@@ -1,4 +1,4 @@
-/* $Id: envctrl.c,v 1.1 1999/02/08 06:20:50 linas Exp $
+/* $Id: envctrl.c,v 1.1.1.1 1999/02/08 06:20:50 linas Exp $
  * envctrl.c: Temperature and Fan monitoring on Machines providing it.
  *
  * Copyright (C) 1998  Eddie C. Dost  (ecd@skynet.be)

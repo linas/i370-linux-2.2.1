@@ -1,4 +1,4 @@
-/* $Id: indy_sc.c,v 1.1 1999/02/08 06:21:24 linas Exp $
+/* $Id: indy_sc.c,v 1.1.1.1 1999/02/08 06:21:24 linas Exp $
  *
  * indy_sc.c: Indy cache managment functions.
  *

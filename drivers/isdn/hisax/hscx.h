@@ -1,4 +1,4 @@
-/* $Id: hscx.h,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: hscx.h,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * hscx.h   HSCX specific defines
  *
@@ -6,8 +6,8 @@
  *
  *
  * $Log: hscx.h,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.3  1997/07/27 21:38:35  keil
  * new B-channel interface

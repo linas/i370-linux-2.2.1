@@ -7,7 +7,7 @@
  *
  * Copyright (C) 1994, 1995 by Ralf Baechle
  *
- * $Id: entry.S,v 1.1 1999/02/08 06:21:22 linas Exp $
+ * $Id: entry.S,v 1.1.1.1 1999/02/08 06:21:22 linas Exp $
  */
 
 /*

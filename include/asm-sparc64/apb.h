@@ -1,4 +1,4 @@
-/* $Id: apb.h,v 1.1 1999/02/08 06:19:10 linas Exp $
+/* $Id: apb.h,v 1.1.1.1 1999/02/08 06:19:10 linas Exp $
  * apb.h: Advanced PCI Bridge Configuration Registers and Bits
  *
  * Copyright (C) 1998  Eddie C. Dost  (ecd@skynet.be)

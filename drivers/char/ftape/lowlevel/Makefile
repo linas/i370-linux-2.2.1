@@ -16,7 +16,7 @@
 # the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 # $Source: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/char/ftape/lowlevel/Makefile,v $
-# $Revision: 1.1 $
+# $Revision: 1.1.1.1 $
 # $Date: 1999/02/08 06:20:05 $
 #
 #      Makefile for the lowlevel part QIC-40/80/3010/3020 floppy-tape

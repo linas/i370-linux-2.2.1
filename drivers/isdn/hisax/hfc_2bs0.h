@@ -1,4 +1,4 @@
-/* $Id: hfc_2bs0.h,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: hfc_2bs0.h,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  *  specific defines for CCD's HFC 2BS0
  *
@@ -6,8 +6,8 @@
  *
  *
  * $Log: hfc_2bs0.h,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.1  1997/09/11 17:31:34  keil
  * Common part for HFC 2BS0 based cards

@@ -1,5 +1,5 @@
 /*
- * $Id: dmascc.h,v 1.1 1999/02/08 06:18:42 linas Exp $
+ * $Id: dmascc.h,v 1.1.1.1 1999/02/08 06:18:42 linas Exp $
  *
  * Driver for high-speed SCC boards (those with DMA support)
  * Copyright (C) 1997 Klaus Kudielka

@@ -2,7 +2,7 @@
  *		IP_MASQ_VDOLIVE  - VDO Live masquerading module
  *
  *
- * Version:	@(#)$Id: ip_masq_vdolive.c,v 1.1 1999/02/08 06:19:26 linas Exp $
+ * Version:	@(#)$Id: ip_masq_vdolive.c,v 1.1.1.1 1999/02/08 06:19:26 linas Exp $
  *
  * Author:	Nigel Metheringham <Nigel.Metheringham@ThePLAnet.net>
  *		PLAnet Online Ltd

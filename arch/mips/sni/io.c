@@ -5,7 +5,7 @@
  *
  * Low level I/O functions for SNI.
  *
- * $Id: io.c,v 1.1 1999/02/08 06:21:24 linas Exp $
+ * $Id: io.c,v 1.1.1.1 1999/02/08 06:21:24 linas Exp $
  */
 #include <linux/string.h>
 #include <asm/mipsconfig.h>

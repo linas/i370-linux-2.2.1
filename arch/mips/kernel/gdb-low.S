@@ -5,7 +5,7 @@
  *
  * Copyright (C) 1995 Andreas Busse
  *
- * $Id: gdb-low.S,v 1.1 1999/02/08 06:21:22 linas Exp $
+ * $Id: gdb-low.S,v 1.1.1.1 1999/02/08 06:21:22 linas Exp $
  */
 
 #include <linux/sys.h>

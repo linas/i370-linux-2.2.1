@@ -58,9 +58,9 @@ static void irlpt_client_disconnect_indication( void *instance, void *sap,
 						struct sk_buff *userdata);
 
 #if 0
-static char *rcsid = "$Id: irlpt_cli.c,v 1.1 1999/02/08 06:19:34 linas Exp $";
+static char *rcsid = "$Id: irlpt_cli.c,v 1.1.1.1 1999/02/08 06:19:34 linas Exp $";
 #endif
-static char *version = "IrLPT, $Revision: 1.1 $/$Date: 1999/02/08 06:19:34 $ (Thomas Davis)";
+static char *version = "IrLPT, $Revision: 1.1.1.1 $/$Date: 1999/02/08 06:19:34 $ (Thomas Davis)";
 
 struct file_operations client_fops = {
 	irlpt_seek,    /* seek */

@@ -1,4 +1,4 @@
-/* $Id: sysio.h,v 1.1 1999/02/08 06:19:09 linas Exp $
+/* $Id: sysio.h,v 1.1.1.1 1999/02/08 06:19:09 linas Exp $
  * sysio.h: UltraSparc sun5 specific SBUS definitions.
  *
  * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)

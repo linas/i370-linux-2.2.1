@@ -1,4 +1,4 @@
-/* $Id: atp870u.c,v 1.1 1999/02/08 06:20:24 linas Exp $
+/* $Id: atp870u.c,v 1.1.1.1 1999/02/08 06:20:24 linas Exp $
  *  linux/kernel/atp870u.c
  *
  *  Copyright (C) 1997	Wu Ching Chen
@@ -34,7 +34,7 @@ struct proc_dir_entry proc_scsi_atp870u = {
 
 void mydlyu(unsigned int);
 /*
-static const char RCSid[] = "$Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/scsi/atp870u.c,v 1.1 1999/02/08 06:20:24 linas Exp $";
+static const char RCSid[] = "$Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/scsi/atp870u.c,v 1.1.1.1 1999/02/08 06:20:24 linas Exp $";
 */
 
 static unsigned char admaxu=1,host_idu[2],chip_veru[2],scam_on[2],global_map[2];

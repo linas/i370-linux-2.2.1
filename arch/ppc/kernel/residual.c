@@ -1,5 +1,5 @@
 /*
- * $Id: residual.c,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: residual.c,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  *
  * Code to deal with the PReP residual data.
  *

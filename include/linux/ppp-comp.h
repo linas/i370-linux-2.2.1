@@ -24,7 +24,7 @@
  * OBLIGATION TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS,
  * OR MODIFICATIONS.
  *
- * $Id: ppp-comp.h,v 1.1 1999/02/08 06:18:44 linas Exp $
+ * $Id: ppp-comp.h,v 1.1.1.1 1999/02/08 06:18:44 linas Exp $
  */
 
 /*

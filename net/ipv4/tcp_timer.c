@@ -5,7 +5,7 @@
  *
  *		Implementation of the Transmission Control Protocol(TCP).
  *
- * Version:	$Id: tcp_timer.c,v 1.1 1999/02/08 06:19:22 linas Exp $
+ * Version:	$Id: tcp_timer.c,v 1.1.1.1 1999/02/08 06:19:22 linas Exp $
  *
  * Authors:	Ross Biro, <bir7@leland.Stanford.Edu>
  *		Fred N. van Kempen, <waltje@uWalt.NL.Mugnet.ORG>

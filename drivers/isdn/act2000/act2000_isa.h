@@ -1,4 +1,4 @@
-/* $Id: act2000_isa.h,v 1.1 1999/02/08 06:20:49 linas Exp $
+/* $Id: act2000_isa.h,v 1.1.1.1 1999/02/08 06:20:49 linas Exp $
  *
  * ISDN lowlevel-module for the IBM ISDN-S0 Active 2000 (ISA-Version).
  *
@@ -20,8 +20,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. 
  *
  * $Log: act2000_isa.h,v $
- * Revision 1.1  1999/02/08 06:20:49  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:49  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.1  1997/09/23 18:00:07  fritz
  * New driver for IBM Active 2000.

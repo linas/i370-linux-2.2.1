@@ -1,12 +1,12 @@
-/* $Id: isdn_concap.c,v 1.1 1999/02/08 06:20:41 linas Exp $
+/* $Id: isdn_concap.c,v 1.1.1.1 1999/02/08 06:20:41 linas Exp $
  
  * Stuff to support the concap_proto by isdn4linux. isdn4linux - specific
  * stuff goes here. Stuff that depends only on the concap protocol goes to
  * another -- protocol specific -- source file.
  *
  * $Log: isdn_concap.c,v $
- * Revision 1.1  1999/02/08 06:20:41  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:41  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1998/01/31 22:49:21  keil
  * correct comments

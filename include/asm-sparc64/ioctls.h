@@ -1,4 +1,4 @@
-/* $Id: ioctls.h,v 1.1 1999/02/08 06:19:08 linas Exp $ */
+/* $Id: ioctls.h,v 1.1.1.1 1999/02/08 06:19:08 linas Exp $ */
 #ifndef _ASM_SPARC64_IOCTLS_H
 #define _ASM_SPARC64_IOCTLS_H
 

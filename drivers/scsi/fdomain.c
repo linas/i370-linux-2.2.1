@@ -305,7 +305,7 @@ struct proc_dir_entry proc_scsi_fdomain = {
     S_IFDIR | S_IRUGO | S_IXUGO, 2
 };
   
-#define VERSION          "$Revision: 1.1 $"
+#define VERSION          "$Revision: 1.1.1.1 $"
 
 /* START OF USER DEFINABLE OPTIONS */
 

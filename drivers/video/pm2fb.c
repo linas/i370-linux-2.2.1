@@ -3,7 +3,7 @@
  * Copyright (c) 1998-1999 Ilario Nardinocchi (nardinoc@CS.UniBO.IT)
  * Based on linux/drivers/video/skeletonfb.c by Geert Uytterhoeven.
  * --------------------------------------------------------------------------
- * $Id: pm2fb.c,v 1.1 1999/02/08 06:20:59 linas Exp $
+ * $Id: pm2fb.c,v 1.1.1.1 1999/02/08 06:20:59 linas Exp $
  * --------------------------------------------------------------------------
  * This file is subject to the terms and conditions of the GNU General Public
  * License.  See the file README.legal in the main directory of this archive

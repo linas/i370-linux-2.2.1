@@ -1,4 +1,4 @@
-/* $Id: devops.c,v 1.1 1999/02/08 06:21:37 linas Exp $
+/* $Id: devops.c,v 1.1.1.1 1999/02/08 06:21:37 linas Exp $
  * devops.c:  Device operations using the PROM.
  *
  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)

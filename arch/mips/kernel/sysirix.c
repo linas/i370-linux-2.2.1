@@ -1,4 +1,4 @@
-/* $Id: sysirix.c,v 1.1 1999/02/08 06:21:22 linas Exp $
+/* $Id: sysirix.c,v 1.1.1.1 1999/02/08 06:21:22 linas Exp $
  *
  * sysirix.c: IRIX system call emulation.
  *

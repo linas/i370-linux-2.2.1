@@ -1,4 +1,4 @@
-/* $Id: isdn_common.c,v 1.1 1999/02/08 06:20:38 linas Exp $
+/* $Id: isdn_common.c,v 1.1.1.1 1999/02/08 06:20:38 linas Exp $
 
  * Linux ISDN subsystem, common used functions (linklevel).
  *
@@ -25,8 +25,8 @@
  * from the repository and merged into this file. -- Henner Eisen
  *
  * $Log: isdn_common.c,v $
- * Revision 1.1  1999/02/08 06:20:38  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:38  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.55  1998/02/23 23:35:32  fritz
  * Eliminated some compiler warnings.
@@ -272,7 +272,7 @@
 
 isdn_dev *dev = (isdn_dev *) 0;
 
-static char *isdn_revision = "$Revision: 1.1 $";
+static char *isdn_revision = "$Revision: 1.1.1.1 $";
 
 extern char *isdn_net_revision;
 extern char *isdn_tty_revision;

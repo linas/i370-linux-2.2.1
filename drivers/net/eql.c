@@ -17,7 +17,7 @@
  */
 
 static const char *version = 
-	"Equalizer1996: $Revision: 1.1 $ $Date: 1999/02/08 06:19:41 $ Simon Janes (simon@ncm.com)\n";
+	"Equalizer1996: $Revision: 1.1.1.1 $ $Date: 1999/02/08 06:19:41 $ Simon Janes (simon@ncm.com)\n";
 
 /*
  * Sources:
@@ -31,8 +31,8 @@ static const char *version =
 
 /*
  * $Log: eql.c,v $
- * Revision 1.1  1999/02/08 06:19:41  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:19:41  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1996/04/11 17:51:52  guru
  * Added one-line eql_remove_slave patch.

@@ -9,7 +9,7 @@
  * 1997-09-10	Updated NTP code according to technical memorandum Jan '96
  *		"A Kernel Model for Precision Timekeeping" by Dave Mills
  *
- * $Id: time.c,v 1.1 1999/02/08 06:21:22 linas Exp $
+ * $Id: time.c,v 1.1.1.1 1999/02/08 06:21:22 linas Exp $
  */
 #include <linux/errno.h>
 #include <linux/init.h>

@@ -1,4 +1,4 @@
-/* $Id: memory.c,v 1.1 1999/02/08 06:21:19 linas Exp $
+/* $Id: memory.c,v 1.1.1.1 1999/02/08 06:21:19 linas Exp $
  * memory.c: Prom routine for acquiring various bits of information
  *           about RAM on the machine, both virtual and physical.
  *

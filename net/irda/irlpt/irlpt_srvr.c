@@ -71,9 +71,9 @@ int irlpt_server_lsap = LSAP_IRLPT;
 int irlpt_server_debug = 4;
 
 #if 0
-static char *rcsid = "$Id: irlpt_srvr.c,v 1.1 1999/02/08 06:19:34 linas Exp $";
+static char *rcsid = "$Id: irlpt_srvr.c,v 1.1.1.1 1999/02/08 06:19:34 linas Exp $";
 #endif
-static char *version = "IrLPT server, $Revision: 1.1 $/$Date: 1999/02/08 06:19:34 $ (Thomas Davis)";
+static char *version = "IrLPT server, $Revision: 1.1.1.1 $/$Date: 1999/02/08 06:19:34 $ (Thomas Davis)";
 
 struct file_operations irlpt_fops = {
 	irlpt_seek,	/* seek */

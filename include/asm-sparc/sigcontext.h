@@ -1,4 +1,4 @@
-/* $Id: sigcontext.h,v 1.1 1999/02/08 06:18:59 linas Exp $ */
+/* $Id: sigcontext.h,v 1.1.1.1 1999/02/08 06:18:59 linas Exp $ */
 #ifndef __SPARC_SIGCONTEXT_H
 #define __SPARC_SIGCONTEXT_H
 

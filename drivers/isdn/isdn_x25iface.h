@@ -1,4 +1,4 @@
-/* $Id: isdn_x25iface.h,v 1.1 1999/02/08 06:20:41 linas Exp $
+/* $Id: isdn_x25iface.h,v 1.1.1.1 1999/02/08 06:20:41 linas Exp $
  */
 #ifndef _LINUX_ISDN_X25IFACE_H
 #define _LINUX_ISDN_X25IFACE_H

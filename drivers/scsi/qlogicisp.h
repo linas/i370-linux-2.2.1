@@ -18,11 +18,11 @@
 
 /*
  * $Date: 1999/02/08 06:20:19 $
- * $Revision: 1.1 $
+ * $Revision: 1.1.1.1 $
  *
  * $Log: qlogicisp.h,v $
- * Revision 1.1  1999/02/08 06:20:19  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:19  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 0.5  1995/09/22  02:32:56  root
  * do auto request sense

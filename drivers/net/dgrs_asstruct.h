@@ -1,7 +1,7 @@
 /*
  *	For declaring structures shared with assembly routines
  *
- *	$Id: dgrs_asstruct.h,v 1.1 1999/02/08 06:19:42 linas Exp $
+ *	$Id: dgrs_asstruct.h,v 1.1.1.1 1999/02/08 06:19:42 linas Exp $
  */
 
 #if ASSEMBLER

@@ -2,7 +2,7 @@
 #define _AHA152X_H
 
 /*
- * $Id: aha152x.h,v 1.1 1999/02/08 06:20:13 linas Exp $
+ * $Id: aha152x.h,v 1.1.1.1 1999/02/08 06:20:13 linas Exp $
  */
 
 #if defined(__KERNEL__)
@@ -24,7 +24,7 @@ int aha152x_proc_info(char *buffer, char **start, off_t offset, int length, int 
    (unless we support more than 1 cmd_per_lun this should do) */
 #define AHA152X_MAXQUEUE 7
 
-#define AHA152X_REVID "Adaptec 152x SCSI driver; $Revision: 1.1 $"
+#define AHA152X_REVID "Adaptec 152x SCSI driver; $Revision: 1.1.1.1 $"
 
 extern struct proc_dir_entry proc_scsi_aha152x;
 

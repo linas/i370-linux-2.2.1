@@ -1,5 +1,5 @@
 /*
- *  $Id: build.c,v 1.1 1999/02/08 06:21:07 linas Exp $
+ *  $Id: build.c,v 1.1.1.1 1999/02/08 06:21:07 linas Exp $
  *
  *  Copyright (C) 1991, 1992  Linus Torvalds
  *  Copyright (C) 1997 Martin Mares

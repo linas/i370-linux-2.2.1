@@ -6,7 +6,7 @@
  * Multi-cpu abstraction and reworking:
  * Copyright (C) 1996 David S. Miller (dm@engr.sgi.com)
  *
- * $Id: r4k_misc.S,v 1.1 1999/02/08 06:21:23 linas Exp $
+ * $Id: r4k_misc.S,v 1.1.1.1 1999/02/08 06:21:23 linas Exp $
  */
 #include <asm/asm.h>
 #include <asm/current.h>

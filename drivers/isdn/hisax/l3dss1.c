@@ -1,4 +1,4 @@
-/* $Id: l3dss1.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: l3dss1.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * EURO/DSS1 D-channel protocol
  *
@@ -9,8 +9,8 @@
  *              Fritz Elfert
  *
  * $Log: l3dss1.c,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.7  1998/02/12 23:08:01  keil
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()
@@ -53,7 +53,7 @@
 #include <linux/ctype.h>
 
 extern char *HiSax_getrev(const char *revision);
-const char *dss1_revision = "$Revision: 1.1 $";
+const char *dss1_revision = "$Revision: 1.1.1.1 $";
 
 #define EXT_BEARER_CAPS 1
 

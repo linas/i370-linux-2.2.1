@@ -7,7 +7,7 @@
  *
  * Copyright (c) 1996, 1998 by Ralf Baechle
  *
- * $Id: strlen_user.S,v 1.1 1999/02/08 06:21:23 linas Exp $
+ * $Id: strlen_user.S,v 1.1.1.1 1999/02/08 06:21:23 linas Exp $
  */
 #include <asm/asm.h>
 #include <asm/offset.h>

@@ -28,7 +28,7 @@
  */
 
  char zftc_src[] ="$Source: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/char/ftape/compressor/zftape-compress.c,v $";
- char zftc_rev[] = "$Revision: 1.1 $";
+ char zftc_rev[] = "$Revision: 1.1.1.1 $";
  char zftc_dat[] = "$Date: 1999/02/08 06:20:05 $";
 
 #include <linux/errno.h>

@@ -1,4 +1,4 @@
-/* $Id: scsi_debug.c,v 1.1 1999/02/08 06:20:11 linas Exp $
+/* $Id: scsi_debug.c,v 1.1.1.1 1999/02/08 06:20:11 linas Exp $
  *  linux/kernel/scsi_debug.c
  *
  *  Copyright (C) 1992  Eric Youngdale

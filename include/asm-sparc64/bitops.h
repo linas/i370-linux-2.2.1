@@ -1,4 +1,4 @@
-/* $Id: bitops.h,v 1.1 1999/02/08 06:19:07 linas Exp $
+/* $Id: bitops.h,v 1.1.1.1 1999/02/08 06:19:07 linas Exp $
  * bitops.h: Bit string operations on the V9.
  *
  * Copyright 1996, 1997 David S. Miller (davem@caip.rutgers.edu)

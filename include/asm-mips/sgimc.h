@@ -1,4 +1,4 @@
-/* $Id: sgimc.h,v 1.1 1999/02/08 06:18:53 linas Exp $
+/* $Id: sgimc.h,v 1.1.1.1 1999/02/08 06:18:53 linas Exp $
  * sgimc.h: Definitions for memory controller hardware found on
  *          SGI IP20, IP22, IP26, and IP28 machines.
  *

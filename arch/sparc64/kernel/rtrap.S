@@ -1,4 +1,4 @@
-/* $Id: rtrap.S,v 1.1 1999/02/08 06:21:35 linas Exp $
+/* $Id: rtrap.S,v 1.1.1.1 1999/02/08 06:21:35 linas Exp $
  * rtrap.S: Preparing for return from trap on Sparc V9.
  *
  * Copyright (C) 1997,1998 Jakub Jelinek (jj@sunsite.mff.cuni.cz)

@@ -1,4 +1,4 @@
-/* $Id: linux_logo.h,v 1.1 1999/02/08 06:19:01 linas Exp $
+/* $Id: linux_logo.h,v 1.1.1.1 1999/02/08 06:19:01 linas Exp $
  * include/asm-sparc/linux_logo.h: This is a linux logo
  *                                 to be displayed on boot.
  *

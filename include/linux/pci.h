@@ -1,5 +1,5 @@
 /*
- *	$Id: pci.h,v 1.1 1999/02/08 06:18:40 linas Exp $
+ *	$Id: pci.h,v 1.1.1.1 1999/02/08 06:18:40 linas Exp $
  *
  *	PCI defines and function prototypes
  *	Copyright 1994, Drew Eckhardt

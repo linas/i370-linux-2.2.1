@@ -1,4 +1,4 @@
-/* $Id: amd7930.c,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: amd7930.c,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
  *
  * HiSax ISDN driver - chip specific routines for AMD 7930
  *
@@ -7,8 +7,8 @@
  *
  *
  * $Log: amd7930.c,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1998/02/12 23:07:10  keil
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()
@@ -108,7 +108,7 @@
 #include "rawhdlc.h"
 #include <linux/interrupt.h>
 
-static const char *amd7930_revision = "$Revision: 1.1 $";
+static const char *amd7930_revision = "$Revision: 1.1.1.1 $";
 
 #define RCV_BUFSIZE	1024	/* Size of raw receive buffer in bytes */
 #define RCV_BUFBLKS	4	/* Number of blocks to divide buffer into

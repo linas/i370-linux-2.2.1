@@ -1,4 +1,4 @@
-/* $Id: ds1286.h,v 1.1 1999/02/08 06:18:53 linas Exp $
+/* $Id: ds1286.h,v 1.1.1.1 1999/02/08 06:18:53 linas Exp $
  *
  * mc146818rtc.h - register definitions for the Real-Time-Clock / CMOS RAM
  * Copyright Torsten Duwe <duwe@informatik.uni-erlangen.de> 1993

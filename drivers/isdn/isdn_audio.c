@@ -1,4 +1,4 @@
-/* $Id: isdn_audio.c,v 1.1 1999/02/08 06:20:40 linas Exp $
+/* $Id: isdn_audio.c,v 1.1.1.1 1999/02/08 06:20:40 linas Exp $
 
  * Linux ISDN subsystem, audio conversion and compression (linklevel).
  *
@@ -20,8 +20,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: isdn_audio.c,v $
- * Revision 1.1  1999/02/08 06:20:40  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:40  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.10  1998/02/20 17:09:40  fritz
  * Changes for recent kernels.
@@ -64,7 +64,7 @@
 #include "isdn_audio.h"
 #include "isdn_common.h"
 
-char *isdn_audio_revision = "$Revision: 1.1 $";
+char *isdn_audio_revision = "$Revision: 1.1.1.1 $";
 
 /*
  * Misc. lookup-tables.

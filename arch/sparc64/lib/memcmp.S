@@ -1,4 +1,4 @@
-/* $Id: memcmp.S,v 1.1 1999/02/08 06:21:36 linas Exp $
+/* $Id: memcmp.S,v 1.1.1.1 1999/02/08 06:21:36 linas Exp $
  * Sparc64 optimized memcmp code.
  *
  * Copyright (C) 1997 Jakub Jelinek (jj@sunsite.mff.cuni.cz)

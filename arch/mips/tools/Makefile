@@ -3,7 +3,7 @@
 # Copyright (C) 1996 David S. Miller (dm@engr.sgi.com)
 # Copyright (C) 1997 Ralf Baechle (ralf@gnu.ai.mit.edu)
 #
-# $Id: Makefile,v 1.1 1999/02/08 06:21:24 linas Exp $
+# $Id: Makefile,v 1.1.1.1 1999/02/08 06:21:24 linas Exp $
 #
 TARGET	:= $(TOPDIR)/include/asm-$(ARCH)/offset.h
 

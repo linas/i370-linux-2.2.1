@@ -1,7 +1,7 @@
 #define BLOCKMOVE
 #define	Z_WAKE
 static char rcsid[] =
-"$Revision: 1.1 $$Date: 1999/02/08 06:19:59 $";
+"$Revision: 1.1.1.1 $$Date: 1999/02/08 06:19:59 $";
 
 /*
  *  linux/drivers/char/cyclades.c
@@ -31,8 +31,8 @@ static char rcsid[] =
  *   void cleanup_module(void);
  *
  * $Log: cyclades.c,v $
- * Revision 1.1  1999/02/08 06:19:59  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:19:59  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.2.1.10 1999/01/20 16:14:29 ivan
  * Removed all unnecessary page-alignement operations in ioremap calls

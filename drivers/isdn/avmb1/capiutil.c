@@ -1,5 +1,5 @@
 /*
- * $Id: capiutil.c,v 1.1 1999/02/08 06:20:44 linas Exp $
+ * $Id: capiutil.c,v 1.1.1.1 1999/02/08 06:20:44 linas Exp $
  *
  * CAPI 2.0 convert capi message to capi message struct
  *
@@ -7,8 +7,8 @@
  * Rewritten for Linux 1996 by Carsten Paeth (calle@calle.in-berlin.de)
  *
  * $Log: capiutil.c,v $
- * Revision 1.1  1999/02/08 06:20:44  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:44  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.6  1997/11/04 06:12:12  calle
  * capi.c: new read/write in file_ops since 2.1.60

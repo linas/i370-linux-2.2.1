@@ -1,4 +1,4 @@
-/* $Id: ultra.S,v 1.1 1999/02/08 06:21:37 linas Exp $
+/* $Id: ultra.S,v 1.1.1.1 1999/02/08 06:21:37 linas Exp $
  * ultra.S: Don't expand these all over the place...
  *
  * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)

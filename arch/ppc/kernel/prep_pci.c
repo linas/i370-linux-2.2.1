@@ -1,5 +1,5 @@
 /*
- * $Id: prep_pci.c,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: prep_pci.c,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  * PReP pci functions.
  * Originally by Gary Thomas
  * rewritten and updated by Cort Dougan (cort@cs.nmt.edu)

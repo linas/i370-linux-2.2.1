@@ -1,4 +1,4 @@
-/* $Id: machines.h,v 1.1 1999/02/08 06:18:59 linas Exp $
+/* $Id: machines.h,v 1.1.1.1 1999/02/08 06:18:59 linas Exp $
  * machines.h:  Defines for taking apart the machine type value in the
  *              idprom and determining the kind of machine we are on.
  *

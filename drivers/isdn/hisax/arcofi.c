@@ -1,4 +1,4 @@
-/* $Id: arcofi.c,v 1.1 1999/02/08 06:20:47 linas Exp $
+/* $Id: arcofi.c,v 1.1.1.1 1999/02/08 06:20:47 linas Exp $
 
  * arcofi.h   Ansteuerung ARCOFI 2165
  *
@@ -7,8 +7,8 @@
  *
  *
  * $Log: arcofi.c,v $
- * Revision 1.1  1999/02/08 06:20:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.1  1997/10/29 18:51:20  keil
  * New files

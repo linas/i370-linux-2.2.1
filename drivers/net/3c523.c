@@ -77,7 +77,7 @@
    Feb 15th, 1996
    added shared irq support
 
-   $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/net/3c523.c,v 1.1 1999/02/08 06:19:42 linas Exp $
+   $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/net/3c523.c,v 1.1.1.1 1999/02/08 06:19:42 linas Exp $
  */
 
 #ifdef MODULE

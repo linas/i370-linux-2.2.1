@@ -14,7 +14,7 @@
  *		as published by the Free Software Foundation; either version
  *		2 of the License, or (at your option) any later version.
  *
- * $Id: csum_partial_copy.c,v 1.1 1999/02/08 06:21:23 linas Exp $
+ * $Id: csum_partial_copy.c,v 1.1.1.1 1999/02/08 06:21:23 linas Exp $
  */
 #include <net/checksum.h>
 #include <linux/types.h>

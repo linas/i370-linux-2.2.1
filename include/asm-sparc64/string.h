@@ -1,4 +1,4 @@
-/* $Id: string.h,v 1.1 1999/02/08 06:19:09 linas Exp $
+/* $Id: string.h,v 1.1.1.1 1999/02/08 06:19:09 linas Exp $
  * string.h: External definitions for optimized assembly string
  *           routines for the Linux Kernel.
  *

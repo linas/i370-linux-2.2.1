@@ -1,13 +1,13 @@
 /*
- * $Id: compat.h,v 1.1 1999/02/08 06:20:45 linas Exp $
+ * $Id: compat.h,v 1.1.1.1 1999/02/08 06:20:45 linas Exp $
  * 
  * Headerfile for Compartibility between different kernel versions
  * 
  * (c) Copyright 1996 by Carsten Paeth (calle@calle.in-berlin.de)
  * 
  * $Log: compat.h,v $
- * Revision 1.1  1999/02/08 06:20:45  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:45  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.3  1997/11/04 06:12:15  calle
  * capi.c: new read/write in file_ops since 2.1.60

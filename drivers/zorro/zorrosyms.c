@@ -1,5 +1,5 @@
 /*
- *	$Id: zorrosyms.c,v 1.1 1999/02/08 06:21:06 linas Exp $
+ *	$Id: zorrosyms.c,v 1.1.1.1 1999/02/08 06:21:06 linas Exp $
  *
  *	Zorro Bus Services -- Exported Symbols
  *

@@ -1,5 +1,5 @@
 /*
- *  $Id: nfsroot.c,v 1.1 1999/02/08 06:18:17 linas Exp $
+ *  $Id: nfsroot.c,v 1.1.1.1 1999/02/08 06:18:17 linas Exp $
  *
  *  Copyright (C) 1995, 1996  Gero Kuhlmann <gero@gkminix.han.de>
  *

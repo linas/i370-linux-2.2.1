@@ -1,6 +1,6 @@
 /*
  * $Source: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/char/ftape/compressor/lzrw3.c,v $
- * $Revision: 1.1 $
+ * $Revision: 1.1.1.1 $
  * $Date: 1999/02/08 06:20:05 $
  *
  * Implementation of Ross Williams lzrw3 algorithm. Adaption for zftape.

@@ -1,13 +1,13 @@
 /*
- * $Id: capidrv.c,v 1.1 1999/02/08 06:20:44 linas Exp $
+ * $Id: capidrv.c,v 1.1.1.1 1999/02/08 06:20:44 linas Exp $
  *
  * ISDN4Linux Driver, using capi20 interface (kernelcapi)
  *
  * Copyright 1997 by Carsten Paeth (calle@calle.in-berlin.de)
  *
  * $Log: capidrv.c,v $
- * Revision 1.1  1999/02/08 06:20:44  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:44  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.11  1998/02/13 07:09:15  calle
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()
@@ -82,7 +82,7 @@
 #include "capicmd.h"
 #include "capidrv.h"
 
-static char *revision = "$Revision: 1.1 $";
+static char *revision = "$Revision: 1.1.1.1 $";
 int debugmode = 0;
 
 MODULE_AUTHOR("Carsten Paeth <calle@calle.in-berlin.de>");

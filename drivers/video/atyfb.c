@@ -1,4 +1,4 @@
-/*  $Id: atyfb.c,v 1.1 1999/02/08 06:20:54 linas Exp $
+/*  $Id: atyfb.c,v 1.1.1.1 1999/02/08 06:20:54 linas Exp $
  *  linux/drivers/video/atyfb.c -- Frame buffer device for ATI Mach64
  *
  *	Copyright (C) 1997-1998  Geert Uytterhoeven

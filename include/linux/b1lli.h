@@ -1,13 +1,13 @@
 /*
- * $Id: b1lli.h,v 1.1 1999/02/08 06:18:47 linas Exp $
+ * $Id: b1lli.h,v 1.1.1.1 1999/02/08 06:18:47 linas Exp $
  *
  * ISDN lowlevel-module for AVM B1-card.
  *
  * Copyright 1996 by Carsten Paeth (calle@calle.in-berlin.de)
  *
  * $Log: b1lli.h,v $
- * Revision 1.1  1999/02/08 06:18:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:18:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.3  1998/01/31 10:54:37  calle
  * include changes for PCMCIA cards from 2.0 version

@@ -1,4 +1,4 @@
-/* $Id: ecc.h,v 1.1 1999/02/08 06:18:59 linas Exp $
+/* $Id: ecc.h,v 1.1.1.1 1999/02/08 06:18:59 linas Exp $
  * ecc.h: Definitions and defines for the external cache/memory
  *        controller on the sun4m.
  *

@@ -56,7 +56,7 @@
  * aspects of configuring a WaveFront soundcard, particularly the
  * effects processor.
  *
- * $Id: wavfront.c,v 1.1 1999/02/08 06:20:29 linas Exp $
+ * $Id: wavfront.c,v 1.1.1.1 1999/02/08 06:20:29 linas Exp $
  *
  * This program is distributed under the GNU GENERAL PUBLIC LICENSE (GPL)
  * Version 2 (June 1991). See the "COPYING" file distributed with this software

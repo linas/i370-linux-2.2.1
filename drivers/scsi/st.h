@@ -2,7 +2,7 @@
 #ifndef _ST_H
 	#define _ST_H
 /*
-	$Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/scsi/st.h,v 1.1 1999/02/08 06:20:12 linas Exp $
+	$Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/scsi/st.h,v 1.1.1.1 1999/02/08 06:20:12 linas Exp $
 */
 
 #ifndef _SCSI_H

@@ -1,4 +1,4 @@
-/* $Id: avm_a1.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: avm_a1.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * avm_a1.c     low level stuff for AVM A1 (Fritz) isdn cards
  *
@@ -6,8 +6,8 @@
  *
  *
  * $Log: avm_a1.c,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.7  1998/02/02 13:29:37  keil
  * fast io
@@ -60,7 +60,7 @@
 #include "isdnl1.h"
 
 extern const char *CardType[];
-const char *avm_revision = "$Revision: 1.1 $";
+const char *avm_revision = "$Revision: 1.1.1.1 $";
 
 #define	 AVM_A1_STAT_ISAC	0x01
 #define	 AVM_A1_STAT_HSCX	0x02

@@ -1,4 +1,4 @@
-/*  $Id: process.c,v 1.1 1999/02/08 06:21:34 linas Exp $
+/*  $Id: process.c,v 1.1.1.1 1999/02/08 06:21:34 linas Exp $
  *  arch/sparc64/kernel/process.c
  *
  *  Copyright (C) 1995, 1996 David S. Miller (davem@caip.rutgers.edu)

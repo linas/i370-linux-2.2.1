@@ -1,4 +1,4 @@
-/* $Id: mic.c,v 1.1 1999/02/08 06:20:48 linas Exp $
+/* $Id: mic.c,v 1.1.1.1 1999/02/08 06:20:48 linas Exp $
 
  * mic.c  low level stuff for mic cards
  *
@@ -8,8 +8,8 @@
  *
  *
  * $Log: mic.c,v $
- * Revision 1.1  1999/02/08 06:20:48  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:48  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.6  1998/02/17 15:39:57  keil
  * fix reset problem
@@ -40,7 +40,7 @@
 
 extern const char *CardType[];
 
-const char *mic_revision = "$Revision: 1.1 $";
+const char *mic_revision = "$Revision: 1.1.1.1 $";
 
 #define byteout(addr,val) outb(val,addr)
 #define bytein(addr) inb(addr)

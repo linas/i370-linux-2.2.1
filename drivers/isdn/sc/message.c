@@ -1,5 +1,5 @@
 /*
- *  $Id: message.c,v 1.1 1999/02/08 06:20:49 linas Exp $
+ *  $Id: message.c,v 1.1.1.1 1999/02/08 06:20:49 linas Exp $
  *  Copyright (C) 1996  SpellCaster Telecommunications Inc.
  *
  *  message.c - functions for sending and receiving control messages

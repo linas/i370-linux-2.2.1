@@ -7,7 +7,7 @@
  */
 
 /*
-    $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/include/scsi/scsi.h,v 1.1 1999/02/08 06:19:07 linas Exp $
+    $Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/include/scsi/scsi.h,v 1.1.1.1 1999/02/08 06:19:07 linas Exp $
 
     For documentation on the OPCODES, MESSAGES, and SENSE values,
     please consult the SCSI standard.

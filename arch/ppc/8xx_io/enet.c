@@ -1,5 +1,5 @@
 /*
- * $Id: enet.c,v 1.1 1999/02/08 06:21:27 linas Exp $
+ * $Id: enet.c,v 1.1.1.1 1999/02/08 06:21:27 linas Exp $
  * Ethernet driver for Motorola MPC8xx.
  * Copyright (c) 1997 Dan Malek (dmalek@jlc.net)
  *

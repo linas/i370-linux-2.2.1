@@ -1,4 +1,4 @@
-/* $Id: console.c,v 1.1 1999/02/08 06:21:19 linas Exp $
+/* $Id: console.c,v 1.1.1.1 1999/02/08 06:21:19 linas Exp $
  * console.c: Routines that deal with sending and receiving IO
  *            to/from the current console device using the PROM.
  *

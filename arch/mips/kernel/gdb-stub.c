@@ -12,7 +12,7 @@
  *
  *  Copyright (C) 1995 Andreas Busse
  *
- * $Id: gdb-stub.c,v 1.1 1999/02/08 06:21:22 linas Exp $
+ * $Id: gdb-stub.c,v 1.1.1.1 1999/02/08 06:21:22 linas Exp $
  */
 
 /*

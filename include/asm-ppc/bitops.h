@@ -1,5 +1,5 @@
 /*
- * $Id: bitops.h,v 1.1 1999/02/08 06:19:05 linas Exp $
+ * $Id: bitops.h,v 1.1.1.1 1999/02/08 06:19:05 linas Exp $
  * bitops.h: Bit string operations on the ppc
  */
 

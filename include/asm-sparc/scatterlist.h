@@ -1,4 +1,4 @@
-/* $Id: scatterlist.h,v 1.1 1999/02/08 06:19:01 linas Exp $ */
+/* $Id: scatterlist.h,v 1.1.1.1 1999/02/08 06:19:01 linas Exp $ */
 #ifndef _SPARC_SCATTERLIST_H
 #define _SPARC_SCATTERLIST_H
 

@@ -1,4 +1,4 @@
-/* $Id: rtc.h,v 1.1 1999/02/08 06:19:01 linas Exp $
+/* $Id: rtc.h,v 1.1.1.1 1999/02/08 06:19:01 linas Exp $
  *
  * rtc.h: Definitions for access to the Mostek real time clock
  *

@@ -1,4 +1,4 @@
-/* $Id: indy_int.c,v 1.1 1999/02/08 06:21:24 linas Exp $
+/* $Id: indy_int.c,v 1.1.1.1 1999/02/08 06:21:24 linas Exp $
  *
  * indy_int.c: Routines for generic manipulation of the INT[23] ASIC
  *             found on INDY workstations..

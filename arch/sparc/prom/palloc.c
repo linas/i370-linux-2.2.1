@@ -1,4 +1,4 @@
-/* $Id: palloc.c,v 1.1 1999/02/08 06:21:19 linas Exp $
+/* $Id: palloc.c,v 1.1.1.1 1999/02/08 06:21:19 linas Exp $
  * palloc.c:  Memory allocation from the Sun PROM.
  *
  * Copyright (C) 1995 David S. Miller (davem@caip.rutgers.edu)

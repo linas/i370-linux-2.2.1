@@ -1,12 +1,12 @@
-/* $Id: config.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: config.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * Author       Karsten Keil (keil@temic-ech.spacenet.de)
  *              based on the teles driver from Jan den Ouden
  *
  *
  * $Log: config.c,v $
- * Revision 1.1  1999/02/08 06:20:46  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:46  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 2.12  1998/02/11 17:28:02  keil
  * Niccy PnP/PCI support

@@ -1,5 +1,5 @@
 /*
- * $Id: setup.c,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: setup.c,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  * Common prep/pmac/chrp boot and setup code.
  */
 

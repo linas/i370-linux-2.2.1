@@ -1,4 +1,4 @@
-/*	$Id: com90io.c,v 1.1 1999/02/08 06:19:46 linas Exp $
+/*	$Id: com90io.c,v 1.1.1.1 1999/02/08 06:19:46 linas Exp $
 
         Written 1997 by David Woodhouse <dwmw2@cam.ac.uk>
 

@@ -1,4 +1,4 @@
-/* $Id: icn.c,v 1.1 1999/02/08 06:20:42 linas Exp $
+/* $Id: icn.c,v 1.1.1.1 1999/02/08 06:20:42 linas Exp $
 
  * ISDN low-level module for the ICN active ISDN-Card.
  *
@@ -19,8 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: icn.c,v $
- * Revision 1.1  1999/02/08 06:20:42  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:42  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.49  1998/02/13 11:14:15  keil
  * change for 2.1.86 (removing FREE_READ/FREE_WRITE from [dev]_kfree_skb()
@@ -212,7 +212,7 @@
 #undef MAP_DEBUG
 
 static char
-*revision = "$Revision: 1.1 $";
+*revision = "$Revision: 1.1.1.1 $";
 
 static int icn_addcard(int, char *, char *);
 

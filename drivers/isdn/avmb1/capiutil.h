@@ -1,5 +1,5 @@
 /*
- * $Id: capiutil.h,v 1.1 1999/02/08 06:20:44 linas Exp $
+ * $Id: capiutil.h,v 1.1.1.1 1999/02/08 06:20:44 linas Exp $
  * 
  * CAPI 2.0 defines & types
  * 
@@ -7,8 +7,8 @@
  * Rewritten for Linux 1996 by Carsten Paeth (calle@calle.in-berlin.de)
  * 
  * $Log: capiutil.h,v $
- * Revision 1.1  1999/02/08 06:20:44  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:44  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.2  1997/05/18 09:24:19  calle
  * added verbose disconnect reason reporting to avmb1.

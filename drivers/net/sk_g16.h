@@ -4,7 +4,7 @@
  * of the GNU Public License, incorporated herein by reference.
  *
  * Module         : sk_g16.h
- * Version        : $Revision: 1.1 $  
+ * Version        : $Revision: 1.1.1.1 $  
  *
  * Author         : M.Hipp (mhipp@student.uni-tuebingen.de)
  * changes by     : Patrick J.D. Weichmann
@@ -16,8 +16,8 @@
  *                  network device driver which uses this chip 
  *
  * $Log: sk_g16.h,v $
- * Revision 1.1  1999/02/08 06:19:39  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:19:39  linas
+ * stock linux 2.2.1 kernel
  *
 -*/
 

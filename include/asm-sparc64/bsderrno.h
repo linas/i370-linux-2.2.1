@@ -1,4 +1,4 @@
-/* $Id: bsderrno.h,v 1.1 1999/02/08 06:19:07 linas Exp $
+/* $Id: bsderrno.h,v 1.1.1.1 1999/02/08 06:19:07 linas Exp $
  * bsderrno.h: Error numbers for NetBSD binary compatibility
  *
  * Copyright (C) 1996 David S. Miller (davem@caip.rutgers.edu)

@@ -54,7 +54,7 @@
  *	7) Don't send down any more commands if the host/device is busy.
  */
 
-static const char RCSid[] = "$Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/scsi/scsi_queue.c,v 1.1 1999/02/08 06:20:23 linas Exp $";
+static const char RCSid[] = "$Header: /home2/linas/archive/backlot/cvs-2014-11-21/cvsroot/linux/drivers/scsi/scsi_queue.c,v 1.1.1.1 1999/02/08 06:20:23 linas Exp $";
 
 /*
  * Lock used to prevent more than one process from frobbing the list at the

@@ -1,13 +1,13 @@
 /*
- * $Id: kernelcapi.h,v 1.1 1999/02/08 06:18:47 linas Exp $
+ * $Id: kernelcapi.h,v 1.1.1.1 1999/02/08 06:18:47 linas Exp $
  * 
  * Kernel CAPI 2.0 Interface for Linux
  * 
  * (c) Copyright 1997 by Carsten Paeth (calle@calle.in-berlin.de)
  * 
  * $Log: kernelcapi.h,v $
- * Revision 1.1  1999/02/08 06:18:47  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:18:47  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.1  1997/03/04 21:27:33  calle
  * First version in isdn4linux

@@ -1,5 +1,5 @@
 /*
- * $Id: smp.c,v 1.1 1999/02/08 06:21:26 linas Exp $
+ * $Id: smp.c,v 1.1.1.1 1999/02/08 06:21:26 linas Exp $
  *
  * Smp support for ppc.
  *

@@ -1,4 +1,4 @@
-/* $Id: sys_sparc.c,v 1.1 1999/02/08 06:21:16 linas Exp $
+/* $Id: sys_sparc.c,v 1.1.1.1 1999/02/08 06:21:16 linas Exp $
  * linux/arch/sparc/kernel/sys_sparc.c
  *
  * This file contains various random system calls that

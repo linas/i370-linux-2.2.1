@@ -1,4 +1,4 @@
-/* $Id: isdn_ppp.h,v 1.1 1999/02/08 06:20:39 linas Exp $
+/* $Id: isdn_ppp.h,v 1.1.1.1 1999/02/08 06:20:39 linas Exp $
 
  * header for Linux ISDN subsystem, functions for synchronous PPP (linklevel).
  *
@@ -19,8 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: isdn_ppp.h,v $
- * Revision 1.1  1999/02/08 06:20:39  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:39  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.12  1998/01/31 22:07:48  keil
  * changes for newer kernels

@@ -1,4 +1,4 @@
-/* $Id: signal.c,v 1.1 1999/02/08 06:21:22 linas Exp $
+/* $Id: signal.c,v 1.1.1.1 1999/02/08 06:21:22 linas Exp $
  *
  *  linux/arch/mips/kernel/signal.c
  *

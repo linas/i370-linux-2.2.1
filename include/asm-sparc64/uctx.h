@@ -1,4 +1,4 @@
-/* $Id: uctx.h,v 1.1 1999/02/08 06:19:10 linas Exp $
+/* $Id: uctx.h,v 1.1.1.1 1999/02/08 06:19:10 linas Exp $
  * uctx.h: Sparc64 {set,get}context() register state layouts.
  *
  * Copyright (C) 1997 David S. Miller (davem@caip.rutgers.edu)

@@ -1,4 +1,4 @@
-/* $Id: rawhdlc.c,v 1.1 1999/02/08 06:20:46 linas Exp $
+/* $Id: rawhdlc.c,v 1.1.1.1 1999/02/08 06:20:46 linas Exp $
 
  * rawhdlc.c     support routines for cards that don't support HDLC
  *

@@ -7,7 +7,7 @@
  *
  * Copyright (C) 1996, 1997, 1998 by Ralf Baechle
  *
- * $Id: branch.h,v 1.1 1999/02/08 06:18:52 linas Exp $
+ * $Id: branch.h,v 1.1.1.1 1999/02/08 06:18:52 linas Exp $
  */
 #include <asm/ptrace.h>
 

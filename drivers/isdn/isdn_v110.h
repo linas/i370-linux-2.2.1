@@ -1,4 +1,4 @@
-/* $Id: isdn_v110.h,v 1.1 1999/02/08 06:20:41 linas Exp $
+/* $Id: isdn_v110.h,v 1.1.1.1 1999/02/08 06:20:41 linas Exp $
 
  * Linux ISDN subsystem, V.110 related functions (linklevel).
  *
@@ -19,8 +19,8 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  * $Log: isdn_v110.h,v $
- * Revision 1.1  1999/02/08 06:20:41  linas
- * *** empty log message ***
+ * Revision 1.1.1.1  1999/02/08 06:20:41  linas
+ * stock linux 2.2.1 kernel
  *
  * Revision 1.1  1998/02/20 17:32:11  fritz
  * First checkin (not yet completely functionable).

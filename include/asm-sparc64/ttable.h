@@ -1,4 +1,4 @@
-/* $Id: ttable.h,v 1.1 1999/02/08 06:19:10 linas Exp $ */
+/* $Id: ttable.h,v 1.1.1.1 1999/02/08 06:19:10 linas Exp $ */
 #ifndef _SPARC64_TTABLE_H
 #define _SPARC64_TTABLE_H
 

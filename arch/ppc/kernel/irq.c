@@ -1,5 +1,5 @@
 /*
- * $Id: irq.c,v 1.1 1999/02/08 06:21:25 linas Exp $
+ * $Id: irq.c,v 1.1.1.1 1999/02/08 06:21:25 linas Exp $
  *
  *  arch/ppc/kernel/irq.c
  *

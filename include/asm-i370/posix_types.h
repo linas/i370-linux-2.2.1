@@ -23,7 +23,7 @@ typedef long		__kernel_suseconds_t;
 typedef long		__kernel_clock_t;
 typedef int		__kernel_daddr_t;
 typedef char *		__kernel_caddr_t;
-typedef short             __kernel_ipc_pid_t;
+typedef short           __kernel_ipc_pid_t;
 
 #ifdef __GNUC__
 typedef long long	__kernel_loff_t;

@@ -193,8 +193,8 @@ ExternalException (i370_interrupt_state_t saved_regs)
 	code = *((unsigned short *) EXT_INT_CODE);
 
 	/* currently we only handle and expect clock interrupts */
-	printk ("external exception code=%x\n", code);
 	if ( EI_CLOCK_COMP != code) {
+		printk ("unexpected external exception code=0x%x\n", code);
 		panic ("unexpected external exception\n");
 	}
 

@@ -17,6 +17,9 @@
 #include <asm/pgtable.h>
 #include <asm/uaccess.h>
 
+extern unsigned long free_area_init(unsigned long, unsigned long);
+
+
 atomic_t next_mmu_context; 
 struct pgtable_cache_struct quicklists;
 extern char __init_begin[], __init_end[];
@@ -109,7 +112,7 @@ void si_meminfo(struct sysinfo *val)
 void
 mmu_context_overflow(void)
 {
-        struct task_struct *tsk;
+        // struct task_struct *tsk;
 
         printk("mmu_context_overflow\n");
 

@@ -313,3 +313,13 @@ __initfunc(unsigned long paging_init(unsigned long start_mem,
 
 void set_context(int context) {}  
 
+
+/*
+ * Returns a pre-zero'd page from the list otherwise returns
+ * NULL.
+ */
+unsigned long get_zero_page_fast(void)
+{
+return 0; /* XXX */
+}
+

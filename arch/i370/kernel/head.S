@@ -209,16 +209,8 @@ tcaStackOverflow:
 	MVI	0(r2),0x10;		/* store marker */		\
 	LR	sp,r2;			/* initialize stack pointer */	\
 	/* move saved regs out of prefix page to stackframe */		\
-	LM	r1,r2,oldpsw(0);	/* get old psw into r1,r2 */	\
-	STM	r1,r2,SAVED_PSW(sp);	/* save old psw on stack */	\
-	LM	r1,r2,sav+IR_R11(0);	/* copy regs out of prefix */	\
-	STM	r1,r2,SAVED_R11(sp);	/* copy regs into frame */	\
-	LM	r1,r2,sav+IR_R13(0);	/* copy regs out of prefix */	\
-	STM	r1,r2,SAVED_R13(sp);	/* copy regs into frame */	\
-	LM	r1,r2,sav+IR_R15(0);	/* copy regs out of prefix */	\
-	STM	r1,r2,SAVED_R15(sp);	/* copy regs into frame */	\
-	LM	r1,r2,sav+IR_R1(0);	/* copy regs out of prefix */	\
-	STM	r1,r2,SAVED_R1(sp);	/* copy regs into frame */	\
+	MVC	SAVED_PSW(8,sp),oldpsw(0); /* save old psw on stack */	\
+	MVC	SAVED_R11(32,sp),sav+IR_R11(0);				\
 	/* chain the interrupt state pointer into thread_struct */	\
 	LA	r1,0(,r11);		/* copy r11 to r1 */		\
 	A	r1,sav-8(,0);		/* add offset to regs ptr */	\
@@ -236,6 +228,7 @@ tcaStackOverflow:
 	LA	r11,ARGP(,sp);		/* pointer to arguments */	\
 	LA	r1,SAVED_PSW(,sp);	/* pointer to returned value */	\
 	BASR	lr,r15;			/* jump to C routine */		\
+	.using	.,lr;			/* use r14 to the end */	\
 
 
 #define EXCEPTION_EPILOG(sav)  						\
@@ -246,14 +239,11 @@ tcaStackOverflow:
 	L	r2,SAVED_OLDREGS(,sp);	/* get old ptr from stack */	\
 	ST	r2,0(,r11);		/* restore regs ptr in proc */	\
 	/* get old PSW, restore registers, return from interrupt */	\
-	LM	r1,r2,SAVED_PSW(sp);	/* get old psw from stack */	\
-	STM	r1,r2,sav(0);		/* move to prefix page */	\
+	MVC	sav(8,0),SAVED_PSW(sp); /* restore old psw frm stack */	\
 	LM	r11,r12,SAVED_R11(sp);	/* restore r11, r12 */		\
 	LM	r14,r2,SAVED_R14(sp);	/* restore r14 to r2 */		\
 	L	r13,SAVED_R13(sp);	/* restore r13 */		\
 	LPSW	sav(0);			/* return from interrupt */	\
-	.balign	8;			/* align literal pool */	\
-	.ltorg;				/* dump literal pool */		\
 
 /* XXX stop the machine for debugging purposes.
  * we can't do this in the real code; this needs to be
@@ -282,31 +272,33 @@ MachineCheck:
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 /* Supervisor Call */
-#define NR_syscalls	256
+#define NR_syscalls	188
 	.global SupervisorCall
 SupervisorCall:
 	EXCEPTION_PROLOG (INTERRUPT_BASE, SVC_PSW_OLD) 
 	SLR	r2,r2			/* put zero in r2 */
-	LH	r2,138(,0)		/* load interruption code */
+	LH	r2,138(,0)		/* load interruption code from pfx */
 	LTR	r2,r2			/* is r2 zero ? */
 	BZ	3f			/* branch if zero */
-	HALT (INTERRUPT_BASE)		/* stop the machine */
+	HALT (INTERRUPT_BASE)		/* stop the machine (debug) */
 3:
 	L	r1,SAVED_R1(sp)		/* get syscall number */
 	LA	r2,NR_syscalls(,0)	/* max of NR_syscalls */
-	SLR	r2,r1			/* syscall must be less than NR */
-	BP	4f			/* valid syscall ? */
-	LA	r15,ENOSYSCALL(,0)	/* load r15 with errno */
-	ST	r15,SAVED_R15(,sp)	/* return r15 to caller */
+	CR	r1,r2			/* syscall must be less than NR */
+	BL	4f			/* valid syscall ? */
+	LA	r2,ENOSYSCALL(,0)	/* load r1 with errno */
+	ST	r2,SAVED_R15(,sp)	/* return r15 to caller */
 	ST	r1,SAVED_R1(,sp)	/* return r1 to caller */
 	EXCEPTION_EPILOG (INTERRUPT_BASE)	/* return from interrupt */
 4:
 	L	r2,=A(sys_call_table)	/* load address of sys call table */
+	SLL	r1,2			/* 4 bytes per word ... */
 	L	r15,0(r2,r1)		/* load address of C routine */
 	STM     r3,r10,SAVED_R3(sp)	/* sys call args in regs */
 	LA	r11,SAVED_R5(,sp)	/* pointer to args on stack */
 	LA	r1,ARGP(,sp)		/* pointer to returned value */
 	BASR	lr,r15			/* jump to C routine */
+	.using	.,lr;			/* use r14 for remainder of the show */
 	EXCEPTION_EPILOG (INTERRUPT_BASE)	/* return from interrupt */
 
 
@@ -331,6 +323,9 @@ InputOutput:
 	EXCEPTION_CALL_C (InputOutputException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
+/* Literal Pool for this text page */
+	.balign	8;			/* align literal pool */
+	.ltorg;				/* dump literal pool */	
 
 /*
  * We put a few things here that have to be page-aligned.
@@ -559,7 +554,7 @@ sys_call_table:
 	.long sys_sendfile
 	.long sys_ni_syscall		/* streams1 */
 	.long sys_ni_syscall		/* streams2 */
-	.space (NR_syscalls-188)*4
+	.space (256-NR_syscalls)*4,0xd0
 
 
 /* =========================== end of file ============================== */

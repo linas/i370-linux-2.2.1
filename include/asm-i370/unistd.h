@@ -209,6 +209,8 @@
  * But that shouldn't be a big deal.  --linas
  */
 
+extern int errno;
+
 #define __syscall_return(type) \
 	return (__sc_err ? errno = __sc_ret, __sc_ret = -1 : 0), \
 	       (type) __sc_ret
@@ -383,6 +385,7 @@ static inline long kernel_thread(int (*fn)(void *), void * arg, unsigned long fl
  */
 #define __NR__exit __NR_exit
 static inline _syscall0(int,idle)
+static inline _syscall1(int,clone,int,flags)
 static inline _syscall0(int,pause)
 static inline _syscall0(int,sync)
 static inline _syscall0(pid_t,setsid)

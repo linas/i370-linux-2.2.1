@@ -84,15 +84,21 @@ typedef struct {
 	unsigned long seg;
 } mm_segment_t;
 
-/* the thread_struct is inlined into the arch-independent task_struct */
-/* ??? Its not at all clear to me when things should go here, and when thry
- * should go into pt_regs ... 
- * for example, the control regs ... here or in pt_regs ??
- * I think we need to inline pt_regs ...
+/* The thread_struct is inlined into the arch-independent task_struct */
+/* Here's the deal:
+ * This sturcture contains (obviously) per-thread data that we need to
+ * keep around.  This includes a pointer to per-interrupt data that
+ * we need.  The per-interrupt data is in "struct pt_regs" aka
+ * i370_interrupt_state.  This is by necessity a pointer into the 
+ * interrupt stack; with each new interrupt, this pointer is bumped 
+ * to the next stackframe, etc. and, upon each return from an interrupt
+ * it is unwound to the last.  If it is null, it can only mean that 
+ * this process is currently executing (as it would otherwise have
+ * an interrupt context).
  */
 struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer */
-	struct pt_regs *regs;		/* Pointer to saved register state */
+	struct pt_regs *regs;		/* Pointer to saved interrupt state */
 	double		fpr[4];		/* Complete floating point set */
 	unsigned long	tca[32];	/* mostly wasted, empty space ... */
 

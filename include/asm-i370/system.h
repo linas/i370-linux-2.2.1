@@ -20,25 +20,31 @@
 extern __inline__ unsigned long __cli (void)
 {
 	unsigned char oldval;
+	unsigned long ov;
 	/* cli clears i/o & external int flags by AND'ing with mask */
 	asm volatile ("STNSM    %0,0xfc" : "=m" (oldval) : : "memory");
-	return oldval;
+	ov = oldval;   /* ??? work around some kind of egcs cast problem */
+	return ov;
 }
 
 extern __inline__ unsigned long __sti (void)
 {
 	unsigned char oldval;
+	unsigned long ov;
 	/* sti enables i/o & external interrupts by OR'ing with mask */
 	asm volatile ("STOSM    %0,0x3" : "=m" (oldval) : : "memory");
-	return oldval;
+	ov = oldval;   /* ??? work around some kind of egcs cast problem */
+	return ov;
 }
 
 extern __inline__ unsigned long __get_save_flags (void)
 {
 	unsigned char oldval;
+	unsigned long ov;
 	/* get the current psw mask bit by OR'ing with zero */
 	asm volatile ("STOSM    %0,0x0" : "=m" (oldval) : : "memory" );
-	return oldval;
+	ov = oldval;   /* ??? work around some kind of egcs cast problem */
+	return ov;
 }
 
 #define __save_flags(flags)  ({flags = __get_save_flags(); })

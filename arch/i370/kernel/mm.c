@@ -429,6 +429,8 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 	return 0;
 }
 
+/* ========================================================== */
+
 int
 __copy_from_user (void * to, const void * from, unsigned long len)
 {
@@ -472,6 +474,8 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 	}
 	return 0;
 }
+
+/* ========================================================== */
 
 int __strncpy_from_user(char *dst, const char *src, long count)
 {
@@ -526,6 +530,8 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 	return 0;
 }
 
+/* ========================================================== */
+
 /* The following routines accept virtual addresses only:
  * clear_user
  * strlen_user
@@ -573,6 +579,8 @@ __clear_user(void *addr, unsigned long len)
 	}
 	return len;
 }
+
+/* ========================================================== */
 
 /*
  * strlen_user():  Return the size of a string (including the ending 0)
@@ -622,8 +630,10 @@ strlen_user(const char *str)
 	return clen;
 }
 
-/* put_user_data() will only be called with len of 1,2 or 4 
- * from uaccess.h */
+/* ========================================================== */
+/* put_user_data() will store data into address.  It is called with 
+ * len of 1,2 or 4 from uaccess.h, no other len's occur. */
+
 void 
 put_user_data(long data, void *addr, long len)
 {

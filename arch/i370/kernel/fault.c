@@ -113,13 +113,14 @@
  
 int
 do_page_fault(struct pt_regs *regs, unsigned long address,
-              unsigned pic_code)
+              unsigned short pic_code)
 {
  struct mm_struct *mm = current->mm;
  struct vm_area_struct * vma;
  unsigned long fixup, valid_addr;
  int write;
  
+printk ("do_page_fault addr=0x%x, pic=%x\n", address, pic_code);
   /*------------------------------------------------------------*/
   /* If we're in an interrupt or have no user                   */
   /* context, we must not take the fault..                      */
@@ -136,14 +137,25 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
        goto bad_area;
   if (vma->vm_start <= address)
        goto good_area;
+
+  /* If we are here, then the address was below the vma start.
+   * In that case, we better be dealing with the stack.
+   * (The current i370 ELF stack grows down)
+   * XXX there are good reasons to make the elf stack grow up.
+   */
+printk ("do_page_fault stack fault addr=0x%x\n", address);
   if (!(vma->vm_flags & VM_GROWSDOWN))
        goto bad_area;
   if (user_mode(regs)) {
        /*-----------------------------------------------------*/
        /* Accessing the stack below usp is always a bug.      */
+/* ??? XXX currently, stack grows down */
        /*-----------------------------------------------------*/
+printk ("do_page_fault usermode stack fault addr=0x%x, stackbot=%x\n", address, regs->irregs.r13);
+/*
        if (address < regs->irregs.r13)
                goto bad_area;
+*/
   }
   if (expand_stack(vma, address))
        goto bad_area;
@@ -153,6 +165,7 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
   /* we can handle it..                                       */
   /*----------------------------------------------------------*/
 good_area:
+printk(" handling mm fault on good page \n");
   write = 0;
   if (pic_code == PIC_PROTECTION) {
      if (!(vma->vm_flags & VM_WRITE))
@@ -181,6 +194,7 @@ bad_area:
   if (user_mode(regs)) {
        siginfo_t info;
  
+printk(" sending SEGV to user proc\n");
        info.si_signo = SIGSEGV;
        info.si_code  = SEGV_MAPERR;
        info.si_addr  = (void *) address;

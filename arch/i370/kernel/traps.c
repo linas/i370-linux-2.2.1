@@ -213,7 +213,8 @@ pc_reset_trace(i370_interrupt_state_t *saved_regs,
 {
 	unsigned long cr12;
  
-	cr12 = trace_base = (unsigned long) trace_base->trc_next;
+	trace_base = (trc_page_t *) trace_base->trc_next;
+	cr12 = (unsigned long) trace_base;
 	cr12 |= 0x1;
 	_lctl_r12 (cr12);
 	printk ("Trace table reset\n");
@@ -232,7 +233,7 @@ pc_unsupported(i370_interrupt_state_t *saved_regs,
                unsigned short code,
                unsigned long  trans)
 {
-	printk ("Program Check Unsupported code=0x%x trans=0x%x\n",
+	printk ("Program Check Unsupported code=0x%x trans=0x%lx\n",
 		code, trans);
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
@@ -423,7 +424,6 @@ __initfunc(void trap_init(void))
 	unsigned long long clock_reset;
 	unsigned long *sz;
 	psw_t psw;
-	cr0_t cr0;
 	printk ("trap init");
 
 	/* clear any pending timer interrupts before installing
@@ -439,21 +439,20 @@ __initfunc(void trap_init(void))
 	sz = (unsigned long *) INTERRUPT_BASE;
 	*(sz-1) = (unsigned long) &(((struct task_struct *) 0) ->tss.ksp);
 	*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.regs);
-	*(sz-3) = (unsigned long) &(((struct task_struct *) 0) ->tss.tca[0]);
 
 	// install the SVC handler
 	psw.flags = PSW_VALID;        // disable all interupts
-	psw.addr = ((unsigned long) SupervisorCall) | (1<<31); 
+	psw.addr = ((unsigned long) SupervisorCall) | PSW_31BIT; 
 	*((psw_t *) SVC_PSW_NEW) = psw;
 
 	// install the External Interrupt (clock) handler
 	psw.flags = PSW_VALID;        // disable all interupts
-	psw.addr = ((unsigned long) External) | (1<<31); 
+	psw.addr = ((unsigned long) External) | PSW_31BIT; 
 	*((psw_t *) EXTERN_PSW_NEW) = psw;
 
 	// install the I/O Interrupt handler
 	psw.flags = PSW_VALID;        // disable all interupts
-	psw.addr = ((unsigned long) InputOutput) | (1<<31); 
+	psw.addr = ((unsigned long) InputOutput) | PSW_31BIT; 
 	*((psw_t *) IO_PSW_NEW) = psw;
 
 	// restart quick hack
@@ -463,7 +462,7 @@ __initfunc(void trap_init(void))
 
 	// install the ProgramCheck handler
 	psw.flags = PSW_VALID;        // disable all interupts
-	psw.addr = ((unsigned long) ProgramCheck) | (1<<31); 
+	psw.addr = ((unsigned long) ProgramCheck) | PSW_31BIT; 
 	*((psw_t *) PROG_PSW_NEW) = psw;
 }
 

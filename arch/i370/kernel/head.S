@@ -7,10 +7,10 @@
  * (see the notes with the compiler for details).  The most serious
  * of these is how it handles address literals (which show up in
  * the text segment, instead of the data segment as they should)
- * and the use of r12 (rtca).  Both of these should be fixed,
+ * This should be fixed,
  * however, if/when this is done, the code below will require
- * major tearup.  Sorry, my fault, but so it goes. --linas
-*/
+ * major tear-up.  Sorry, my fault, but so it goes. --linas
+ */
 
 #include <asm/errno.h>
 #include <asm/processor.h>
@@ -20,11 +20,11 @@
  */
 #define HALT(sav)							\
 	SPKA    sav(0);			/* Ensure we can use lo core */ \
-	L	r1,=X'000A0000';	/* disabled wait */		\
+	L	r1,=X'000A0000';	/* disabled wait             */	\
 	ST	r1,sav(,0);						\
 	L	r1,=X'00000210';	/* must be any valid address */	\
 	ST	r1,sav+4(,0);						\
-	LPSW	sav(0);			/* oops halt the machine */
+	LPSW	sav(0);			/* oops halt the machine     */
 
 /* first instruction executed is here */
 /* 
@@ -70,15 +70,6 @@ _cinit:
 	LA	sp,7(,sp)		/* doubleword align               */
 	SRL	sp,3
 	SLL	sp,3
-	LA	r2,152(,sp)		/* load r2 with top of stack      */
-	ST	r2,76(,sp)		/* store top of stack at 76       */
-	L	rtca,=A(init_tca)	/* load address of pointer to tca.*/
-	L	rtca,0(,rtca)		/* load address of tca            */
-	L	r1,=A(init_kstend)	/* r1 == addr of ptr end of stack */
-	L	r1,0(,r1)		/* r1 == end of stack             */
-	ST	r1,12(,rtca)		/* store end of stack in the tca  */
-	L	r1,=A(tcaStackOverflow)	/* bogus bogus hack alert XXX     */
-	ST	r1,116(,rtca)		/* bogosity                       */
 	L	r15,=A(start_kernel)	/* load address of C routine      */
 	BASR	lr,r15			/* jump to C routine              */
 	.drop	r15
@@ -88,18 +79,6 @@ _cinit:
 	.balign	4			/* align literal pool             */
 	.ltorg				/* dump literal pool              */
 
-
-
-/* XXX note that this tcaStackOverflow routine is called
- * in a funky and unusual way from the excpetion handler;
- * the register assignments don't quite follow the normal
- * ones because we cannot trash r15.  Yuck, review this.
- */
-	.globl	tcaStackOverflow
-tcaStackOverflow:
-	HALT (INTERRUPT_BASE)		/* stop the machine (debug) */
-	.balign 4
-	.ltorg
 
 
 /* ================================================================ */
@@ -119,15 +98,7 @@ tcaStackOverflow:
  *
  * We check the psw to see if we were in problem state or supervisor 
  * state. If we were interrupted from supervisor state, then the 
- * kernel tca is OK and ready to go.  The kernel stack pointer is 
- * probably OK, unless we took the interrupt in a function prolog.
- * In that case, r13 will be pointing at the callers stack, r2 at  
- * the callee's stack, and values may have been written at 76(r2)
- * We need to assume the worst, and locate our stack frame at
- * least at 80(r2). This is SF_BASE.  Then for the C function call,
- * we need a minimal C stack frame, i.e. 148 bytes aligned to 152. 
- * This is SF_SIZE.  Thus, the new stack top is at SF_BASE+SF_SIZE 
- * from the old stack top.
+ * kernel stack pointer is OK and ready to go.  
  *
  * If we were interrupted from problem state, then r13
  * contains the user's stack pointer; we need to track down the kernel 
@@ -141,7 +112,6 @@ tcaStackOverflow:
  * NB: Floating point regs get saved only during task switch, and not here ...
  *
  * sav-16  old interrupt mask
- * sav-12  offset from struct task_struct to tca
  * sav-8   offset from struct task_struct to sav area
  * sav-4   offset from struct task_struct to ksp
  * sav     psw flags
@@ -183,13 +153,13 @@ tcaStackOverflow:
 /* -------------------------------------------------------- */
 
 /* stack related offsets; have nothing to do with the above */
-#define SF_BASE		0x50	/* stack offset, past STM r15,r0,72(r2) of prolog */
 #define STACK_SIZE	0x94	/* stack size */
 #define ARGS_BASE	STACK_SIZE
 #define ARGS_SIZE	0x4	/* args size */
 #define FRAME_BASE	STACK_SIZE + ARGS_SIZE
 #define FRAME_SIZE	0x60	/* frame size */
 #define SF_SIZE		STACK_SIZE + ARGS_SIZE + FRAME_SIZE
+#define SF_SIZE_LIT	=XL4'000000F8'
 
 /* location of saved registers on stack */
 #define ARGP		ARGS_BASE
@@ -214,96 +184,65 @@ tcaStackOverflow:
 
 #define SAVED_OLDREGS	FRAME_BASE + IR_OLDREGS
 
-/* ADJUST_BASE is used to advance the stack pointer base past the
- * unsafe sections of a function pointer prolog.  Taking an interrupt
- * and not adjusting would result in a corrupted stack.
- */
- 
-#define ADJUST_BASE							\
-	LA	r2,SF_BASE(,r2);	/* safe offset to stack top */	\
-
 #define SAVE_REGS(sav) 							\
 	STM	r11,r4,sav+IR_R11(0);	/* save gprs to low mem */	\
 	STM	r5,r10,sav+IR_R5(0);	/* for debugging only, remove later xxx */
 
 
-#define EXCEPTION_PROLOG(sav,sp_adjust,oldpsw) 				\
-	BASR	r15,0;			/* load r15 with PSW  */	\
-	.using	.,r15;			/* use r15 as base register */	\
-	L	r11,=V(current);	/* addr of current pointer */	\
-	L	r11,0(,r11);		/* addr of current process */	\
-	/* interrupted from user space or kernel space ? */		\
+#define EXCEPTION_PROLOG(sav,oldpsw) 					\
+	BASR	r15,0;			/* load r15 with PSW         */	\
+	.using	.,r15;			/* use r15 as base register  */	\
+	L	r11,=V(current);	/* addr of current pointer   */	\
+	L	r11,0(,r11);		/* addr of current process   */	\
+	/* interrupted from user space or kernel space ?             */	\
 	L	r1,oldpsw(,0);		/* get old psw flags into r1 */	\
-	N	r1,=X'00010000';	/* is in problem state? */	\
-	BZ	1f;			/* sp is already ok if kern */	\
-	/* interrupted user proc, so need to find a kernel stack */	\
-	LA	sp,0(,r11);		/* copy r11 to r13 */		\
-	A	sp,sav-4(,0);		/* add offset to ksp */		\
-	L	sp,0(,sp);		/* load kernel sp */		\
-	LA	rtca,0(,r11);		/* copy r11 to r12 */		\
-	A	rtca,sav-12(,0);	/* add offset to tca */		\
-	/* XXX the following 6 insns can be chopped out later */	\
-	/* do this by having a ready-to-run stackframe initialized */	\
-	LA	r0,SF_SIZE(,sp);	/* load r0 with top of stack */	\
-	ST	r0,76(,sp);		/* store top of stack at 76 */	\
-	LA	r1,4092(,r11);		/* r1 == end of stack */	\
-	ST	r1,12(,rtca);		/* store end of stack in tca */ \
-	L	r1,=A(tcaStackOverflow);/* bogus hack alert XXX */	\
-	ST	r1,116(,rtca);		/* bogosity */			\
-1:					/* branch here if kernel */	\
-	/* we have a valid stack pointer; build a stackframe */		\
-	L	r2,76(,sp);		/* find top of kernel stack */	\
-	sp_adjust;			/* safe offset to stack top */	\
-	LA	r1,SF_SIZE(,r2);	/* add stackframe size */	\
-	CL	r1,12(,rtca);		/* got room ? */		\
-	BNH	2f;			/* if so blast ahead */		\
-	LR	r0,r1;			/* overflow in r0 not r1 */	\
-	L	r1,116(,rtca);		/* load overflow handler */	\
-	BASR	r14,r1;			/* call overflow handler */	\
-	LR	r1,r0;			/* stack top in r1 not r0 */	\
-2:					/* yes we have room on stack */	\
-	L	r0,72(,sp);		/* propagate */			\
-	STM	r0,r1,72(r2);		/* store new stack top */	\
-	MVI	0(r2),0x10;		/* store marker */		\
-	LR	sp,r2;			/* initialize stack pointer */	\
-	/* move saved regs out of prefix page to stackframe */		\
-	MVC	SAVED_PSW(8,sp),oldpsw(0); /* save old psw on stack */	\
-	MVC	SAVED_R11(64,sp),sav+IR_R11(0);	/* 16 regs=64 bytes */	\
-	/* chain the interrupt state pointer into thread_struct */	\
-	LA	r1,0(,r11);		/* copy r11 to r1 */		\
-	A	r1,sav-8(,0);		/* add offset to regs ptr */	\
-	L	r2,0(,r1);		/* load regs ptr */		\
-	ST	r2,SAVED_OLDREGS(,sp);	/* save regs ptr to stack */	\
+	N	r1,=X'00010000';	/* is in problem state?      */	\
+	BZ	1f;			/* sp is already ok if kern  */	\
+	/* interrupted user proc, so need to find a kernel stack     */	\
+	LA	sp,0(,r11);		/* addr of curr proc in r13  */	\
+	A	sp,sav-4(,0);		/* add offset to ksp         */	\
+	L	sp,0(,sp);		/* load kernel sp            */	\
+1:					/* branch here if kernel     */	\
+	/* we have a valid stack pointer; build a stackframe         */	\
+	SL	sp,SF_SIZE_LIT;		/* subtract stackframe size  */	\
+	/* move saved regs out of prefix page to stackframe          */	\
+	MVC	SAVED_PSW(8,sp),oldpsw(0); /* save old psw on stack  */	\
+	MVC	SAVED_R11(64,sp),sav+IR_R11(0);	/* 16 regs=64 bytes  */	\
+	/* chain the interrupt state pointer into thread_struct      */	\
+	LA	r1,0(,r11);		/* addr of curr proc in r1   */	\
+	A	r1,sav-8(,0);		/* add offset to regs ptr    */	\
+	L	r2,0(,r1);		/* load regs ptr             */	\
+	ST	r2,SAVED_OLDREGS(,sp);	/* save regs ptr to stack    */	\
 	LA	r2,SAVED_PSW(,sp);	/* put addr of newregs in r2 */	\
-	ST	r2,0(,r1);		/* update regs ptr in proc */	\
+	ST	r2,0(,r1);		/* update regs ptr in proc   */	\
 	
 
 #define EXCEPTION_CALL_C(handler)  					\
 	L	r15,=A(handler);	/* load address of C routine */	\
-	LA	r2,SAVED_PSW(,sp);	/* ptr to saved psw, regs */	\
+	LA	r2,SAVED_PSW(,sp);	/* ptr to saved psw, regs    */	\
 	ST	r2,ARGP(,sp);		/* ptr to arguments on stack */	\
-	LA	r2,ARGP(,sp);		/* pointer to arguments */	\
+	LA	r2,ARGP(,sp);		/* pointer to arguments      */	\
 	LA	r1,SAVED_PSW(,sp);	/* pointer to returned value */	\
-	BASR	lr,r15;			/* jump to C routine */		\
-	.using	.,lr;			/* use r14 to the end */	\
+	BASR	lr,r15;			/* jump to C routine         */	\
+	.using	.,lr;			/* use r14 to the end        */	\
 
 
 #define EXCEPTION_UNCHAIN(sav)	 					\
-	/* chain the interrupt state pointer into thread_struct */	\
-	L	r11,=V(current);	/* addr of current pointer */	\
-	L	r11,0(,r11);		/* addr of current process */	\
-	A	r11,sav-8(,0);		/* add offset to regs ptr */	\
-	L	r2,SAVED_OLDREGS(,sp);	/* get old ptr from stack */	\
-	ST	r2,0(,r11);		/* restore regs ptr in proc */
+	/* chain the interrupt state pointer into thread_struct      */	\
+	L	r11,=V(current);	/* addr of current pointer   */	\
+	L	r11,0(,r11);		/* addr of current process   */	\
+	A	r11,sav-8(,0);		/* add offset to regs ptr    */	\
+	L	r2,SAVED_OLDREGS(,sp);	/* get old ptr from stack    */	\
+	ST	r2,0(,r11);		/* restore regs ptr in proc  */
 
 
 #define EXCEPTION_RETURN(sav)  						\
-	/* get old PSW, restore registers, return from interrupt */	\
+	/* get old PSW, restore registers, return from interrupt     */	\
 	MVC	sav(8,0),SAVED_PSW(sp); /* restore old psw frm stack */	\
-	LM	r11,r12,SAVED_R11(sp);	/* restore r11, r12 */		\
-	LM	r14,r4,SAVED_R14(sp);	/* restore r14 to r4 */		\
-	L	r13,SAVED_R13(sp);	/* restore r13 */		\
-	LPSW	sav(0);			/* return from interrupt */
+	LM	r11,r12,SAVED_R11(sp);	/* restore r11, r12          */	\
+	LM	r14,r4,SAVED_R14(sp);	/* restore r14 to r4         */	\
+	L	r13,SAVED_R13(sp);	/* restore r13               */	\
+	LPSW	sav(0);			/* return from interrupt     */
 
 
 #define EXCEPTION_EPILOG(sav)  						\
@@ -335,7 +274,7 @@ tcaStackOverflow:
 Restart:
 	SAVE_REGS (INTERRUPT_BASE)
 	EXCEPTION_TRACE (IPL_TRC_ID, IPL_CCW1, IPLCCW2, IPL_PSW_OLD)
-	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, IPL_PSW_OLD)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, IPL_PSW_OLD)
 	EXCEPTION_CALL_C (RestartException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
@@ -344,7 +283,7 @@ Restart:
 MachineCheck:
 	SAVE_REGS (INTERRUPT_BASE)
 	EXCEPTION_TRACE (MCH_TRC_ID, PFX_MCH_CODE_LO, PFX_MCH_CODE_HI, MACH_PSW_OLD)
-	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, MACH_PSW_OLD)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, MACH_PSW_OLD)
 	EXCEPTION_CALL_C (MachineCheckException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
@@ -354,13 +293,13 @@ MachineCheck:
 SupervisorCall:
 	SAVE_REGS (INTERRUPT_BASE)
 	EXCEPTION_TRACE (SVC_TRC_ID, 0, PFX_SVC_CODE, SVC_PSW_OLD)
-	EXCEPTION_PROLOG (INTERRUPT_BASE,  , SVC_PSW_OLD) 
+	EXCEPTION_PROLOG (INTERRUPT_BASE,  SVC_PSW_OLD) 
 
 	SLR	r2,r2			/* put zero in r2 */
 	LH	r2,138(,0)		/* load interruption code from pfx */
 	LTR	r2,r2			/* is r2 zero ? */
 	BZ	3f			/* branch if zero */
-	HALT (INTERRUPT_BASE)		/* stop the machine (debug) */
+	HALT (INTERRUPT_BASE)		/* stop the machine (debug) XXX */
 3:
 	L	r1,SAVED_R1(sp)		/* get syscall number */
 	LA	r2,NR_syscalls(,0)	/* max of NR_syscalls */
@@ -411,7 +350,7 @@ ProgramCheck:
 	EXCEPTION_TRACE (PRG_TRC_ID, PFX_PRG_TRANS, PFX_PRG_CODE, PROG_PSW_OLD)
 .SkipPCTrace:
 	.drop	r15
-	EXCEPTION_PROLOG (PC_INTERRUPT_BASE, ADJUST_BASE, PROG_PSW_OLD)
+	EXCEPTION_PROLOG (PC_INTERRUPT_BASE, PROG_PSW_OLD)
 	EXCEPTION_CALL_C (ProgramCheckException)
 	EXCEPTION_EPILOG (PC_INTERRUPT_BASE)
 
@@ -420,7 +359,7 @@ ProgramCheck:
 External:
 	SAVE_REGS (INTERRUPT_BASE)
 	EXCEPTION_TRACE (EXT_TRC_ID, PFX_EXT_SIG, PFX_EXT_CODE, EXTERN_PSW_OLD)
-	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, EXTERN_PSW_OLD)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, EXTERN_PSW_OLD)
 	EXCEPTION_CALL_C (ExternalException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
@@ -429,7 +368,7 @@ External:
 InputOutput:
 	SAVE_REGS (INTERRUPT_BASE)
 	EXCEPTION_TRACE (IO_TRC_ID, PFX_SUBSYS_ID, PFX_IO_PARM, IO_PSW_OLD)
-	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, IO_PSW_OLD)
+	EXCEPTION_PROLOG (INTERRUPT_BASE, IO_PSW_OLD)
 	EXCEPTION_CALL_C (InputOutputException)
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 

@@ -41,21 +41,20 @@ struct task_struct *current_set[NR_CPUS] = {&init_task, };
 
 struct task_struct *current = &init_task;
 
-/* init_ksp and init_tca are used only in head.S during startup 
- * to set up the inital stack */
-const unsigned long init_ksp __initdata = init_stack;
-const unsigned long init_kstend __initdata = ((unsigned long) &init_task) + 8192;
-const unsigned long init_tca __initdata = (unsigned long) (&init_task.tss.tca[0]);
+/* init_ksp is used only in head.S during startup to set up the inital stack */
+const unsigned long init_ksp __initdata = (unsigned long) init_stack;
 
 /* =================================================================== */
 
-unsigned long
+static inline unsigned long
 kernel_stack_top(struct task_struct *tsk)
 {
-        return ((unsigned long)tsk) + sizeof(union task_union);
+	unsigned long top = ((unsigned long)tsk) + 8192 - 160;
+	top = ((top+7) >> 3) << 3;  /* double-word align */
+        return top;
 }
 
-unsigned long
+static inline unsigned long
 task_top(struct task_struct *tsk)
 {
         return ((unsigned long)tsk) + sizeof(struct task_struct);
@@ -121,10 +120,12 @@ int check_stack(struct task_struct *tsk)
 	unsigned long stack_top = kernel_stack_top(tsk);
 	unsigned long tsk_top = task_top(tsk);
 	int ret = 0;
-	// unsigned long *i=0;
 
-	if ( !tsk )
-		printk("check_stack(): tsk bad tsk %p\n",tsk);
+	if (!tsk)
+	{
+		printk ("check_stack(): bad task %p\n",tsk);
+		return 1;
+	}
 	
 	/* check if stored ksp is bad */
 	if ( (tsk->tss.ksp > stack_top) || (tsk->tss.ksp < tsk_top) )
@@ -146,24 +147,16 @@ int check_stack(struct task_struct *tsk)
 		ret |= 4;
 	}
 
-#if 0	
 	/* check amount of free stack */
-	for ( i = (unsigned long *)task_top(tsk) ; 
-		i < (unsigned long * ) kernel_stack_top(tsk) ; i++ )
+	if ( 900 > (tsk->tss.ksp - tsk_top) )
 	{
-		if ( !i )
-			printk("check_stack(): i = %p\n", i);
-		if ( *i != 0 )
-		{
-			/* only notify if it's less than 900 bytes */
-			if ( (i - (unsigned long *)task_top(tsk))  < 900 )
-				printk("%d bytes free on stack\n",
-				       i - (unsigned long *)task_top(tsk));
-			break;
-		}
+		printk("low on stack space: %s/%d\n"
+		       " tsk_top %08lx ksp %08lx stack_top %08lx\n",
+		       tsk->comm,tsk->pid,
+		       tsk_top, tsk->tss.ksp, stack_top);
+		ret |= 8;
 	}
-#endif
-
+	
 	if (ret)
 	{
 		panic("bad kernel stack");
@@ -195,7 +188,7 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
         regs->irregs.r13 = sp;
         regs->irregs.r15 = nip | PSW_31BIT;
 
-	/* trash in other regs */
+	/* boffo ace rimer in other regs */
 	regs->irregs.r0 = 0xaceb0ff0;
 	regs->irregs.r1 = 0xaceb0ff0;
 	regs->irregs.r2 = 0xaceb0ff0;
@@ -284,17 +277,16 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 	_lctl_r1 (new_tss->regs->cr1.raw);
 
 	/* switch kernel stack pointers */
-	_set_TCA ((unsigned long) &(new_tss->tca[0]));
 	old_tss->ksp = _get_SP();
 	_set_SP (new_tss->ksp);
 
 	/* purge TLB (XXX is this really needed here ???) */
 	_ptlb();
 
-	// note "s" is from a different stack ... 
+	/* note "s" is from a different stack ...  */
         __restore_flags (s);
 
-	// return to do_fork()
+	/* return as if from do_fork() */
 	return 0;
 }
 
@@ -349,14 +341,13 @@ i370_sys_exit (void)
  * XXX no need to copy page tables ??? I think this happens automagically
  */
 
-extern void tcaStackOverflow(void);
-
 int
 copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
             struct task_struct * p, struct pt_regs * regs)
 {
-	unsigned long srcksp, dstksp;
+	unsigned long srctop, dsttop;
 	i370_elf_stack_t *srcsp, *dstsp, *this_frame;
+	void *srcbase, *dstbase;
 	unsigned long delta;
 	i370_interrupt_state_t *srcregs, **dstregs;
 
@@ -365,32 +356,29 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	/* copy the kernel stack, and fix up the entries in it,
 	 * so that it unwinds properly in the copied thread.
 	 */
-	srcksp = (unsigned long) (((char *) current) + sizeof (struct task_struct));
-	dstksp = (unsigned long) (((char *) p) + sizeof (struct task_struct));
-	srcksp = ((srcksp+7) >> 3) << 3;
-	dstksp = ((dstksp+7) >> 3) << 3;
-	srcsp = (i370_elf_stack_t *) srcksp;
-	dstsp = (i370_elf_stack_t *) dstksp;
+	srctop = kernel_stack_top (current);
+	dsttop = kernel_stack_top (p);
 
         /* unwind one frame; don't copy this frame */
 	this_frame = (i370_elf_stack_t *) _get_SP();
         this_frame = (i370_elf_stack_t *) (this_frame->caller_sp);
+	srcsp = this_frame;
 
-	delta = srcksp - dstksp;
+	delta = srctop - dsttop;
 
-	/* XXX not clear to me how much of the parent stack needs to
-         * be copied to the child ... certainly, don't copy the 
-         * last frame, if we expect do_fork() to work right.
+	/* Don't copy the last frame, otherwise do_fork() will
+	 * not work right becasue we return to the wrong place.
          */
-	memcpy (dstsp, srcsp, this_frame->stack_top - srcksp);
+	srcbase = (void *) task_top (current);
+	dstbase = (void *) task_top (p);
+	memcpy (dstbase, srcbase, 8192-sizeof(struct task_struct));
+	dstsp = (i370_elf_stack_t *) (((unsigned long) srcsp) - delta);
 	do {
-		dstsp -> caller_r12 = (unsigned long) &(p->tss.tca[0]);
 		dstsp -> caller_sp = srcsp->caller_sp - delta;
 		dstsp -> callee_sp = srcsp->callee_sp - delta;
-		dstsp -> stack_top = srcsp->stack_top - delta;
-		srcsp = (i370_elf_stack_t *) (srcsp -> stack_top);
-		dstsp = (i370_elf_stack_t *) (dstsp -> stack_top);
-	} while (srcsp <= this_frame);
+		srcsp = (i370_elf_stack_t *) (srcsp -> caller_sp);
+		dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
+	} while (srcsp <= srctop);
 
 	/* switch_to grabs the current ksp out of tss.ksp */
 	p->tss.ksp = ((unsigned long) this_frame) - delta;
@@ -401,17 +389,11 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	do {
 		*dstregs = (i370_interrupt_state_t *) 
 			(((unsigned long) srcregs) - delta);
-		(*dstregs)->irregs.r12 = (unsigned long) &(p->tss.tca[0]);
 		(*dstregs)->oldregs =  (i370_interrupt_state_t *)
 			(((unsigned long) (srcregs->oldregs)));     
 		srcregs = srcregs->oldregs;
 		dstregs = &((*dstregs)->oldregs);
 	} while (srcregs);
-
-	/* the TCA area needs to be set up to hold the stack mem top,
-	 * and a pointer to the overflow routine. */
-	p->tss.tca[3] = ((unsigned long) p) + 8192;
-	p->tss.tca[29] = (unsigned long) tcaStackOverflow; 
 
 #ifdef __SMP__
         if ( (p->pid != 0) || !(clone_flags & CLONE_PID) )
@@ -491,13 +473,13 @@ i370_sys_clone (unsigned long clone_flags)
  *
  * The child is supposed to then call the arg fn(), and never return.
  * If for any reason fn() returns, the child thread is supposed to be 
- * cleaned up and discarded. Thus we don't have to worry about copying
- * all of the kernel stack; simply setting up a minimally configured
- * stack should do. (??) (we don't actually do this)
+ * cleaned up and discarded. 
  * 
  * clone() is a system call, it results in i370_sys_clone() being
  * called.  In turn, i370_sys_clone just calls do_fork() which then 
- * calls copy_thread().
+ * calls copy_thread().  We can't call do_fork directly, we must 
+ * svc into it in order to be able to schedule and return properly 
+ * in the child process.
  */
 
 long 
@@ -505,9 +487,6 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
 	printk ("i370_kernel_thread\n");
-	// can't call do_fork directly, we *must* svc to it;
-        // otherwise scheduling doesn't work.
-        // pid = do_fork(flags, 0, current->tss.regs);
 	pid = clone (flags);
 	printk ("i370_kernel_thread(): return from clone, pid=%ld\n",pid);
         if (pid) return pid;

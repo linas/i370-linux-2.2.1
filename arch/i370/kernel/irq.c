@@ -246,7 +246,7 @@ get_irq_list(char *buf)
 /************************************************************/
 
 void
-do_IRQ(int irq, void *dev_id, struct pt_regs * regs, unitblk_t *ucb)
+do_IRQ(int irq, struct pt_regs * regs, unitblk_t *ucb)
 {
 	struct irqaction *action;
 	int cpu, do_random;

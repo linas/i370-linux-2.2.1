@@ -187,7 +187,10 @@ extern unsigned long empty_zero_page[1024];
 
 #ifndef __ASSEMBLY__
 
-/* SET_PAGE_DIR is used to set the segment table orign and length */
+/* SET_PAGE_DIR is used to set the segment table orign and length.
+ * Although it loads cr1, note that it doesn't take effect until
+ * DAT is set in the PSW. 
+ */
 /* tsk is a task_struct and pgdir is a pgd_t* */
 #define SET_PAGE_DIR(tsk,pgdir)  { 				\
 	(tsk)->tss.pg_tables = (unsigned long *)(pgdir);	\

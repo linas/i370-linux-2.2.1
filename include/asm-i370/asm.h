@@ -275,6 +275,35 @@ extern inline void i370_halt (void)
 }
 
 /* -------------------------------------------------------- */
+/* Enabled wait will yeild the CPU but keep the interrupts hot */
+
+extern inline void i370_enabled_wait (void)
+{
+	// need to have 8-byte alignment for the psw
+	// unsigned long long psw __attribute__ ((aligned (8)));
+	char area[12];
+	unsigned long ptr = (unsigned long ) area;
+	unsigned long long *psw;
+	ptr = ((ptr+4) / 8) * 8;
+	psw = (unsigned long long *) ptr;
+
+	// The flags should be set for:
+	// DAT off,  real mode, supervisor state
+	// external, i/o and machine check enabled
+	// PER ??  
+	// key 6 storage (as defined in processor.h
+	asm volatile (
+	"	L	r1,=X'036e0000';	\n"
+	"	ST	r1,%0;			\n"
+	"	L	r1,=A(1f);		\n"
+	"	O	r1,=X'80000000';	\n"
+	"	ST	r1,4+%0;		\n"
+	"	LPSW	%0;			\n"
+	"1:	NOPR	r0;			\n"
+	: "+m" (*psw) : : "r1", "memory");
+}
+
+/* -------------------------------------------------------- */
 /* Load Real Address...                                     */
 /* -------------------------------------------------------- */
  

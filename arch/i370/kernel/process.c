@@ -194,6 +194,23 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
         regs->psw.addr = nip | PSW_31BIT;
         regs->irregs.r13 = sp;
 
+	/* trash in other regs */
+	regs->irregs.r0 = 0xaceb0ff0;
+	regs->irregs.r1 = 0xaceb0ff0;
+	regs->irregs.r2 = 0xaceb0ff0;
+	regs->irregs.r3 = 0xaceb0ff0;
+	regs->irregs.r4 = 0xaceb0ff0;
+	regs->irregs.r5 = 0xaceb0ff0;
+	regs->irregs.r6 = 0xaceb0ff0;
+	regs->irregs.r7 = 0xaceb0ff0;
+	regs->irregs.r8 = 0xaceb0ff0;
+	regs->irregs.r9 = 0xaceb0ff0;
+	regs->irregs.r10 = 0xaceb0ff0;
+	regs->irregs.r11 = 0xaceb0ff0;
+	regs->irregs.r12 = 0xaceb0ff0;
+	regs->irregs.r14 = 0xaceb0ff0;
+	regs->irregs.r15 = 0xaceb0ff0;
+
         cr0.raw = _stctl_r0();
         cr0.bits.tf = 0x16;
         _lctl_r0(cr0.raw);

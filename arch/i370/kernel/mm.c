@@ -402,6 +402,7 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 			print_backtrace (current->tss.regs->irregs.r13);
 			printk ("\nabove was user stack, the kernel stack shown below:\n");
 			print_backtrace (_get_SP());
+			i370_halt ();
 		}
 		while (len > 0) {
 			unsigned long off = va & ~PAGE_MASK;
@@ -445,6 +446,7 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 			print_backtrace (current->tss.regs->irregs.r13);
 			printk ("\nabove was user stack, the kernel stack shown below:\n");
 			print_backtrace (_get_SP());
+			i370_halt ();
 		}
 		while (len > 0) {
 			unsigned long off = va & ~PAGE_MASK;

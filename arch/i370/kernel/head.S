@@ -166,7 +166,7 @@ _cinit:
 #define EXCEPTION_PROLOG(sav,oldpsw) 					\
 	BASR	r15,0;			/* load r15 with PSW         */	\
 	.using	.,r15;			/* use r15 as base register  */	\
-	L	r12,=V(current);	/* addr of current pointer   */	\
+	L	r12,_psa_current(,0);	/* addr of current pointer   */	\
 	/* interrupted from user space or kernel space ?             */	\
 	L	r1,oldpsw(,0);		/* get old psw flags into r1 */	\
 	L	r12,0(,r12);		/* addr of current process   */	\
@@ -204,7 +204,7 @@ _cinit:
 
 #define EXCEPTION_UNCHAIN(sav)	 					\
 	/* chain the interrupt state pointer into thread_struct      */	\
-	L	r12,=V(current);	/* addr of current pointer   */	\
+	L	r12,_psa_current(,0);	/* addr of current pointer   */	\
 	L	r12,0(,r12);		/* addr of current process   */	\
         A       r12,OFFSET_KREGS(,0);   /* add offset to regs ptr    */ \
 	L	r2,SAVED_OLDREGS(,r13);	/* get old ptr from stack    */	\

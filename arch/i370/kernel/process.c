@@ -7,11 +7,12 @@
  *   Copyright (C) Cort Dougan (cort@cs.nmt.edu)
  *   Copyright (C) Paul Mackerras (paulus@cs.anu.edu.au)
  *
- * Modified to implement Linux forr the ESA/390 class mainframes
+ * Modified to implement Linux for the ESA/390 class mainframes
  *   Copyright (C) 1999 Linas Vepstas (linas@linas.org)
  *
  * XXX this minimally works in a broken-like way for the ESA/390
  * needs a lot of fixin to be really operational...
+ * Changes: using psa.Current in lieu of current [ptr003]
  */
 
 #include <linux/init.h>
@@ -19,6 +20,7 @@
 #include <linux/smp_lock.h>
 
 #include <asm/asm.h>
+#include <asm/current.h>
 #include <asm/elf.h>
 #include <asm/pgtable.h>
 #include <asm/ptrace.h>
@@ -35,11 +37,6 @@ static struct signal_struct init_signals = INIT_SIGNALS;
 
 struct mm_struct init_mm = INIT_MM;
 union task_union init_task_union = { INIT_TASK };
-
-/* only used to get secondary processor up */
-struct task_struct *current_set[NR_CPUS] = {&init_task, };
-
-struct task_struct *current = &init_task;
 
 /* init_ksp is used only in head.S during startup to set up the inital stack */
 const unsigned long init_ksp __initdata = (unsigned long) init_stack;
@@ -280,7 +277,8 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 #endif
 #ifdef __SMP__
         prev->last_processor = prev->processor;
-        current_set[smp_processor_id()] = new;
+	/* XXX copy  current=new to the pfx page of the correct processor. */
+	
 #endif /* __SMP__ */
 
         old_tss = &current->tss;

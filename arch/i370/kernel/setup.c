@@ -39,6 +39,7 @@ struct scatter_block {
   long                 offset;
   char                 data[0];
 };
+
 void scatter_move(void * area, struct scatter_block * first_block)
 {
   struct scatter_block *  block;
@@ -52,20 +53,12 @@ void scatter_move(void * area, struct scatter_block * first_block)
   
 void setup_psa(void)
 {
-  extern long  entry_psa_initializer;
-  long * io_addr = (long *) 124;
-
-  scatter_move (& _PSA_, (struct scatter_block *)&entry_psa_initializer);
-
-  /* XXX what's this??? these are setup in traps.c ??! 
-   * Why does this need to be set here ??? */
-  * io_addr |= 0x80000000;	/* ld bug prevents setting AMODE31 bit    */
-  
   _PSA_.initflag.hercules |= _i370_hercules_guest_p();
   
-  set_current  (&init_task);	/* static, is in fact in the constant data */
+  _PSA_.Current = &init_task;		/* static, is in fact in the constant data */
   
-  __asm__("STAP %0; STAP %1;" : "=m"(_PSA_.cpuadp), "=m"(_PSA_.cpuadl));
+  _PSA_.cpuadp = _stap();
+  _PSA_.cpuadl = _stap();
   _PSA_.cpuno = 1;
   _PSA_.cpumask = 0x0001;
   
@@ -207,6 +200,7 @@ machine_halt(void)
    	printk("machine halt\n");
 	i370_halt();
 }
+
 void 
 machine_power_off(void)
 {

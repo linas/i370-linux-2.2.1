@@ -12,23 +12,24 @@
  */
 #include <linux/config.h>
 #include <linux/errno.h>
-#include <linux/sched.h>
 #include <linux/kernel.h>
+#include <linux/malloc.h>
 #include <linux/mm.h>
+#include <linux/ptrace.h>
 #include <linux/smp.h>
 #include <linux/smp_lock.h>
+#include <linux/sched.h>
 #include <linux/stddef.h>
 #include <linux/unistd.h>
-#include <linux/ptrace.h>
-#include <linux/malloc.h>
 
-#include <asm/pgtable.h>
-#include <asm/uaccess.h>
-#include <asm/system.h>
-#include <asm/io.h>
-#include <asm/processor.h>
-#include <asm/mmu.h>
 #include <asm/cache.h>
+#include <asm/current.h>
+#include <asm/io.h>
+#include <asm/mmu.h>
+#include <asm/pgtable.h>
+#include <asm/processor.h>
+#include <asm/system.h>
+#include <asm/uaccess.h>
 
 void zero_paged(void);
 unsigned long zero_paged_on = 0;

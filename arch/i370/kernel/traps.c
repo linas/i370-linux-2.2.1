@@ -18,6 +18,7 @@
 #include <linux/sched.h>
 
 #include <asm/asm.h>
+#include <asm/current.h>
 #include <asm/iorb.h>
 #include <asm/irq.h>
 #include <asm/param.h>

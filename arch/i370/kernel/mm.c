@@ -13,11 +13,13 @@
 
 #include <asm/asm.h>
 #include <asm/atomic.h>
+#include <asm/current.h>
 #include <asm/mmu.h>
 #include <asm/mmu_context.h>
 #include <asm/pgtable.h>
 #include <asm/uaccess.h>
 #include <asm/vmdiag.h>
+
 extern unsigned long free_area_init(unsigned long, unsigned long);
 extern __initfunc(void i370_trap_init(int key));
 

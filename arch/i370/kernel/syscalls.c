@@ -37,6 +37,7 @@
 #include <linux/ipc.h>
 #include <linux/utsname.h>
 
+#include <asm/current.h>
 #include <asm/uaccess.h>
 
 void

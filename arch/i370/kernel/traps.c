@@ -14,6 +14,7 @@
 
 
 #include <linux/init.h>
+#include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/sched.h>
 
@@ -341,53 +342,50 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 
 /* ================================================================ */
 /* do SLIH intrerrupt handling (the bottom half) */
-/* pseudocode:  */
-
-#ifdef LATER
 
 void 
 ret_from_syscall (void) 
 {
 	int do_it_again = 1;
 
-	/* if we are already in the bottom half on this stack,
+	/* If we are already in the bottom half on this stack,
 	 * then return. We don't want to blow out the stack
 	 * by piling a million interrupts on it.
 	 */
 	if (current->tss.in_slih) return;
 	current->tss.in_slih = 1;
 
-	/* keep looping until there are no more pending 
+	/* Keep looping until there are no more pending 
 	 * interrupts. */
 	while (do_it_again) {
-		sti();
-		do_it_again = 0:
+		cli();
+		do_it_again = 0;
 
 		/* bitwise and */
 		if (bh_mask & bh_active) {
 			do_bottom_half ();  // handle_bottom_half()
 			do_it_again = 1;
 		}
-		if (return_to_user) {
-			/* reschedule before delivering signals */
-			if (need_reschedule) {
+		/* Are we returning to the user? */
+		if (user_mode(current->tss.regs)) {
+			/* Reschedule before delivering signals */
+			if (current->need_resched) {
 				schedule ();
 				do_it_again = 1;
 				continue;
 			}
-			/* if we are here, we weren't scheduled away. 
+			/* If we are here, we were just scheduled. 
                          * So deliver any pending signals before returning. */
-			if (sig_pending) {
-				do_signal ();
+			if (current->sigpending) {
+				i370_do_signal ();
 				do_it_again = 1;
 				continue;
 			}
 		}
 	}
-	cli ();
+	sti ();
 	current->tss.in_slih = 0;
 }
-#endif
 
 /* ================================================================ */
 

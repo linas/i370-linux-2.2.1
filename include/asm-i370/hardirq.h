@@ -1,6 +1,10 @@
 #ifndef __ASM_HARDIRQ_H
 #define __ASM_HARDIRQ_H
 
+#include <linux/tasks.h>
+
+/* XXX much of this is wrong, esp for SMP */
+
 extern unsigned int local_irq_count[NR_CPUS];
 
 /*

@@ -1,8 +1,14 @@
 #ifndef __ASM_SOFTIRQ_H
 #define __ASM_SOFTIRQ_H
 
+#include <linux/tasks.h>
+
 #include <asm/atomic.h>
 #include <asm/hardirq.h>
+
+
+/* XXX most of this is wrong, most of this should be in the PSA */
+/* There should be no ifdef SMP, the 390 is always SMP */
 
 extern unsigned int local_bh_count[NR_CPUS];
 

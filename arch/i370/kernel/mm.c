@@ -86,8 +86,9 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 #endif /* CONFIG_VM */
 #endif /* CONFIG_BLK_DEV_INITRD */
 
-	/* mark the first page RO since all vectors have been set up by now */
-	_sske (KTEXT_STORAGE_KEY, 0x0);
+	/* Mark the first page RW since we need to put interrupt stuff there.
+	 * Low address protection is turned on later, below */
+	_sske (KDATA_STORAGE_KEY, 0x0);
 
 	for (addr = 0x0; addr < end_mem; addr += PAGE_SIZE) 
 	{
@@ -145,10 +146,13 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 	/* take away write privledges from text pages. */
 	_spka (KDATA_STORAGE_KEY);
 
-	/* do allow kernel to access key-9 storage --
-	  set the storage protection override bit in cr0 */
+	/* Do allow kernel to access key-9 storage --
+	   by setting the storage protection override bit in cr0 .
+	   Protect addresses in 0-512 from accidental storage.
+	*/
 	cr0.raw = _stctl_r0();
 	cr0.bits.spoc = 1;
+	cr0.bits.lapc = 1;
 	_lctl_r0(cr0.raw);
 
 	printk("Memory: %luk available "

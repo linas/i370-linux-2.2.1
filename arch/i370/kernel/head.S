@@ -437,15 +437,12 @@ InputOutput:
 	.balign	8;			/* align literal pool */
 	.ltorg;				/* dump literal pool */	
 
-/*
- * We put a few things here that have to be page-aligned.
- * This stuff goes at the beginning of the data segment,
- * which is page-aligned.
- */
-	.section .data.init	/* we throw this section away after init */
-	.balign	8
+/* ===================================================================== */
+/* Miscellaneous stuff in the data segement */
+/* p2align 12  aligns to a page boundry (2^12) */
 
 	.data
+	.p2align 12
 	.globl	sdata
 sdata:
 	.globl	empty_zero_page
@@ -457,6 +454,7 @@ empty_zero_page:
  * table associated with the init process.  To map 2GB, it must 
  * two pages in size.
  */
+	.p2align 12
 	.globl	swapper_pg_dir
 swapper_pg_dir:
 	.space	8192	
@@ -475,6 +473,7 @@ cmd_line:
 	.ascii "root=/dev/ram"
 	.space	512
 
+/* ===================================================================== */
 /* The syscall table is in the text section; making it RO.
  *
  * The syscall table is copied from the powerpc code; it should match

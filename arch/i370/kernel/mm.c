@@ -35,6 +35,7 @@ extern unsigned char CPUID[8];
 
 __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 {
+	cr0_t cr0;
 	unsigned long addr;
 	int lowpages = 0;
 	int codepages = 0;
@@ -143,6 +144,12 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 
 	/* take away write privledges from text pages. */
 	_spka (KDATA_STORAGE_KEY);
+
+	/* do allow kernel to access key-9 storage --
+	  set the storage protection override bit in cr0 */
+	cr0.raw = _stctl_r0();
+	cr0.bits.spoc = 1;
+	_lctl_r0(cr0.raw);
 
 	printk("Memory: %luk available "
 			 "(%dk code, %dk data, %dk init)\n",
@@ -401,6 +408,7 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 
 			pte = find_pte (current->mm, va);
 			if (!pte || pte_none(*pte)) {
+				printk ("cpy_to_user make_pages_present at va=%lx\n", va);
 				make_pages_present (va, va+len);
 			} 
 
@@ -435,6 +443,7 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 
 			pte = find_pte (current->mm, va);
 			if (!pte || pte_none(*pte)) {
+				printk ("cpy_from_user make_pages_present at va=%lx\n", va);
 				make_pages_present (va, va+len);
 			} 
 
@@ -475,6 +484,7 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 
 			pte = find_pte (current->mm, va);
 			if (!pte || pte_none(*pte)) {
+				printk ("strncpy_from_user make_pages_present at va=%lx\n", va);
 				make_pages_present (va, va+count);
 			}
 			if (len < rlen) rlen = len;
@@ -530,6 +540,7 @@ __clear_user(void *addr, unsigned long len)
 
 		pte = find_pte (current->mm, va);
 		if (!pte || pte_none(*pte)) {
+			printk ("clear_user make_pages_present at va=%lx\n", va);
 			make_pages_present (va, va+len);
 		}
 		if (len < rlen) rlen = len;
@@ -568,6 +579,7 @@ strlen_user(const char *str)
 
 		pte = find_pte (current->mm, va);
 		if (!pte || pte_none(*pte)) {
+			printk ("strlen_user make_pages_present at va=%lx\n", va);
 			make_pages_present (va,va);
 		}
 		ra = pte_page (*pte) | off;
@@ -618,6 +630,7 @@ put_user_data(long data, void *addr, long len)
 	pte = find_pte (current->mm, va);
 
 	if (!pte || pte_none(*pte)) {
+		printk ("put_user_data make_pages_present at va=%lx\n", va);
 		make_pages_present (va, va+len);
 	}
 	printk ("put_user_data: va=%lx pte=%p = %x\n", va, pte, pte_val(*pte));

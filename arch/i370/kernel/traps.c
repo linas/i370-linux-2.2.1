@@ -148,7 +148,6 @@ RestartException(i370_interrupt_state_t *saved_regs)
 void
 InputOutputException(i370_interrupt_state_t *saved_regs)
 {
-	printk ("io exception\n");
 }
 
 void
@@ -236,6 +235,7 @@ StackOverflow(struct pt_regs *regs)
 
 extern void SupervisorCall (void);
 extern void External (void);
+extern void InputOutput (void);
 
 /*
  * we assume that we initialize traps while in real mode, i.e.
@@ -274,6 +274,11 @@ __initfunc(void trap_init(void))
 	psw.flags = PSW_VALID;        // disable all interupts
 	psw.addr = ((unsigned long) External) | (1<<31); 
 	*((psw_t *) EXTERN_PSW_NEW) = psw;
+
+	// install the I/O Interrupt handler
+	psw.flags = PSW_VALID;        // disable all interupts
+	psw.addr = ((unsigned long) InputOutput) | (1<<31); 
+	*((psw_t *) IO_PSW_NEW) = psw;
 }
 
 /* ===================== END OF FILE =================================== */

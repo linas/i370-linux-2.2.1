@@ -52,15 +52,9 @@ extern void print_backtrace(unsigned long *);
 extern void show_regs(struct pt_regs * regs);
 extern void flush_instruction_cache(void);
 extern void hard_reset_now(void);
-extern int _get_PVR(void);
-extern long _get_L2CR(void);
-extern void _set_L2CR(unsigned long);
-extern void via_cuda_init(void);
 extern void read_rtc_time(void);
 extern void giveup_fpu(void);
 extern void smp_giveup_fpu(struct task_struct *);
-extern void cvt_fd(float *from, double *to, unsigned long *fpscr);
-extern void cvt_df(double *from, float *to, unsigned long *fpscr);
 
 struct device_node;
 extern void note_scsi_host(struct device_node *, void *);

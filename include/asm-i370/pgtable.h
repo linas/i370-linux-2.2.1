@@ -251,17 +251,17 @@ extern inline pte_t pte_mkyoung(pte_t pte) {
 
 static inline pte_t mk_pte_phys(unsigned long page, pgprot_t pgprot)
 { pte_t pte; 
-printk ("mk_pte_phys %lx %lx\n",page,pgprot);
+printk ("mk_pte_phys %lx %lx\n",page,pgprot_val(pgprot));
 pte_val(pte) = (page) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t mk_pte(unsigned long page, pgprot_t pgprot)
 { pte_t pte; 
-printk ("mk_pte %lx %lx\n",page,pgprot);
+printk ("mk_pte %lx %lx\n",page, pgprot_val(pgprot));
 pte_val(pte) = __pa(page) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
 { pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot); 
-printk ("pte_modify %lx %lx\n",pte,newprot);
+printk ("pte_modify %lx %lx\n", pte_val(pte),pgprot_val(newprot));
 return pte; }
 
 extern inline unsigned long pte_page(pte_t pte)

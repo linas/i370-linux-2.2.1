@@ -34,7 +34,7 @@
 #define PFX_MCH_CODE_HI	0xec	/* Machine Check Interrrupt Code high word */
 
 #define PFX_SUBSYS_ID	0xb8	/* Subsystem id word (subchannel) */
-#define PFX_IO_PARM	0xb8	/* IO interruption paramter */
+#define PFX_IO_PARM	0xbc	/* IO interruption paramter */
 
 /* the rest of this scratch area is defined in head.S but should be
  * probably be moved here */
@@ -75,6 +75,57 @@
 #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB
 #define KERN_PSW	EN_PSW | PSW_KEY(3)
 #define HALT_PSW	PSW_VALID | PSW_WAIT 
+
+
+/* Program Interruption Codes */
+#define PIC_OPERATION		0x01
+#define PIC_PRIVLEDGED		0x02
+#define PIC_EXECUTE		0x03
+#define PIC_PROTECTION		0x04
+#define PIC_ADDRESSING		0x05
+#define PIC_SPECIFICATION	0x06
+#define PIC_DATA		0x07
+#define PIC_FIXED_OVERFLOW	0x08
+#define PIC_FIXED_DIVIDE	0x09
+#define PIC_DECIMAL_OVERFLOW	0x0a
+#define PIC_DECIMAL_DIVIDE	0x0b
+#define PIC_EXP_OVERFLOW	0x0c
+#define PIC_EXP_UNDERFLOW	0x0d
+#define PIC_SIGNIFICANCE	0x0e
+#define PIC_FP_DIVIDE		0x0f
+#define PIC_SEGEMENT_TRANS	0x10
+#define PIC_PAGE_TRANS		0x11
+#define PIC_TRANSLATION		0x12
+#define PIC_SPECIAL_OP		0x13
+#define PIC_OPERAND		0x15
+#define PIC_TRACE_TABLE		0x16
+#define PIC_ASN_TRANS		0x17
+#define PIC_VECTOR_OP		0x19
+#define PIC_SPACE_SWITCH	0x1c
+#define PIC_SQROOT		0x1d
+#define PIC_UNNORMALIZED	0x1e
+#define PIC_PC_TRANS		0x1f
+#define PIC_AFX_TRANS		0x20
+#define PIC_ASX_TRANS		0x21
+#define PIC_LX_TRANS		0x22
+#define PIC_EX_TRANS		0x23
+#define PIC_PRIMARY_AUTH	0x24
+#define PIC_SECONDARY_AUTH	0x25
+#define PIC_ALET_SPEC		0x28
+#define PIC_ALEN_TRANS		0x29
+#define PIC_ALE_SEQ		0x2a
+#define PIC_ASTE_VALIDITY	0x2b
+#define PIC_ASTE_SEQ		0x2c
+#define PIC_EXTENDED_AUTH	0x2d
+#define PIC_STACK_FULL		0x30
+#define PIC_STACK_EMPTY		0x31
+#define PIC_STACK_SPEC		0x32
+#define PIC_STACK_TYPE		0x33
+#define PIC_STACKOP		0x34
+#define PIC_MONITOR		0x40
+#define PIC_PER			0x80
+
+
 
 /* XXX The rest of this file is sort of garbage  user beware XXX */
 

@@ -59,7 +59,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 	num_physpages = max_mapnr;      /* RAM is assumed contiguous */
  
 #ifdef CONFIG_BLK_DEV_INITRD
-#ifdef CONFIG_VM
+#ifdef CONFIG_VM_GUEST
 	/*-------------------------------------------------------*/
 	/* If we are running under VM then we can load the RAM   */
 	/* disk from a shared segment (isn't VM wonderful!)      */
@@ -70,7 +70,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 				    &initrd_start, &initrd_end);
 		printk("RAMDISK NSS loaded\n");
 	}
-#endif /* CONFIG_VM */
+#endif /* CONFIG_VM_GUEST */
 #endif /* CONFIG_BLK_DEV_INITRD */
 
 	for (addr = 0x0; addr < end_mem; addr += PAGE_SIZE) 

@@ -174,10 +174,12 @@ void start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 // ... Purge TLB ...
 //
 // NB switch_to() actually returns as copy_thread() to do_fork(),
-// although it was called in schedule().  This is because during the first
-// stack unwind, a new child process has the stack of its parent, and
-// forking/cloning is the only way to create a new process.  A non-zero
-// return value indicates an error.
+// even though it was called in schedule().  This is because when 
+// the stack unwinds during the subr return, it unwinds into a copy 
+// of it's parent's stack.  And the last thing the parent had done 
+// was a fork, ergo, that's were we return to.
+// 
+// A non-zero // return value indicates an error.
 int
 switch_to(struct task_struct *prev, struct task_struct *new)
 {
@@ -258,14 +260,14 @@ i370_sys_exit (void)
 
 /*
  * Copy a thread..
- * mostly wrong .... but give it a shot
+ * incomplete and buggy, sorta works ....  give it a shot
  * What this function does/needs to do:
  * -- Copy architecture-dependent parts of the task structure.
  * -- Set up the user stack pointer
  * -- Set up page tables ??? !!
  * -- Load CR1 with page table origin ??!!
  *
- * argument p is the copy_to_p copy_from is "current"
+ * argument p is the copy_to_proc;  copy_from is "current"
  * usp and regs are what was pass to do_fork below ...
  * return 0 if success, non-zero if not
  */
@@ -329,20 +331,12 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	p->tss.tca[3] = ((unsigned long) p) + 8192;
 	p->tss.tca[29] = (unsigned long) tcaStackOverflow; 
 
-	/* if fork was from SVC, child gets a return value of zero.
-	 * Do this by inserting a zero in reg fifteen of the SVC
-	 * saved regs (in the SVC stack frame).  Note that r15
-         * holds the returned pid, while non-zero r1 indicates an error.
-	 * The parent gets the childs pid.
+	/* Fork was done from an SVC;  the child gets a return value 
+         * of zero; while the parent gets the childs pid ...
+         * Where going to note which of these we are by sticking
+         * the pid into irregs.r15 ... ... not used ???
 	 */
-/* XXX this is mostly kinda mostly wrong, need to redesign ... */
-/* we don't want to deal with r15 klike this since it blow up ordinary
- * syscalls */
-	// p->tss.regs -> irregs.r1 = 0;
 	p->tss.regs -> irregs.r15 = 0;
-	// p->tss.regs -> irregs.r13 = 0;
-
-	// current->tss.regs -> irregs.r1 = 0;
 	current->tss.regs -> irregs.r15 = p->pid;
 
 	/* XXX what about page tables ?? */
@@ -383,9 +377,11 @@ i370_sys_clone (unsigned long clone_flags)
 #endif /* __SMP__ */
         unlock_kernel();
 
-/* XXX */
-/* we should really be doing bottom half here */
+/* XXX why are we cli'ing here ??? */
 cli();
+
+/* XXX should we be returning res here, or should we be returning
+ * regs->irregs.r15 ?? */
         return res;
 }
 
@@ -410,6 +406,8 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
 	printk ("i370_kernel_thread\n");
+	// can't call do_fork directly, we *must* svc to it;
+        // otherwise scheduling doesn't work.
         // pid = do_fork(flags, 0, current->tss.regs);
 	pid = clone (flags);
         if (pid) return pid;

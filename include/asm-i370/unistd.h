@@ -205,6 +205,50 @@
 #define __syscall_clobbers \
 	"r4", "r5", "r6", "r7", "r8", "r9", "r10", "r11", "r12"
 
+/* XXX NOOP FIXME */
+#define _syscall0(type,name)						\
+type name(void)								\
+{									\
+	unsigned long __sc_ret, __sc_err;				\
+	__syscall_return (type);					\
+}
+
+#define _syscall1(type,name,type1,arg1)					\
+type name(type1 arg1)							\
+{									\
+	unsigned long __sc_ret, __sc_err;				\
+	__syscall_return (type);					\
+}
+
+#define _syscall2(type,name,type1,arg1,type2,arg2)			\
+type name(type1 arg1, type2 arg2)					\
+{									\
+	unsigned long __sc_ret, __sc_err;				\
+	__syscall_return (type);					\
+}
+
+#define _syscall3(type,name,type1,arg1,type2,arg2,type3,arg3)		\
+type name(type1 arg1, type2 arg2, type3 arg3)				\
+{									\
+	unsigned long __sc_ret, __sc_err;				\
+	__syscall_return (type);					\
+}
+
+#define _syscall4(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4) \
+type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4)		\
+{									\
+	unsigned long __sc_ret, __sc_err;				\
+	__syscall_return (type);					\
+}
+
+#define _syscall5(type,name,type1,arg1,type2,arg2,type3,arg3,type4,arg4,type5,arg5) \
+type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
+{									\
+	unsigned long __sc_ret, __sc_err;				\
+	__syscall_return (type);					\
+}
+
+#ifdef XXX_NOT_NOW
 #define _syscall0(type,name)						\
 type name(void)								\
 {									\
@@ -365,6 +409,7 @@ type name(type1 arg1, type2 arg2, type3 arg3, type4 arg4, type5 arg5)	\
 	}								\
 	__syscall_return (type);					\
 }
+#endif /* XXX_LATER */
 
 
 #ifdef __KERNEL_SYSCALLS__

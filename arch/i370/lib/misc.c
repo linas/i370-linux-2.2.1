@@ -1,8 +1,12 @@
 
 /*
  * Atomic add/sub/inc/dec operations
- * Implement with test and set 
+ * Implement with test and set  XXX
+ * define as macros in asm/atomic.h  XXX hack alert
  */
+
+#include <asm/atomic.h>
+
 
 void atomic_add(int c, int *v) {}
 void atomic_sub(int c, int *v) {}

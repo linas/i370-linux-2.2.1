@@ -7,26 +7,7 @@
 #include <asm/byteorder.h>
 
 #define KERNELBASE	0xc0000000
-
-#define SIO_CONFIG_RA	0x398
-#define SIO_CONFIG_RD	0x399
-
-#define IBM_HDD_LED       0x808
-#define IBM_EQUIP_PRESENT 0x80c	
-#define IBM_L2_STATUS     0x80d
-#define IBM_L2_INVALIDATE 0x814
-#define IBM_SYS_CTL       0x81c
-
-#define SLOW_DOWN_IO
-
-#define PREP_ISA_IO_BASE 	0x80000000
-#define PREP_ISA_MEM_BASE 	0xd0000000
-/*#define PREP_ISA_MEM_BASE 	0xc0000000*/
-#define PREP_PCI_DRAM_OFFSET 	0x80000000
-
-#define _IO_BASE        0
-#define _ISA_MEM_BASE   0
-#define PCI_DRAM_OFFSET 0x80000000
+#define _IO_BASE 0
 
 #define readb(addr) in_8((volatile unsigned char *)(addr))
 #define writeb(b,addr) out_8((volatile unsigned char *)(addr), (b))
@@ -81,35 +62,6 @@ extern void _outsl_ns(volatile unsigned long *port, const void *buf, int nl);
 #define memcpy_toio(a,b,c)	memcpy((a),(b),(c))
 
 #ifdef __KERNEL__
-/*
- * Map in an area of physical address space, for accessing
- * I/O devices etc.
- */
-extern void *__ioremap(unsigned long address, unsigned long size,
-		       unsigned long flags);
-extern void *ioremap(unsigned long address, unsigned long size);
-#define ioremap_nocache(addr, size)	ioremap((addr), (size))
-extern void iounmap(void *addr);
-extern unsigned long iopa(unsigned long addr);
-
-extern unsigned long mm_ptov(unsigned long addr) __attribute__ ((const));
-
-/*
- * The PCI bus is inherently Little-Endian.  The PowerPC is being
- * run Big-Endian.  Thus all values which cross the [PCI] barrier
- * must be endian-adjusted.  Also, the local DRAM has a different
- * address from the PCI point of view, thus buffer addresses also
- * have to be modified [mapped] appropriately.
- */
-extern inline unsigned long virt_to_bus(volatile void * address)
-{
-	return iopa ((unsigned long) address);
-}
-
-extern inline void * bus_to_virt(unsigned long address)
-{
-	return (void*) mm_ptov (address);
-}
 
 /*
  * Change virtual addresses to physical addresses and vv, for
@@ -135,9 +87,6 @@ extern inline void * phys_to_virt(unsigned long address)
 #define iobarrier_r() 
 #define iobarrier_w() 
 
-/*
- * 8, 16 and 32 bit, big and little endian I/O operations, with barrier.
- */
 extern inline int in_8(volatile unsigned char *addr)
 {
 	int ret;
@@ -153,61 +102,6 @@ extern inline void out_8(volatile unsigned char *addr, int val)
 	__asm__ __volatile__("stc %1,%0" : "=m" (*addr) : "r" (val));
 }
 
-extern inline int in_le16(volatile unsigned short *addr)
-{
-	int ret;
-
-	__asm__ __volatile__("lhbrx %0,0,%1; eieio" : "=r" (ret) :
-			      "r" (addr), "m" (*addr));
-	return ret;
-}
-
-extern inline int in_be16(volatile unsigned short *addr)
-{
-	int ret;
-
-	__asm__ __volatile__("lhz%U1%X1 %0,%1; eieio" : "=r" (ret) : "m" (*addr));
-	return ret;
-}
-
-extern inline void out_le16(volatile unsigned short *addr, int val)
-{
-	__asm__ __volatile__("sthbrx %1,0,%2; eieio" : "=m" (*addr) :
-			      "r" (val), "r" (addr));
-}
-
-extern inline void out_be16(volatile unsigned short *addr, int val)
-{
-	__asm__ __volatile__("sth%U0%X0 %1,%0; eieio" : "=m" (*addr) : "r" (val));
-}
-
-extern inline unsigned in_le32(volatile unsigned *addr)
-{
-	unsigned ret;
-
-	__asm__ __volatile__("lwbrx %0,0,%1; eieio" : "=r" (ret) :
-			     "r" (addr), "m" (*addr));
-	return ret;
-}
-
-extern inline unsigned in_be32(volatile unsigned *addr)
-{
-	unsigned ret;
-
-	__asm__ __volatile__("lwz%U1%X1 %0,%1; eieio" : "=r" (ret) : "m" (*addr));
-	return ret;
-}
-
-extern inline void out_le32(volatile unsigned *addr, int val)
-{
-	__asm__ __volatile__("stwbrx %1,0,%2; eieio" : "=m" (*addr) :
-			     "r" (val), "r" (addr));
-}
-
-extern inline void out_be32(volatile unsigned *addr, int val)
-{
-	__asm__ __volatile__("stw%U0%X0 %1,%0; eieio" : "=m" (*addr) : "r" (val));
-}
 
 #ifdef __KERNEL__
 static inline int check_signature(unsigned long io_addr,

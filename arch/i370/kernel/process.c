@@ -316,6 +316,9 @@ switch_to(struct task_struct *prev, struct task_struct *new)
 void exit_thread(void)
 {
 	printk ("exit_thread(): not implemented \n");
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
+	i370_halt();
 }
 
 void flush_thread(void)
@@ -327,6 +330,8 @@ void
 release_thread(struct task_struct *t)
 {
 	printk ("release_thread(): not implemented \n");
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
 	i370_halt();
 }
 
@@ -334,6 +339,8 @@ void
 i370_sys_exit (void) 
 {
 	printk ("i370_sys_exit(): not implemented \n");
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
 	i370_halt();
 }
 

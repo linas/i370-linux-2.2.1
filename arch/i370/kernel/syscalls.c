@@ -53,6 +53,7 @@ asmlinkage int i370_sys_execve(unsigned long a0, unsigned long a1,
 	int error;
 	char * filename;
 
+	printk("i370_sys_execve: name = %s\n",a0);
 	lock_kernel();
 	filename = getname((char *) a0);
 	error = PTR_ERR(filename);

@@ -1,10 +1,12 @@
 /*
- * Definitions for the 3270 Console
+ * Definitions for the 3270/3210 Console
  */
 
 #ifndef I370_3270_H_
 #define I370_3270_H_
 
+ 
+#define CMDCON_WRI	0x09	/* 3210 Write */
 
 #define CMDTRM_WRI	0x05	/* 3270 WRITE/ERASE */
 #define CMDTRM_RD	0x06	/* 3270 READ */

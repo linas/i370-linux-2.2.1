@@ -176,6 +176,38 @@ def_lctl(14)
 def_lctl(15)
 
 /* -------------------------------------------------------- */
+/* store control registers */
+ 
+#define _stctl(REGNO,val) _stctl_r##REGNO (val)
+ 
+#define def_stctl(REGNO)						\
+extern inline unsigned long _stctl_r##REGNO (void)		\
+{								\
+   /* be sure to serialize memory access around this instruction */\
+   unsigned long area;				\
+   asm volatile ("STCTL  " #REGNO "," #REGNO ",%0"  		\
+                   : "=m" (area) );			\
+   return(area);					\
+}
+ 
+def_stctl(0)
+def_stctl(1)
+def_stctl(2)
+def_stctl(3)
+def_stctl(4)
+def_stctl(5)
+def_stctl(6)
+def_stctl(7)
+def_stctl(8)
+def_stctl(9)
+def_stctl(10)
+def_stctl(11)
+def_stctl(12)
+def_stctl(13)
+def_stctl(14)
+def_stctl(15)
+ 
+/* -------------------------------------------------------- */
 /* Store Processor Address */
 extern inline unsigned long _stap (void)
 {

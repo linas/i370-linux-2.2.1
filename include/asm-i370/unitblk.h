@@ -5,7 +5,6 @@
 #ifndef I370_UNITB_H_
 #define I370_UNITB_H_
                                                                                 
-                                                                                
 /*                                                                              
  *	Define Unit Control Block
  */                                                                             
@@ -32,6 +31,31 @@ typedef struct _unitblk {
 
 #define	UNIT_READY	0x80	/* Subchannel is enabled */
 
+/*
+ *;Sense ID Structure
+ */
+ 
+typedef	struct _idchar
+{
+	unsigned char	idctrl;	/* Function control byte */
+	unsigned char	idcuid[2];	/* Control unit ID */
+	unsigned char	idcumdl;	/* Control unit model */
+	unsigned char	iddevid;	/* Device ID */
+	unsigned char	iddevmdl;	/* Device Model */
+	unsigned char	idxxxx;	/* Unused */
+	unsigned char	idextid;	/* Extended ID entry type */
+	unsigned char	idrcdc;	/* Read Config Data command code */
+	unsigned char	idrcd[2];	/*  Bytes of data returned by RCD */
+	unsigned char	idrsv[244];	/* Reserved */
+ 
+	/*---------------------------------------------------------*/
+	/* Device Type Information...                              */
+	/*---------------------------------------------------------*/
+ 
+#	define t3270 0x04
+#	define t3210 0x00
+ 
+} idchar_t;
 
 /*                                                                              
  *	Read Device Characteristics Structure

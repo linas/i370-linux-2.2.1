@@ -6,10 +6,11 @@
 #include <asm/asm.h>
 #include <asm/ptrace.h>
 
-/* Prefix Page Fixed Storage Locations
- * Locations of various process status words (PSW's)
- * in low real-mode memory.
- */
+/*------------------------------------------------------------*/
+/* Prefix Page Fixed Storage Locations                        */
+/* Locations of various process status words (PSW's)          */
+/* in low real-mode memory.                                   */
+/*------------------------------------------------------------*/
 #define IPL_PSW_NEW	0x0	/* Restart new PSW */
 #define IPL_PSW_OLD	0x8	/* Restart old PSW */
 #define IPL_CCW1	0x8
@@ -39,9 +40,12 @@
 
 /* the rest of this scratch area is defined in head.S but should be
  * probably be moved here */
-#define INTERRUPT_BASE	0xf00	/* scratch area */
+#define INTERRUPT_BASE	0xf00	/* Interrupt scratch area */
+#define PC_INTERRUPT_BASE	0xf80	/* PC scratch area */
 
+/*------------------------------------------------------------*/
 /* External Interruption Codes */
+/*------------------------------------------------------------*/
 #define EI_INTERRUPT_KEY	0x0040	/* Interrupt Key */
 #define EI_TOD_CLOCK_SYNC	0x1003	/* TOD clock sync check */
 #define EI_CLOCK_COMP		0x1004	/* Clock Comparator */
@@ -50,9 +54,11 @@
 #define	EI_EMERGENCY		0x1201	/* Emerency Signal */
 #define	EI_CALL			0x1202	/* External Call */
 #define	EI_SERVICE		0x2401	/* Service Signal */
+#define	EI_IUCV		0x4000	/* IUCV Interrupt */
 
-
+/*------------------------------------------------------------*/
 /* Bit encodings in the PSW */
+/*------------------------------------------------------------*/
 #define PSW_PER		0x40000000	/* Program Event Recording Mask */
 #define PSW_DAT		0x04000000	/* Address Translation Mode */
 #define PSW_IO		0x02000000	/* Input/Output Mask */
@@ -70,15 +76,19 @@
 #define PSW_HOME	0x000c0000	/* Home Space Mode */
 
 
-/* USER_PSW sets up flags for the user mode */
-/* HALT_PSW loads a disabled wait state (cpu halt) */
+/*------------------------------------------------------------*/
+/* USER_PSW sets up flags for the user mode                   */
+/* HALT_PSW loads a disabled wait state (cpu halt)            */
+/*------------------------------------------------------------*/
 #define EN_PSW		PSW_VALID | PSW_IO | PSW_EXTERN | PSW_MACH 
 #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB
 #define KERN_PSW	EN_PSW | PSW_KEY(3)
 #define HALT_PSW	PSW_VALID | PSW_WAIT 
 
 
-/* Program Interruption Codes */
+/*------------------------------------------------------------*/
+/* Program Interruption Codes                                 */
+/*------------------------------------------------------------*/
 #define PIC_OPERATION		0x01
 #define PIC_PRIVLEDGED		0x02
 #define PIC_EXECUTE		0x03
@@ -98,6 +108,7 @@
 #define PIC_PAGE_TRANS		0x11
 #define PIC_TRANSLATION		0x12
 #define PIC_SPECIAL_OP		0x13
+#define PIC_PAGEX		0x14
 #define PIC_OPERAND		0x15
 #define PIC_TRACE_TABLE		0x16
 #define PIC_ASN_TRANS		0x17
@@ -126,43 +137,72 @@
 #define PIC_MONITOR		0x40
 #define PIC_PER			0x80
 
-
-
-/* XXX The rest of this file is sort of garbage  user beware XXX */
-
 #ifndef __ASSEMBLY__
 
+/*------------------------------------------------------------*/
+/* External interrupt structures                              */
+/*------------------------------------------------------------*/
+
+typedef struct
+{
+ short int ei_code;
+ void (*ei_flih)(i370_interrupt_state_t *, unsigned short);
+} ei_handler;
+
+typedef struct
+{
+ short int iucv_path;        /* IUCV path identifier          */
+ unsigned long iucv_uword;   /* User word                     */
+ void  *iucv_buffer;         /* Pointer to the IUCV DCLBFR    */
+} iucv_path;
+
+/*------------------------------------------------------------*/
+/* Program check interrupt structures                         */
+/*------------------------------------------------------------*/
+ 
+typedef struct
+{
+ short int pc_code;
+ void (*pc_flih)(i370_interrupt_state_t *, unsigned short, unsigned long);
+} pc_handler;
+ 
+/*------------------------------------------------------------*/
+/* XXX The rest of this file is sort of garbage user beware   */
+/*------------------------------------------------------------*/
+ 
 struct task_struct;
 void start_thread(struct pt_regs *regs, unsigned long psw, unsigned long sp);
 void release_thread(struct task_struct *);
 
-/*
- * TASK_SIZE is the size of the effective address space for one task,
- * which is 2GB for the 31-bit 390/ESA arch. 
- */
+/*------------------------------------------------------------*/
+/* TASK_SIZE is the size of the effective address space for   */
+/* one task which is 2GB for the 31-bit 390/ESA arch.         */
+/*------------------------------------------------------------*/
 #define TASK_SIZE	(0x80000000UL)
 
-/* This decides where the kernel will search for a free chunk of vm
- * space during mmap's.
- */
+/*------------------------------------------------------------*/
+/* This decides where the kernel will search for a free chunk */
+/* of vm space during mmap's.                                 */
+/*------------------------------------------------------------*/
 #define TASK_UNMAPPED_BASE	(TASK_SIZE / 3)
 
 typedef struct {
 	unsigned long seg;
 } mm_segment_t;
 
+/*--------------------------------------------------------------------*/
 /* The thread_struct is inlined into the arch-independent task_struct */
-/* Here's the deal:
- * This sturcture contains (obviously) per-thread data that we need to
- * keep around.  This includes a pointer to per-interrupt data that
- * we need.  The per-interrupt data is in "struct pt_regs" aka
- * i370_interrupt_state.  This is by necessity a pointer into the 
- * interrupt stack; with each new interrupt, this pointer is bumped 
- * to the next stackframe, etc. and, upon each return from an interrupt
- * it is unwound to the last.  If it is null, it can only mean that 
- * this process is currently executing (as it would otherwise have
- * an interrupt context).
- */
+/* Here's the deal:                                                   */
+/* This sturcture contains (obviously) per-thread data that we need to*/
+/* keep around.  This includes a pointer to per-interrupt data that   */
+/* we need.  The per-interrupt data is in "struct pt_regs" aka        */
+/* i370_interrupt_state.  This is by necessity a pointer into the     */
+/* interrupt stack; with each new interrupt, this pointer is bumped   */
+/* to the next stackframe etc. and upon each return from an interrupt */
+/* it is unwound to the last.  If it is null, it can only mean that   */
+/* this process is currently executing (as it would otherwise have    */
+/* an interrupt context).                                             */
+/*--------------------------------------------------------------------*/
 struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer */
 	struct pt_regs *regs;		/* Pointer to saved interrupt state */
@@ -230,10 +270,3 @@ static inline unsigned long thread_saved_pc(struct thread_struct *t)
 #endif /* endif ASSEMBLY*/
   
 #endif /* __ASM_I370_PROCESSOR_H */
-
-
-
-
-
-
-

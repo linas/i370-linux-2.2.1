@@ -6,7 +6,7 @@
 #define I370_IORB_H_
 
 /*
- *	Cahnnel Command Word Command Byte bits
+ *	Channel Command Word Command Byte bits
  */
 
 #define CCW_CD		0x80	/* Use Data (Next CCW)              */
@@ -22,6 +22,7 @@
 #define CCW_CMD_LOCR	0x47	/* Locate Record */
 #define CCW_CMD_RDDATA	0x06	/* Read Data (DASD) */
 #define CCW_CMD_NOP     0x03	/* NO-OP CCW */
+#define CCW_CMD_SID		0xe4	/* Sense ID */
 
 /*
  *       Define the Format-1 Channel Command Word

@@ -34,7 +34,9 @@ extern inline void mark_bh(int nr)
 	set_bit(nr, &bh_active);
 }
 
-#ifdef __SMP__
+#ifndef __SMP__
+
+/*XXX get rid of this, everything should be SMP by default ... */
 /*
  * The locking mechanism for base handlers, to prevent re-entrancy,
  * is entirely private to an implementation, it should not be

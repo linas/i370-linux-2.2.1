@@ -83,7 +83,7 @@
 /*							  */
 /************************************************************/
 
-struct file_operations fop_osa =
+struct file_operations i370_fop_osa =
 {
    NULL,		 /* lseek - default */
    NULL,		 /* read - general block-dev read */
@@ -111,7 +111,7 @@ struct file_operations fop_osa =
 /************************************************************/
 
 void
-osa_driver(void)
+i370_osa_driver(void)
 {
 
 
@@ -131,7 +131,7 @@ osa_driver(void)
 /************************************************************/
 
 void
-osa_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_osa_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
 

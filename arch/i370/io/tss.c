@@ -83,7 +83,7 @@
 /*							  */
 /************************************************************/
 
-struct file_operations fop_tss =
+struct file_operations i370_fop_tss =
 {
    NULL,		 /* lseek - default */
    NULL,		 /* read - general block-dev read */
@@ -111,7 +111,7 @@ struct file_operations fop_tss =
 /************************************************************/
 
 void
-tss_driver(void)
+i370_tss_driver(void)
 {
 
 
@@ -131,7 +131,7 @@ tss_driver(void)
 /************************************************************/
 
 void
-tss_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_tss_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
 

@@ -83,7 +83,7 @@
 /*							  */
 /************************************************************/
 
-struct file_operations fop_ckd =
+struct file_operations i370_fop_ckd =
 {
    NULL,		 /* lseek - default */
    NULL,		 /* read - general block-dev read */
@@ -111,7 +111,7 @@ struct file_operations fop_ckd =
 /************************************************************/
 
 void
-ckd_driver(void)
+i370_ckd_driver(void)
 {
 
 
@@ -131,7 +131,7 @@ ckd_driver(void)
 /************************************************************/
 
 void
-ckd_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_ckd_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
 

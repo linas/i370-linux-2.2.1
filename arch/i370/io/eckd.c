@@ -83,7 +83,7 @@
 /*							  */
 /************************************************************/
 
-struct file_operations fop_eckd =
+struct file_operations i370_fop_eckd =
 {
    NULL,		 /* lseek - default */
    NULL,		 /* read - general block-dev read */
@@ -112,7 +112,7 @@ struct file_operations fop_eckd =
 
 
 void
-eckd_driver(void)
+i370_eckd_driver(void)
 {
 
 
@@ -132,7 +132,7 @@ eckd_driver(void)
 /************************************************************/
 
 void
-eckd_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_eckd_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
 

@@ -95,36 +95,36 @@ S390map_t s390_map[9] = {
 	{0,     0,     0, -1}
 };
 
-extern struct file_operations fop_eckd;
-extern struct file_operations fop_ckd;
-extern struct file_operations fop_fba;
-extern struct file_operations fop_graf;
-extern struct file_operations fop_cons;
-extern struct file_operations fop_tape;
-extern struct file_operations fop_tss;
-extern struct file_operations fop_osa;
-extern struct file_operations fop_ctca;
+extern struct file_operations i370_fop_eckd;
+extern struct file_operations i370_fop_ckd;
+extern struct file_operations i370_fop_fba;
+extern struct file_operations i370_fop_graf;
+extern struct file_operations i370_fop_cons;
+extern struct file_operations i370_fop_tape;
+extern struct file_operations i370_fop_tss;
+extern struct file_operations i370_fop_osa;
+extern struct file_operations i370_fop_ctca;
 
-extern void eckd_flih (int, void *, struct pt_regs *regs);
-extern void ckd_flih  (int, void *, struct pt_regs *regs);
-extern void fba_flih  (int, void *, struct pt_regs *regs);
-extern void graf_flih (int, void *, struct pt_regs *regs);
-extern void cons_flih (int, void *, struct pt_regs *regs);
-extern void tape_flih (int, void *, struct pt_regs *regs);
-extern void tss_flih  (int, void *, struct pt_regs *regs);
-extern void osa_flih  (int, void *, struct pt_regs *regs);
-extern void ctca_flih (int, void *, struct pt_regs *regs);
+extern void i370_eckd_flih (int, void *, struct pt_regs *regs);
+extern void i370_ckd_flih  (int, void *, struct pt_regs *regs);
+extern void i370_fba_flih  (int, void *, struct pt_regs *regs);
+extern void i370_graf_flih (int, void *, struct pt_regs *regs);
+extern void i370_cons_flih (int, void *, struct pt_regs *regs);
+extern void i370_tape_flih (int, void *, struct pt_regs *regs);
+extern void i370_tss_flih  (int, void *, struct pt_regs *regs);
+extern void i370_osa_flih  (int, void *, struct pt_regs *regs);
+extern void i370_ctca_flih (int, void *, struct pt_regs *regs);
 
 S390dev_t s390_devices[10] = {
-	{MJ3990, 0, 255, BLKDEV, D3990, &fop_eckd,  7, eckd_flih},
-	{MJ3880, 0, 255, BLKDEV, D3880, &fop_ckd,   6, ckd_flih},
-	{MJFBLK, 0, 255, BLKDEV, DFBLK, &fop_fba,   6, fba_flih},
-	{MJ3274, 0, 255, CHRDEV, D3274, &fop_graf,  1, graf_flih},
-	{MJ3210, 1, 1,   CHRDEV, D3210, &fop_cons,  1, cons_flih},
-	{MJ3480, 0, 255, CHRDEV, D3480, &fop_tape,  2, tape_flih},
-	{MJ3590, 0, 255, BLKDEV, D3590, &fop_tss,   5, tss_flih},
-	{MJ3172, 0, 255, BLKDEV, D3172, &fop_osa,   4, osa_flih},
-	{MJCTCA, 0, 255, BLKDEV, DCTCA, &fop_ctca,  3, ctca_flih},
+	{MJ3990, 0, 255, BLKDEV, D3990, &i370_fop_eckd,  7, i370_eckd_flih},
+	{MJ3880, 0, 255, BLKDEV, D3880, &i370_fop_ckd,   6, i370_ckd_flih},
+	{MJFBLK, 0, 255, BLKDEV, DFBLK, &i370_fop_fba,   6, i370_fba_flih},
+	{MJ3274, 0, 255, CHRDEV, D3274, &i370_fop_graf,  1, i370_graf_flih},
+	{MJ3210, 1, 1,   CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
+	{MJ3480, 0, 255, CHRDEV, D3480, &i370_fop_tape,  2, i370_tape_flih},
+	{MJ3590, 0, 255, BLKDEV, D3590, &i370_fop_tss,   5, i370_tss_flih},
+	{MJ3172, 0, 255, BLKDEV, D3172, &i370_fop_osa,   4, i370_osa_flih},
+	{MJCTCA, 0, 255, BLKDEV, DCTCA, &i370_fop_ctca,  3, i370_ctca_flih},
 	{-1,    -1,  -1,     -1, {NULL}, NULL,       0, NULL}
 };
 

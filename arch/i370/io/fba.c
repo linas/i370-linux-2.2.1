@@ -83,7 +83,7 @@
 /*							  */
 /************************************************************/
 
-struct file_operations fop_fba =
+struct file_operations i370_fop_fba =
 {
    NULL,		 /* lseek - default */
    NULL,		 /* read - general block-dev read */
@@ -112,7 +112,7 @@ struct file_operations fop_fba =
 
 
 void
-fba_driver(void)
+i370_fba_driver(void)
 {
 
 
@@ -132,7 +132,7 @@ fba_driver(void)
 /************************************************************/
 
 void
-fba_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_fba_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
 

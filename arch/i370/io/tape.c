@@ -83,7 +83,7 @@
 /*							  */
 /************************************************************/
 
-struct file_operations fop_tape =
+struct file_operations i370_fop_tape =
 {
    NULL,		 /* lseek - default */
    NULL,		 /* read - general block-dev read */
@@ -111,7 +111,7 @@ struct file_operations fop_tape =
 /************************************************************/
 
 void
-tape_driver(void)
+i370_tape_driver(void)
 {
 
 
@@ -131,7 +131,7 @@ tape_driver(void)
 /************************************************************/
 
 void
-tape_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_tape_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
 

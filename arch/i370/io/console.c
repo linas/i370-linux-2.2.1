@@ -43,16 +43,16 @@
 
 void i370_cons_open (struct inode *tty, struct file *filp) 
 {
-	printk ("console_open\n");
+	printk ("i370_cons_open\n");
 }
 
 void i370_cons_write (struct file *filp, const char *str, size_t len, loff_t n) 
 {
-	printk ("console_write: len=%d %s<<<\n", len, str);
+	printk ("i370_cons_write: len=%d %s<<<\n", len, str);
 }
 
 void
-console_driver(void)
+i370_console_driver(void)
 {
 
 
@@ -72,13 +72,13 @@ console_driver(void)
 /************************************************************/
 
 void
-cons_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_cons_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
 
 /*===================== End of Mainline ====================*/
 
-struct file_operations fop_cons =
+struct file_operations i370_fop_cons =
 {
    NULL,		 /* lseek - default */
    NULL,		 /* read - general block-dev read */

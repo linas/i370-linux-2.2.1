@@ -83,7 +83,7 @@
 /*							  */
 /************************************************************/
 
-struct file_operations fop_graf =
+struct file_operations i370_fop_graf =
 {
    NULL,		 /* lseek - default */
    NULL,		 /* read - general block-dev read */
@@ -111,7 +111,7 @@ struct file_operations fop_graf =
 /************************************************************/
 
 void
-graf_driver(void)
+i370_graf_driver(void)
 {
 
 
@@ -131,7 +131,7 @@ graf_driver(void)
 /************************************************************/
 
 void
-graf_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_graf_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
 

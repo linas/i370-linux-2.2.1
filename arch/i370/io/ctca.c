@@ -82,7 +82,7 @@
 /*							  */
 /************************************************************/
 
-struct file_operations fop_ctca =
+struct file_operations i370_fop_ctca =
 {
    NULL,		 /* lseek - default */
    NULL,		 /* read - general block-dev read */
@@ -110,7 +110,7 @@ struct file_operations fop_ctca =
 /************************************************************/
 
 void
-ctca_driver(void)
+i370_ctca_driver(void)
 {
 
 
@@ -130,7 +130,7 @@ ctca_driver(void)
 /************************************************************/
 
 void
-ctca_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_ctca_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
 

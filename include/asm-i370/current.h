@@ -9,7 +9,7 @@
   is permitted under the obligations of the GNU General Public Licence.
   See file COPYRIGHT for details. There is NO warranty.
 
-  Date: $Id: current.h,v 1.7 1999/10/07 04:14:24 linas Exp $
+  Date: $Id: current.h,v 1.8 1999/10/07 04:30:03 linas Exp $
   Description:
 
   Changes:
@@ -19,7 +19,7 @@
 #ifndef _I370_CURRENT_H
 #define _I370_CURRENT_H
 
-#include <psa.h>
+#include <asm/psa.h>
 
  /*	  -- N O T E S --
  ---------------------------------------------------------------------------
@@ -31,11 +31,8 @@
   .     In general, we will keep per processor variables in the PSA, as
   .     it is made for it, and to reduce memory contention and cache usage. 
  */
- 
-#define AOFF_psa_current 0x224	/* 580 */
 
-#define current _PSA_.current
-
+#define current _PSA_.Current
 
 #endif /* !(_I370_CURRENT_H) */
 

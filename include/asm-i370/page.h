@@ -8,8 +8,8 @@
 #define PAGE_SIZE	(1UL << PAGE_SHIFT)
 #define PAGE_MASK	(~(PAGE_SIZE-1))
 
-#define PAGE_OFFSET	0xc0000000
-
+// hack alert -- 4meg for now 
+#define PAGE_OFFSET	0x400000  
 
 #ifndef __ASSEMBLY__
 #ifdef __KERNEL__

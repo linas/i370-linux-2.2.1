@@ -77,9 +77,15 @@ tcaStackOverflow:
  *
  * We check the psw to see if we were in problem state or supervisor 
  * state. If we were interrupted from supervisor state, then the 
- * kernel tca is OK and ready to go.  The kernel stack pointer is OK
- * too, but we need to buy a frame anyway, in case the interrupt 
- * happened in a function prolog.
+ * kernel tca is OK and ready to go.  The kernel stack pointer is 
+ * probably OK, unless we took the interrupt in a function prolog.
+ * In that case, r13 will be pointing at the callers stack, r2 at  
+ * the callee's stack, and values may have been written at 76(r2)
+ * We need to assume the worst, and locate our stack frame at
+ * least at 80(r2). This is SF_BASE.  Then for the C function call,
+ * we need a minimal C stack frame, i.e. 148 bytes aligned to 152. 
+ * This is SF_SIZE.  Thus, the new stack top is at SF_BASE+SF_SIZE 
+ * from the old stack top.
  *
  * If we were interrupted from problem state, then r13
  * contains the user's stack pointer; we need to track down the kernel 
@@ -106,6 +112,7 @@ tcaStackOverflow:
  * sav+32  saved r1
  * sav+36  saved r2
  */
+#define SF_BASE 0x50	/* stack-frame offset, past STM r15,r0,72(r2) of prolog */
 #define SF_SIZE 0x98	/* stack-frame size */
 
 #define EXCEPTION_HANDLER(sav,oldpsw,handler)  				\
@@ -114,7 +121,7 @@ tcaStackOverflow:
 	.using	.,r15;			/* use r15 as base register */	\
 	L	r1,oldpsw(,0);		/* get old psw flags into r1 */	\
 	N	r1,=X'00010000';	/* is in problem state? */	\
-	BZ	.L##handler;		/* sp is already ok if kern */	\
+	BZ	.L1##handler;		/* sp is already ok if kern */	\
 	L	r11,=V(current);	/* addr of current pointer */	\
 	L	r11,0(,r11);		/* addr of current process */	\
 	LA	sp,0(,r11);		/* copy r11 to r13 */		\
@@ -124,14 +131,15 @@ tcaStackOverflow:
 	A	rtca,sav-8(,0);		/* add offset to tca */		\
 	/* XXX the following 6 insns can be chopped out later */	\
 	/* do this by having a ready-to-run stackframe initialized */	\
-	LA	r0,148(,sp);		/* load r0 with top of stack */	\
+	LA	r0,SF_SIZE(,sp);	/* load r0 with top of stack */	\
 	ST	r0,76(,sp);		/* store top of stack at 76 */	\
 	LA	r1,4092(,r11);		/* r1 == end of stack */	\
 	ST	r1,12(,rtca);		/* store end of stack in tca */ \
 	L	r1,=A(tcaStackOverflow);/* bogus hack alert XXX */	\
 	ST	r1,116(,rtca);		/* bogosity */			\
-.L##handler:				/* branch here if kernel */	\
+.L1##handler:				/* branch here if kernel */	\
 	L	r2,76(,sp);		/* find top of kernel stack */	\
+	LA	r2,SF_BASE(,r2);	/* safe offset to stack top */	\
 	LA	r1,SF_SIZE(,r2);	/* add stackframe size */	\
 	CL	r1,12(,rtca);		/* got room ? */		\
 	BNH	.L2##handler;		/* if so blast ahead */		\

@@ -17,9 +17,14 @@ _stext:
  * but also for the exception handlers below ...
  * 
  * Note that this stack is kind of bogus, and should be replaced by
- * something that has a gaurd page at the end of it.
+ * something that has a guard page at the end of it.
+ *
+ * Register naming convention:
+ * lr == r14 == link reg
+ * sp == r13 == stack pointer
+ * rtca == r12 
  */
-	.data
+	.data			// should probably be .section .data.init ?
 	.balign	8
 .LSTACK:
 	.org	4096,0xd0	// "callers" stack, load with eyecatcher  
@@ -34,8 +39,8 @@ _start:
 	L	sp,=A(.LSTACK)	// load address of stack into r13
 	LA	r2,148(,sp)	// load r2 with top of stack
 	ST	r2,76(,sp)	// store top of stack at 76
-	LR	rtca,sp		// let bottom of stack double as tca
-	L	r1,=A(.LSTKEND)	// r0 == end of stack
+	LA	rtca,0(,sp)	// let bottom of stack double as tca
+	L	r1,=A(.LSTKEND)	// r1 == end of stack
 	ST	r1,12(,rtca)	// store end of stack in the tca
 	L	r1,=A(StackOverflow)	// bogus bogus hack alert XXX
 	ST	r1,116(,rtca)		// bogosity

@@ -47,17 +47,17 @@ const unsigned long init_ksp __initdata = (unsigned long) init_stack;
 /* =================================================================== */
 
 static inline unsigned long
-kernel_stack_top(struct task_struct *tsk)
+kernel_stack_bot(struct task_struct *tsk)
 {
-	unsigned long top = ((unsigned long)tsk) + 8192 - 160;
-	top = ((top+7) >> 3) << 3;  /* double-word align */
-        return top;
+	unsigned long bot = ((unsigned long)tsk) + TASK_STRUCT_SIZE; 
+        return bot;
 }
 
 static inline unsigned long
-task_top(struct task_struct *tsk)
+kernel_stack_top(struct task_struct *tsk)
 {
-        return ((unsigned long)tsk) + sizeof(struct task_struct);
+	unsigned long top = ((unsigned long)tsk) + sizeof (union task_union);
+        return top;
 }
 
 /* =================================================================== */
@@ -131,8 +131,8 @@ print_backtrace (unsigned long stackp)
 /* check_stack copied raw from from the ppc implementation */
 int check_stack(struct task_struct *tsk)
 {
+	unsigned long stack_bot = kernel_stack_bot(tsk);
 	unsigned long stack_top = kernel_stack_top(tsk);
-	unsigned long tsk_top = task_top(tsk);
 	int ret = 0;
 
 	if (!tsk)
@@ -142,32 +142,32 @@ int check_stack(struct task_struct *tsk)
 	}
 	
 	/* check if stored ksp is bad */
-	if ( (tsk->tss.ksp > stack_top) || (tsk->tss.ksp < tsk_top) )
+	if ( (tsk->tss.ksp > stack_top) || (tsk->tss.ksp < stack_bot) )
 	{
 		printk("stack out of bounds: %s/%d\n"
-		       " tsk_top %08lx ksp %08lx stack_top %08lx\n",
+		       " stack_bot %08lx ksp %08lx stack_top %08lx\n",
 		       tsk->comm,tsk->pid,
-		       tsk_top, tsk->tss.ksp, stack_top);
+		       stack_bot, tsk->tss.ksp, stack_top);
 		ret |= 2;
 	}
 	
 	/* check if stack ptr RIGHT NOW is bad */
-	if ( (tsk == current) && ((_get_SP() > stack_top ) || (_get_SP() < tsk_top)) )
+	if ( (tsk == current) && ((_get_SP() > stack_top ) || (_get_SP() < stack_bot)) )
 	{
 		printk("current stack ptr out of bounds: %s/%d\n"
-		       " tsk_top %08lx sp %08lx stack_top %08lx\n",
+		       " stack_bot %08lx sp %08lx stack_top %08lx\n",
 		       current->comm,current->pid,
-		       tsk_top, _get_SP(), stack_top);
+		       stack_bot, _get_SP(), stack_top);
 		ret |= 4;
 	}
 
 	/* check amount of free stack */
-	if ( 900 > (tsk->tss.ksp - tsk_top) )
+	if ( 900 > (stack_top - tsk->tss.ksp) )
 	{
 		printk("low on stack space: %s/%d\n"
-		       " tsk_top %08lx ksp %08lx stack_top %08lx\n",
+		       " stack_bot %08lx ksp %08lx stack_top %08lx\n",
 		       tsk->comm,tsk->pid,
-		       tsk_top, tsk->tss.ksp, stack_top);
+		       stack_bot, tsk->tss.ksp, stack_top);
 		ret |= 8;
 	}
 	
@@ -199,17 +199,22 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
        	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
         regs->psw.flags |= USER_PSW;
         regs->psw.addr = nip | PSW_31BIT;
-	/* Currently, the elf stack grows downwards & we need to make
-	   some room for the libc _start() routine to pas parameters to main.  
-           sizeof stackframe == 144 bytes, args = 16B for total of 0xa0 = 160
-           regs->irregs.r13 = sp - sizeof (elf_stack_t) - 16 ; */
-        regs->irregs.r13 = sp - 0xa0;
+	/* Currently, the elf stack grows upwards & we need to make
+	   some room for the libc _start() routine to pass parameters to main.  
+           sizeof stackframe == 88 bytes, args = 16B for total of 0x68 = 104
+           regs->irregs.r13 = sp + sizeof (elf_stack_t) + 16 ; */
+        regs->irregs.r13 = 0;
+
+	/* XXX hack alert ... I really hate STACK_SIZE ...  */
+        regs->irregs.r11 = sp - I370_STACK_SIZE;
         regs->irregs.r15 = nip | PSW_31BIT;
+
+	/* r2 will point to argc, argv ... */
+	regs->irregs.r2 = sp;
 
 	/* boffo ace rimer in other regs */
 	regs->irregs.r0 = 0xaceb0ff0;
 	regs->irregs.r1 = 0xaceb0ff0;
-	regs->irregs.r2 = 0xaceb0ff0;
 	regs->irregs.r3 = 0xaceb0ff0;
 	regs->irregs.r4 = 0xaceb0ff0;
 	regs->irregs.r5 = 0xaceb0ff0;
@@ -218,7 +223,6 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	regs->irregs.r8 = 0xaceb0ff0;
 	regs->irregs.r9 = 0xaceb0ff0;
 	regs->irregs.r10 = 0xaceb0ff0;
-	regs->irregs.r11 = 0xaceb0ff0;
 	regs->irregs.r12 = 0xaceb0ff0;
 	regs->irregs.r14 = 0xaceb0ff0;
 
@@ -354,7 +358,7 @@ i370_sys_exit (void)
  *
  * Return 0 if success, non-zero if not
  *
- * XXX we gotta copy the user-space thread, as wel ... 
+ * XXX we gotta copy the user-space thread, as well ... 
  *
  * XXX we need to check to see if usp is indeed a user-space
  * stack pointer, and if so, set irregs.r13 to it.  We do not
@@ -390,9 +394,9 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 	delta = srctop - dsttop;
 
-	srcbase = (void *) task_top (current);
-	dstbase = (void *) task_top (p);
-	memcpy (dstbase, srcbase, 8192-sizeof(struct task_struct));
+	srcbase = (void *) kernel_stack_bot (current);
+	dstbase = (void *) kernel_stack_bot (p);
+	memcpy (dstbase, srcbase, kernel_stack_top(p)-kernel_stack_bot(p));
 	dstsp = (i370_elf_stack_t *) (((unsigned long) srcsp) - delta);
 	do {
 		dstsp -> caller_sp = srcsp->caller_sp - delta;
@@ -420,7 +424,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	} while (srcregs);
 
 	/* Now copy the 'far side' of the stack, the part that lies
-	 * on the other side of the SVC that go us here.  There are
+	 * on the other side of the SVC that got us here.  There are
 	 * two possibilities here: that we came from user-land,
 	 * or that we came from the kernel. If we came from the 
 	 * kernel, then in fact we are on the same stack frame.  
@@ -430,7 +434,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		i370_halt();
 	} else {
 		/* validate expected location of the stack */
-		if ((usp < (unsigned long) lastsrc) || (usp > srctop)) {
+		if ((usp > (unsigned long) lastsrc)) {
 			printk("i370_copy_thread, bad usp=0x%lx, "
 				"lastsrc=%p, stcktop=0x%lx \n",
 				usp, lastsrc, srctop);

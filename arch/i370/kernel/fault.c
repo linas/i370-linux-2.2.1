@@ -140,22 +140,19 @@ printk ("do_page_fault addr=0x%x, pic=%x\n", address, pic_code);
 
   /* If we are here, then the address was below the vma start.
    * In that case, we better be dealing with the stack.
-   * (The current i370 ELF stack grows down)
-   * XXX there are good reasons to make the elf stack grow up.
+   * The current i370 ELF stack grows up.
    */
 printk ("do_page_fault stack fault addr=0x%x\n", address);
-  if (!(vma->vm_flags & VM_GROWSDOWN))
+  if (!(vma->vm_flags & VM_GROWSUP))
        goto bad_area;
   if (user_mode(regs)) {
        /*-----------------------------------------------------*/
-       /* Accessing the stack below usp is always a bug.      */
-/* ??? XXX currently, stack grows down */
        /*-----------------------------------------------------*/
-printk ("do_page_fault usermode stack fault addr=0x%x, stackbot=%x\n", address, regs->irregs.r13);
-/*
-       if (address < regs->irregs.r13)
+printk ("do_page_fault usermode stack fault addr=0x%x, frame=%x\n", address, regs->irregs.r13);
+       /* XXX hack alert see the corresponding stack XXXX in i370_start_thread() */
+       /* XXX basically this is a really piss-poor attempt at stack verification */
+       if (address < ((TASK_SIZE-I370_STACK_SIZE)-0x1000))
                goto bad_area;
-*/
   }
   if (expand_stack(vma, address))
        goto bad_area;

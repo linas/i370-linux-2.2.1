@@ -2,14 +2,6 @@
  * Implementation of startup code and FLIH entry/exit for ESA/390
  * Copyright (c) 1999 Linas Vepstas (linas@linas.org)
  *
- * Note: XXX hack alert: the current implementation of gcc/egcs
- * defines a defacto ESA/390 ELF ABI that has numerous faults.
- * (see the notes with the compiler for details).  The most serious
- * of these is how it handles address literals (which show up in
- * the text segment, instead of the data segment as they should)
- * This should be fixed,
- * however, if/when this is done, the code below will require
- * major tear-up.  Sorry, my fault, but so it goes. --linas
  */
 
 #include <asm/errno.h>
@@ -26,7 +18,7 @@
 	ST	r1,sav+4(,0);						\
 	LPSW	sav(0);			/* oops halt the machine     */
 
-/* first instruction executed is here */
+/* First instruction executed is here */
 /* 
  * We set up just enough to let a C lang call to be made.
  * Basically, this means just reserving some space for 
@@ -40,8 +32,8 @@
  *
  * Register naming convention:
  * lr == r14 == link reg
- * sp == r13 == stack pointer
- * rtca == r12 
+ * r13 == frame & arg pointer (bottom of stack)
+ * r11 == stack pointer (top of stack)
  */
 
 /* start of text section */
@@ -65,13 +57,15 @@ _start:
 	
 	/* perform initialization to call C routines                      */
 _cinit:
-	L	sp,=A(init_ksp)		/* load addr of stackptr into r13 */
-	L	sp,0(,sp)		/* load address of stack into r13 */
-	LA	sp,7(,sp)		/* doubleword align               */
-	SRL	sp,3
-	SLL	sp,3
+	L	r13,=A(init_ksp)	/* load addr of stackptr into r13 */
+	L	r13,0(,r13)		/* load address of stack into r13 */
+	LA	r13,TASK_STRUCT_SIZE(,r13); /* framep is stack bottom     */	
+	LA	r11,MIN_STACK_SIZE(,r13); /* load r11 with top of stack   */
 	SLR	r3,r3
-	ST	r3,4(,sp)		/* terminate stack backchain      */
+	ST	r3,8(,r13)		/* terminate stack backchain      */
+	ST	r3,8(,r11)		/* terminate stack backchain      */
+	ST	r3,64(,r13)		/* terminate stack backchain      */
+	ST	r3,64(,r11)		/* terminate stack backchain      */
 	L	r15,=A(start_kernel)	/* load address of C routine      */
 	BASR	lr,r15			/* jump to C routine              */
 	.drop	r15
@@ -131,13 +125,13 @@ _cinit:
 /* -------------------------------------------------------- */
 /* stack related offsets; have nothing to do with the above */
 /* -------------------------------------------------------- */
-#define STACK_SIZE	0x94	/* stack size */
+#define STACK_SIZE	0x58	/* stack size */
 #define ARGS_BASE	STACK_SIZE
 #define ARGS_SIZE	0x4	/* args size */
 #define FRAME_BASE	STACK_SIZE + ARGS_SIZE
 #define FRAME_SIZE	0x60	/* frame size */
 #define SF_SIZE		STACK_SIZE + ARGS_SIZE + FRAME_SIZE
-#define SF_SIZE_LIT	=XL4'000000F8'
+#define SF_SIZ		188	/* add above together by hand */
 
 /* -------------------------------------------------------- */
 /* location of saved registers on stack */
@@ -172,58 +166,57 @@ _cinit:
 #define EXCEPTION_PROLOG(sav,oldpsw) 					\
 	BASR	r15,0;			/* load r15 with PSW         */	\
 	.using	.,r15;			/* use r15 as base register  */	\
-	L	r11,=V(current);	/* addr of current pointer   */	\
-	L	r11,0(,r11);		/* addr of current process   */	\
+	L	r12,=V(current);	/* addr of current pointer   */	\
 	/* interrupted from user space or kernel space ?             */	\
 	L	r1,oldpsw(,0);		/* get old psw flags into r1 */	\
+	L	r12,0(,r12);		/* addr of current process   */	\
 	N	r1,=X'00010000';	/* is in problem state?      */	\
 	BZ	1f;			/* sp is already ok if kern  */	\
 	/* interrupted user proc, so need to find a kernel stack     */	\
-	LA	sp,0(,r11);		/* addr of curr proc in r13  */	\
-        A       sp,OFFSET_KSP(,0);              /* add offset to ksp         */ \
-	L	sp,0(,sp);		/* load kernel sp            */	\
+	LA	r13,TASK_STRUCT_SIZE(,r12); /* framep is stack bot   */	\
+	B	2f;                     /*                           */	\
 1:					/* branch here if kernel     */	\
-	/* we have a valid stack pointer; build a stackframe         */	\
-	SL	sp,SF_SIZE_LIT;		/* subtract stackframe size  */	\
+	/* we have valid stack ptr; space safely past possible gorpa */	\
+	LA	r13,MAX_STACK_SIZE(,r11); /* space past gorp         */	\
+2:					/*                           */	\
+	LA	r11,SF_SIZ(,r13);       /* add stackframe size       */	\
 	SLR	r3,r3;			/* zero                      */	\
-	ST	r3,4(,sp);		/* terminate stack backchain */	\
+	ST	r3,8(,r13);		/* terminate stack backchain */	\
 	/* move saved regs out of prefix page to stackframe          */	\
-	MVC	SAVED_PSW(8,sp),oldpsw(0); /* save old psw on stack  */	\
-	MVC	SAVED_R11(64,sp),sav+IR_R11(0);	/* 16 regs=64 bytes  */	\
+	MVC	SAVED_PSW(8,r13),oldpsw(0); /* save old psw on stack  */	\
+	MVC	SAVED_R11(64,r13),sav+IR_R11(0);	/* 16 regs=64 bytes  */	\
 	/* chain the interrupt state pointer into thread_struct      */	\
-	LA	r1,0(,r11);		/* addr of curr proc in r1   */	\
-        A       r1,OFFSET_KREGS(,0);            /* add offset to regs ptr    */ \
+	LA	r1,0(,r12);		/* addr of curr proc in r1   */	\
+        A       r1,OFFSET_KREGS(,0);    /* add offset to regs ptr    */ \
 	L	r2,0(,r1);		/* load regs ptr             */	\
-	ST	r2,SAVED_OLDREGS(,sp);	/* save regs ptr to stack    */	\
-	LA	r2,SAVED_PSW(,sp);	/* put addr of newregs in r2 */	\
+	ST	r2,SAVED_OLDREGS(,r13); /* save regs ptr to stack    */	\
+	LA	r2,SAVED_PSW(,r13);	/* put addr of newregs in r2 */	\
 	ST	r2,0(,r1);		/* update regs ptr in proc   */	\
 	
 
 #define EXCEPTION_CALL_C(handler)  					\
 	L	r15,=A(handler);	/* load address of C routine */	\
-	LA	r2,SAVED_PSW(,sp);	/* ptr to saved psw, regs    */	\
-	ST	r2,ARGP(,sp);		/* ptr to arguments on stack */	\
-	LA	r2,ARGP(,sp);		/* pointer to arguments      */	\
-	LA	r1,SAVED_PSW(,sp);	/* pointer to returned value */	\
+	LA	r2,SAVED_PSW(,r13);	/* ptr to saved psw, regs    */	\
+	ST	r2,ARGP(,r11);		/* ptr to arguments on stack */	\
 	BASR	lr,r15;			/* jump to C routine         */	\
 	.using	.,lr;			/* use r14 to the end        */	\
 
 
 #define EXCEPTION_UNCHAIN(sav)	 					\
 	/* chain the interrupt state pointer into thread_struct      */	\
-	L	r11,=V(current);	/* addr of current pointer   */	\
-	L	r11,0(,r11);		/* addr of current process   */	\
-        A       r11,OFFSET_KREGS(,0);           /* add offset to regs ptr    */ \
-	L	r2,SAVED_OLDREGS(,sp);	/* get old ptr from stack    */	\
-	ST	r2,0(,r11);		/* restore regs ptr in proc  */
+	L	r12,=V(current);	/* addr of current pointer   */	\
+	L	r12,0(,r12);		/* addr of current process   */	\
+        A       r12,OFFSET_KREGS(,0);   /* add offset to regs ptr    */ \
+	L	r2,SAVED_OLDREGS(,r13);	/* get old ptr from stack    */	\
+	ST	r2,0(,r12);		/* restore regs ptr in proc  */
 
 
 #define EXCEPTION_RETURN(sav)  						\
 	/* get old PSW, restore registers, return from interrupt     */	\
-	MVC	sav(8,0),SAVED_PSW(sp); /* restore old psw frm stack */	\
-	LM	r11,r12,SAVED_R11(sp);	/* restore r11, r12          */	\
-	LM	r14,r4,SAVED_R14(sp);	/* restore r14 to r4         */	\
-	L	r13,SAVED_R13(sp);	/* restore r13               */	\
+	MVC	sav(8,0),SAVED_PSW(r13);/* restore old psw frm stack */	\
+	LM	r11,r12,SAVED_R11(r13);	/* restore r11, r12          */	\
+	LM	r14,r4,SAVED_R14(r13);	/* restore r14 to r4         */	\
+	L	r13,SAVED_R13(r13);	/* restore r13               */	\
 	LPSW	sav(0);			/* return from interrupt     */
 
 
@@ -288,16 +281,16 @@ SupervisorCall:
 	CR	r1,r2			/* syscall must be less than NR */
 	BL	4f			/* valid syscall ? */
 	LA	r2,ENOSYSCALL(,0)	/* load r2 with errno */
-	ST	r2,SAVED_R15(,sp)	/* return r15 to caller */
-	ST	r1,SAVED_R1(,sp)	/* return r1 to caller */
+	ST	r2,SAVED_R15(,r13)	/* return r15 to caller */
+	ST	r1,SAVED_R1(,r13)	/* return r1 to caller */
 	EXCEPTION_EPILOG (INTERRUPT_BASE)	/* return from interrupt */
 4:
 	L	r2,=A(sys_call_table)	/* load address of sys call table */
 	SLL	r1,2			/* 4 bytes per word ... */
 	L	r15,0(r2,r1)		/* load address of C routine */
-	STM     r5,r10,SAVED_R5(sp)	/* sys call args in regs */
-	LA	r2,SAVED_R5(,sp)	/* pointer to args on stack */
-	LA	r1,ARGP(,sp)		/* pointer to returned value */
+	STM     r5,r10,SAVED_R5(r13)	/* sys call args in regs */
+	STM	r5,r10,ARGP(r11)	/* args on stack */
+	LA	r1,ARGP(,r13)		/* pointer to returned value */
 	BASR	lr,r15			/* jump to C routine */
 	.using	.,lr;			/* use r14 for remainder of the show */
 	STNSM    INTERRUPT_BASE-16(0),0xfc;	/* disable interrupts */
@@ -305,10 +298,10 @@ SupervisorCall:
 	/* get old PSW, restore registers, return from interrupt */
 	/* Note r15 is not restored, but is returned 'as-is' from syscall */
 	MVC	INTERRUPT_BASE(8,0),SAVED_PSW(sp) /* restore old psw frm stack */
-	LM	r11,r12,SAVED_R11(sp)	/* restore r11, r12 */	
-	LM	r0,r4,SAVED_R0(sp)	/* restore r0 thru r4 */	
-	L	r14,SAVED_R14(sp)	/* restore r14 */	
-	L	r13,SAVED_R13(sp)	/* restore r13 */
+	LM	r11,r12,SAVED_R11(r13)	/* restore r11, r12 */	
+	LM	r0,r4,SAVED_R0(r13)	/* restore r0 thru r4 */	
+	L	r14,SAVED_R14(r13)	/* restore r14 */	
+	L	r13,SAVED_R13(r13)	/* restore r13 */
 	LPSW	INTERRUPT_BASE(0);	/* return from interrupt */
 
 
@@ -330,6 +323,7 @@ ProgramCheck:
 	LA	r14,PIC_TRACE_TABLE(0)
 	CR	r0,r14
 	BNE	.DoPC
+
 	STCTL	r12,r12,PRG_SAVE_CTX_C12(0)
 	L	r8,PRG_SAVE_CTX_C12(0)
 	N	r8,=X'7FFFF000'

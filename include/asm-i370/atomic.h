@@ -19,21 +19,32 @@ typedef struct { int counter; } atomic_t;
 #define ATOMIC_INIT(i)	{ (i) }
 
 #define atomic_read(v)		((v)->counter)
+#define atomic_set(v,i)		((v)->counter = (i))
 
-extern __inline__ void atomic_set(atomic_t *v, int setval)
+/*
+ * Atomic [test&set] exchange
+ *
+ *      void *xchg_u32(void *ptr, unsigned long val)
+ * Changes the memory location '*ptr' to be val and returns
+ * the previous value stored there.
+ */
+extern __inline__
+void *xchg_u32(void *ptr, unsigned long newval) 
 {
-	int oldval, newval;
+	unsigned long oldval;
+	unsigned long *v = (unsigned long *) ptr;
 
 	__asm__ __volatile__("
 1:	L	%0,%2;
-	L	%1,%2;
-	AR	%1,%3;
 	CS	%0,%1,%2;
 	BNE	1b"
 	: "+r" (oldval), "+r" (newval), "+m" (*v)
-	: "r" (setval)
+	:
 	: "memory");
+
+	return (void *) oldval;
 }
+
 
 extern __inline__ int atomic_add_return(int inc, atomic_t *v)
 {
@@ -154,6 +165,38 @@ extern __inline__ int atomic_dec_and_test(atomic_t *v)
 	: "memory");
 
 	return 0 == newval;
+}
+
+extern __inline__ void atomic_set_mask (unsigned long mask, unsigned long *addr)
+{
+	unsigned long oldval, newval;
+
+	__asm__ __volatile__("
+1:	L	%0,%2;
+	L	%1,%2;
+	OR	%1,%3;
+	CS	%0,%1,%2;
+	BNE	1b"
+	: "+r" (oldval), "+r" (newval), "+m" (*addr)
+	: "r" (mask)
+	: "memory");
+}
+
+extern __inline__ void atomic_clear_mask (unsigned long mask, unsigned long *addr)
+{
+	unsigned long oldval, newval;
+
+	mask = ~mask;	/* bit comopliment */
+
+	__asm__ __volatile__("
+1:	L	%0,%2;
+	L	%1,%2;
+	NR	%1,%3;
+	CS	%0,%1,%2;
+	BNE	1b"
+	: "+r" (oldval), "+r" (newval), "+m" (*addr)
+	: "r" (mask)
+	: "memory");
 }
 
 #endif /* _ASM_I370_ATOMIC_H_ */

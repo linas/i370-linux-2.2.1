@@ -51,8 +51,8 @@ struct _i370_cr0_s {
 typedef struct _i370_cr0_s i370_cr0_t;
 
 union _i370_cr0_u {
-	i370_cr0_t    bits;
 	unsigned long raw;
+	i370_cr0_t    bits;
 };
 typedef union _i370_cr0_u cr0_t;
 
@@ -72,8 +72,8 @@ struct _i370_cr1_s {
 typedef struct _i370_cr1_s i370_cr1_t;
 
 union _i370_cr1_u {
-	i370_cr1_t    bits;
 	unsigned long raw;
+	i370_cr1_t    bits;
 };
 typedef union _i370_cr1_u cr1_t;
 
@@ -88,8 +88,8 @@ struct _i370_cr6_s {
 typedef struct _i370_cr6_s i370_cr6_t;
 
 union _i370_cr6_u {
-	i370_cr6_t    bits;
 	unsigned long raw;
+	i370_cr6_t    bits;
 };
 typedef union _i370_cr6_u cr6_t;
 #endif /* __ASSEMBLY__ */

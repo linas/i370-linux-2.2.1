@@ -21,7 +21,7 @@ ifdef CONFIG_SMP
 O_OBJS += smp.o
 endif
 
-all: head.o kernel.o entry.o
+all: head.o kernel.o
 
 head.o: head.S $(TOPDIR)/include/linux/tasks.h 
 # entry.o: entry.S 

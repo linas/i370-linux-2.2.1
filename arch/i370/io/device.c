@@ -592,7 +592,7 @@ printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitma
 			if (dev_cons == NULL) dev_cons = devices;
 		}
  
-		rc = i370_getrdc(sid,&schib,&rdc);	
+		rc = i370_getrdc(sid, schib, &rdc);	
 		if (!rc) {
 			devices->unitmodl = rdc.devcumod;
 			devices->unitclas = rdc.devclcd;
@@ -601,7 +601,7 @@ printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitma
 
 			if (rdc.devcutyp == 0x3990) {
 			  	 devices->unitstat = UNIT_READY;
-				 rc = i370_getvol_eckd(sid,&schib,&rdc);
+				 rc = i370_getvol_eckd(sid, schib, &rdc);
 				 memcpy(&devices->unitvol,rdc.devvol,6);
 			}	
 		} else {

@@ -3,6 +3,11 @@
 
 .using	r0
 	
+        .text
+        .globl  _stext
+_stext:
+
+        .text
 	.globl	_start
 _start:
 

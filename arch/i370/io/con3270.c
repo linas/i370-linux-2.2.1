@@ -198,7 +198,9 @@ extern	char	scrln1[1];	/* define 3270 screen */
 extern	char	screnda[1];     /* define 3270 screen end */
 prt_lne_t	*dbgline = (prt_lne_t *)scrln1;
 prt_lne_t	*dbglend = (prt_lne_t *)screnda;
-extern  unitblk_t       *dev_cons; 
+extern  unitblk_t *dev_cons,
+                  *dev_con3210,
+                  *dev_con3270;
 long		cons_init =0;
 
 /* ===================================================== */
@@ -207,7 +209,7 @@ long
 console_3270_init(long mstart, long mend) 
 {
 	cons_init = 1;
-	if (dev_cons->unitmajor != TTYAUX_MAJOR)
+        if (dev_cons == dev_con3270) 
 		register_console(&cons3270);
 	else
 		register_console(&cons3210);
@@ -233,8 +235,12 @@ console_write_3270(struct console *c, const char *s,
 		return;
 	}
 
+/* XXXX - Until 3270 rewritten properly */
+console_write_3210(c, s, count);
+return;
+
         /* double-word align the ccw array */
-        ioccw = (ccw_t *) ((((unsigned long) lign_ccw) >>3) << 3);
+        ioccw = (ccw_t *) (((((unsigned long) lign_ccw) + 7) >>3) << 3);
 
 //	flags = cli();	/* reset interrupts */
 	spin_lock_irqsave(NULL,flags);
@@ -296,16 +302,16 @@ console_write_3270(struct console *c, const char *s,
 	 */
 
 	memset(&orb,0x00,sizeof(orb_t));
-	orb.intparm = (int) dev_cons;
+	orb.intparm = (int) dev_con3270;
 	orb.fpiau = 0x80;		/* format 1 ORB */
 	orb.lpm = 0xff;			/* Logical Path Mask */
 	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
 
-	rc = _tsch(dev_cons->unitsid,&irb);     /* hack for unsolicited DE */
-	rc = _ssch(dev_cons->unitsid,&orb);     /* issue Start Subchannel */
+	rc = _tsch(dev_con3270->unitsid,&irb);     /* hack for unsolicited DE */
+	rc = _ssch(dev_con3270->unitsid,&orb);     /* issue Start Subchannel */
 
 	while (1) {
-		rc = _tsch(dev_cons->unitsid,&irb); 
+		rc = _tsch(dev_con3270->unitsid,&irb); 
 		if (!(irb.scsw.status & 0x1)) {
 			udelay (100);	/* spin 100 microseconds */
 			continue;
@@ -344,7 +350,7 @@ console_write_3210(struct console *c, const char *s,
 	}
 
         /* double-word align the ccw array */
-        ioccw = (ccw_t *) ((((unsigned long) &lign_ccw[0]) >>3) << 3);
+        ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
  
 //	flags = cli();	/* reset interrupts */
 	spin_lock_irqsave(NULL,flags);
@@ -373,16 +379,16 @@ console_write_3210(struct console *c, const char *s,
 			*/
  
 			memset(&orb,0x00,sizeof(orb_t));
-			orb.intparm = (int) dev_cons;
+			orb.intparm = (int) dev_con3210;
 			orb.fpiau  = 0x80;		/* format 1 ORB */
 			orb.lpm    = 0xff;			/* Logical Path Mask */
 			orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
  
-			rc = _tsch(dev_cons->unitsid,&irb);  /* hack for unsolicited DE */
-			rc = _ssch(dev_cons->unitsid,&orb);  /* issue Start Subchannel */
+			rc = _tsch(dev_con3210->unitsid,&irb); /* hack for unsolicited DE */
+			rc = _ssch(dev_con3210->unitsid,&orb); /* issue Start Subchannel */
 
 			while (1) {
-				rc = _tsch(dev_cons->unitsid,&irb);
+				rc = _tsch(dev_con3210->unitsid,&irb);
 				if (!(irb.scsw.status & 0x1)) {
 					udelay (100);	/* spin 100 microseconds */
 					continue;

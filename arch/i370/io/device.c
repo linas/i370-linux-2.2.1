@@ -76,7 +76,10 @@ static void register_driver(long, schib_t *, unitblk_t *, idchar_t *);
 /************************************************************/
 
 unitblk_t *unit_base;
-unitblk_t       *dev_cons = NULL;
+unitblk_t *dev_cons    = NULL,
+          *dev_con3210 = NULL,
+          *dev_con3270 = NULL;
+
 long    sid_count = 0;
 extern unsigned char CPUID[8];
 
@@ -117,7 +120,7 @@ S390dev_t s390_devices[10] = {
 	{MJ3880, 0, 255, BLKDEV, D3880, &fop_ckd,   6, ckd_flih},
 	{MJFBLK, 0, 255, BLKDEV, DFBLK, &fop_fba,   6, fba_flih},
 	{MJ3274, 0, 255, CHRDEV, D3274, &fop_graf,  1, graf_flih},
-	{MJ3210, 0, 1,   CHRDEV, D3210, &fop_cons,  1, cons_flih},
+	{MJ3210, 1, 1,   CHRDEV, D3210, &fop_cons,  1, cons_flih},
 	{MJ3480, 0, 255, CHRDEV, D3480, &fop_tape,  2, tape_flih},
 	{MJ3590, 0, 255, BLKDEV, D3590, &fop_tss,   5, tss_flih},
 	{MJ3172, 0, 255, BLKDEV, D3172, &fop_osa,   4, osa_flih},
@@ -208,7 +211,8 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 			/*----------------------------------------------------*/
 			if ((schib.devno == 0x0009) && (CPUID[0] == 0xff)) {
 				dev_cons	   = devices;
-				schib.isc	  = devices->unitisc = s390_devices[I_3210].isc;
+				dev_con3210	   = devices;
+				schib.isc	   = devices->unitisc = s390_devices[I_3210].isc;
 				devices->unitmajor = s390_devices[I_3210].major;
 				devices->unitminor = s390_devices[I_3210].curMinor;
 				devices->unitirqh  = (void *) s390_devices[I_3210].irqh;
@@ -325,7 +329,7 @@ i370_getsid(int sid, schib_t *schib, idchar_t *id)
 	ccw_t	*ioccw;
  
         /* double-word align the ccw's */
-        ioccw = (ccw_t *) ((((unsigned long) &lign_ccw[0]) >>3) << 3);
+        ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
 
 	/*
 	 *	Build CCWS for Sense ID
@@ -364,7 +368,7 @@ i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
 	ccw_t	*ioccw;
  
         /* double-word align the ccw's */
-        ioccw = (ccw_t *) ((((unsigned long) &lign_ccw[0]) >>3) << 3);
+        ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) +7) >>3) << 3);
  
 	/*
 	 *	Build CCWS for Read Device Characteristics.
@@ -409,7 +413,7 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 	ccw_t	*ioccw;	        /* DE, LOCR, READ DATA */
  
         /* double-word align the ccw's */
-        ioccw = (ccw_t *) ((((unsigned long) &lign_ccw[0]) >>3) << 3);
+        ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) +7) >>3) << 3);
 
 	/* 
 	 *	Build CCWS to Read DASD Volume Label. Start with 
@@ -580,30 +584,32 @@ register_driver(long sid, schib_t *schib,
 		/*----------------------------------------------------*/
 		/* We flag the first 3270 device as our console. This */
 		/* can be overridden by specification in the IPL load */
-		/* parameters.					*/
+		/* parameters.                                        */
 		/*----------------------------------------------------*/
-		if ((dev_id->idcuid == T3274) &&
-		    (dev_cons == NULL)) 
-			dev_cons = devices;
+		if ((dev_id->idcuid == T3274) && (dev_con3270 == NULL)) {
+			dev_con3270 = devices;
+			if (dev_cons == NULL) dev_cons = devices;
+		}
  
-			rc = i370_getrdc(sid,&schib,&rdc);	
-			if (!rc) {
-				devices->unitmodl = rdc.devcumod;
-				devices->unitclas = rdc.devclcd;
-				devices->unittycd = rdc.devtycod;
-				devices->unitdtyp = rdc.devtype;
+		rc = i370_getrdc(sid,&schib,&rdc);	
+		if (!rc) {
+			devices->unitmodl = rdc.devcumod;
+			devices->unitclas = rdc.devclcd;
+			devices->unittycd = rdc.devtycod;
+			devices->unitdtyp = rdc.devtype;
 
-				if (rdc.devcutyp == 0x3990) {
-				  	 devices->unitstat = UNIT_READY;
-					 rc = i370_getvol_eckd(sid,&schib,&rdc);
-					 memcpy(&devices->unitvol,rdc.devvol,6);
-				}	
-			else {
-				devices->unitmodl = dev_id->idcuid;
-				devices->unitmodl = dev_id->idcumdl;
-				devices->unitdtyp = dev_id->iddevid;
-				devices->unitstat = UNIT_READY;
-			}
+			if (rdc.devcutyp == 0x3990) {
+			  	 devices->unitstat = UNIT_READY;
+				 rc = i370_getvol_eckd(sid,&schib,&rdc);
+				 memcpy(&devices->unitvol,rdc.devvol,6);
+			}	
+		} else {
+/* XXX  set unitmdl ??? */
+			devices->unitmodl = dev_id->idcuid;
+/* XXX set unitmdl again ?? */
+			devices->unitmodl = dev_id->idcumdl;
+			devices->unitdtyp = dev_id->iddevid;
+			devices->unitstat = UNIT_READY;
 		}
 	}
 }

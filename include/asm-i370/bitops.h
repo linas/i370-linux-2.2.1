@@ -1,5 +1,7 @@
 /*
- * bitops.h: Bit string operations on the i370
+ * bitops.h: Bit string operations
+ * Note that the ext2 file system uses little-endian bits,
+ * and that there's a cute XOR trick to handle this ...
  */
 
 #ifndef _I370_BITOPS_H
@@ -7,6 +9,11 @@
 
 #include <asm/system.h>
 #include <asm/byteorder.h>
+
+/* XXX These atomic bitops are implmeneted in bitops.c,
+ * they should be moved here and inlined for performance
+ * once we get comfortable that everything works.
+ */
 
 extern void set_bit(int nr, volatile void *addr);
 extern void clear_bit(int nr, volatile void *addr);

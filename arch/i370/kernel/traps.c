@@ -111,7 +111,7 @@ MachineCheckException(struct pt_regs *regs)
 psw_t
 ProgramCheckException(struct pt_regs *regs)
 {
-   psw_t retval, *fsl;
+   psw_t retval;
 #ifdef JUNK_XXX
 	if (regs->msr & 0x100000) {
 		/* IEEE FP exception */

@@ -437,18 +437,19 @@ __initfunc(void trap_init(void))
 	*(sz-1) = (unsigned long) &(((struct task_struct *) 0) ->tss.ksp);
 	*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.regs);
 
+	/* note that all interrupts will run in execution key 3 ... */
 	// install the SVC handler
-	psw.flags = PSW_VALID;        // disable all interupts
+	psw.flags = DISAB_PSW;        // disable all interupts
 	psw.addr = ((unsigned long) SupervisorCall) | PSW_31BIT; 
 	*((psw_t *) SVC_PSW_NEW) = psw;
 
 	// install the External Interrupt (clock) handler
-	psw.flags = PSW_VALID;        // disable all interupts
+	psw.flags = DISAB_PSW;        // disable all interupts
 	psw.addr = ((unsigned long) External) | PSW_31BIT; 
 	*((psw_t *) EXTERN_PSW_NEW) = psw;
 
 	// install the I/O Interrupt handler
-	psw.flags = PSW_VALID;        // disable all interupts
+	psw.flags = DISAB_PSW;        // disable all interupts
 	psw.addr = ((unsigned long) InputOutput) | PSW_31BIT; 
 	*((psw_t *) IO_PSW_NEW) = psw;
 
@@ -458,7 +459,7 @@ __initfunc(void trap_init(void))
 	*((psw_t *) IPL_PSW_NEW) = psw;
 
 	// install the ProgramCheck handler
-	psw.flags = PSW_VALID;        // disable all interupts
+	psw.flags = DISAB_PSW;        // disable all interupts
 	psw.addr = ((unsigned long) ProgramCheck) | PSW_31BIT; 
 	*((psw_t *) PROG_PSW_NEW) = psw;
 }

@@ -13,6 +13,8 @@ choice 'Machine Type' \
 	"ES390		CONFIG_ES390" ya ha
 
 bool 'Symmetric multi-processing support' CONFIG_SMP
+bool 'Booting from VM' CONFIG_VM
+bool 'Checksum Facility Installed' CONFIG_CKSM
 
 endmenu
 

@@ -55,7 +55,7 @@ static inline unsigned int csum_fold(unsigned int sum)
 	unsigned int tmp;
 
 	/* swap the two 16-bit halves of sum */
-	__asm__("rlwinm %0,%1,16,0,31" : "=r" (tmp) : "r" (sum));
+	//	__asm__("rlwinm %0,%1,16,0,31" : "=r" (tmp) : "r" (sum));
 	/* if there is a carry from adding the two 16-bit halves,
 	   it will carry from the lower half into the upper half,
 	   giving us the correct sum in the upper half. */
@@ -82,14 +82,14 @@ static inline unsigned long csum_tcpudp_nofold(unsigned long saddr,
 						   unsigned short proto,
 						   unsigned int sum) 
 {
-    __asm__("
-	addc %0,%0,%1
-	adde %0,%0,%2
-	adde %0,%0,%3
-	addze %0,%0
-	"
-	: "=r" (sum)
-	: "r" (daddr), "r"(saddr), "r"((proto<<16)+len), "0"(sum));
+  // __asm__("
+  //	addc %0,%0,%1
+  //	adde %0,%0,%2
+  //	adde %0,%0,%3
+  //	addze %0,%0
+  //	"
+  //	: "=r" (sum)
+  //	: "r" (daddr), "r"(saddr), "r"((proto<<16)+len), "0"(sum));
     return sum;
 }
 

@@ -112,8 +112,29 @@ tcaStackOverflow:
  * sav+32  saved r1
  * sav+36  saved r2
  */
+
 #define SF_BASE 0x50	/* stack-frame offset, past STM r15,r0,72(r2) of prolog */
-#define SF_SIZE (0x98 +	0x40) /* stack-frame size */
+#define SF_SIZE (0x98 +	0x48) /* stack-frame size */
+
+/* location of saved registers on stack */
+#define ARGP		0x94
+#define SAVED_PSW	0x98
+#define SAVED_R11	0xa0
+#define SAVED_R12	0xa4
+#define SAVED_R13	0xa8
+#define SAVED_R14	0xac
+#define SAVED_R15	0xb0
+#define SAVED_R0	0xb4
+#define SAVED_R1	0xb8
+#define SAVED_R2	0xbc
+#define SAVED_R3	0xc0
+#define SAVED_R4	0xc4
+#define SAVED_R5	0xc8
+#define SAVED_R6	0xcc
+#define SAVED_R7	0xd0
+#define SAVED_R8	0xd4
+#define SAVED_R9	0xd8
+#define SAVED_R10	0xdc
 
 #define EXCEPTION_PROLOG(sav,oldpsw)  					\
 	STM	r11,r2,sav+8(0);	/* save gprs to low mem */	\
@@ -153,30 +174,33 @@ tcaStackOverflow:
 	MVI	0(r2),0x10;		/* store marker */		\
 	LR	sp,r2;			/* initialize stack pointer */	\
 	LM	r1,r2,oldpsw(0);	/* get old psw into r1,r2 */	\
-	STM	r1,r2,0x98(sp);		/* save old psw on stack */	\
+	STM	r1,r2,SAVED_PSW(sp);		/* save old psw on stack */	\
 	LM	r1,r2,sav+8(0);		/* copy regs out of prefix */	\
-	STM	r1,r2,0x100(sp);	/* copy regs */			\
+	STM	r1,r2,SAVED_R11(sp);	/* copy regs */			\
 	LM	r1,r2,sav+16(0);	/* copy regs out of prefix */	\
-	STM	r1,r2,0x108(sp);	/* copy regs */			\
+	STM	r1,r2,SAVED_R13(sp);	/* copy regs */			\
 	LM	r1,r2,sav+24(0);	/* copy regs out of prefix */	\
-	STM	r1,r2,0x110(sp);	/* copy regs */			\
+	STM	r1,r2,SAVED_R15(sp);	/* copy regs */			\
 	LM	r1,r2,sav+32(0);	/* copy regs out of prefix */	\
-	STM	r1,r2,0x118(sp);	/* copy regs */			\
+	STM	r1,r2,SAVED_R1(sp);	/* copy regs */			\
 	
 
 
 #define EXCEPTION_CALL_C(handler)  					\
 	L	r15,=A(handler);	/* load address of C routine */	\
-	LA	r11,0x98(,sp);		/* pointer to arguments */	\
-	LA	r1,0x98(,sp);		/* pointer to returned value */	\
+	LA	r11,SAVED_PSW(,sp);	/* ptr to saved psw, regs */	\
+	ST	r11,ARGP(,sp);		/* ptr to arguments on stack */	\
+	LA	r11,ARGP(,sp);		/* pointer to arguments */	\
+	LA	r1,SAVED_PSW(,sp);	/* pointer to returned value */	\
 	BASR	lr,r15;			/* jump to C routine */		\
 
+
 #define EXCEPTION_EPILOG(sav)  						\
-	LM	r1,r2,0x98(sp);		/* get old psw from stack */	\
+	LM	r1,r2,SAVED_PSW(sp);	/* get old psw from stack */	\
 	STM	r1,r2,sav(0);		/* move to prefix page */	\
-	LM	r11,r12,0x100(sp);	/* restore r11, r12 */		\
-	LM	r14,r2,0x10c(sp);	/* restore r14 to r2 */		\
-	L	r13,0x108(sp);		/* restore r13 */		\
+	LM	r11,r12,SAVED_R11(sp);	/* restore r11, r12 */		\
+	LM	r14,r2,SAVED_R14(sp);	/* restore r14 to r2 */		\
+	L	r13,SAVED_R13(sp);	/* restore r13 */		\
 	LPSW	sav(0);			/* return from interrupt */	\
 	.balign	8;			/* align literal pool */	\
 	.ltorg;				/* dump literal pool */		\
@@ -218,22 +242,23 @@ SupervisorCall:
 	BZ	3f			/* branch if zero */
 	HALT (INTERRUPT_BASE)		/* stop the machine */
 3:
-	L	r1,0x118(sp)		/* get syscall number */
+	L	r1,SAVED_R1(sp)		/* get syscall number */
 	LA	r2,NR_syscalls(,0)	/* max of NR_syscalls */
 	SLR	r2,r1			/* syscall must be less than NR */
 	BP	4f			/* valid syscall ? */
 	LA	r15,ENOSYSCALL(,0)	/* load r15 with errno */
-	ST	r15,0x110(,sp)		/* return r15 to caller */
-	ST	r1,0x118(,sp)		/* return r1 to caller */
+	ST	r15,SAVED_R15(,sp)	/* return r15 to caller */
+	ST	r1,SAVED_R1(,sp)	/* return r1 to caller */
 	EXCEPTION_EPILOG (INTERRUPT_BASE)	/* return from interrupt */
 4:
 	L	r2,=A(sys_call_table)	/* load address of sys call table */
 	L	r15,0(r2,r1)		/* load address of C routine */
-	STM     r3,r10,0x120(sp)	/* sys call args in regs */
-	LA	r11,0x128(,sp)		/* pointer to args on stack */
-	LA	r1,0x144(,sp)		/* pointer to returned value */
+	STM     r3,r10,SAVED_R3(sp)	/* sys call args in regs */
+	LA	r11,SAVED_R5(,sp)	/* pointer to args on stack */
+	LA	r1,ARGP(,sp)		/* pointer to returned value */
 	BASR	lr,r15			/* jump to C routine */
-	EXCEPTION_EPILOG (INTERRUPT_BASE)
+	EXCEPTION_EPILOG (INTERRUPT_BASE)	/* return from interrupt */
+
 
 /* Program Interruption */
 	.global ProgramCheck

@@ -19,8 +19,8 @@
 
 atomic_t next_mmu_context; 
 struct pgtable_cache_struct quicklists;
-extern void *__init_begin, *__init_end;
-extern void *_text, *_etext,  *_stext;  
+extern char __init_begin[], __init_end[];
+extern char _text[], _etext[];  
 
 
 __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
@@ -40,18 +40,15 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
    start_mem = PAGE_ALIGN(start_mem);
    num_physpages = max_mapnr;      /* RAM is assumed contiguous */
 
-   for (addr = PAGE_OFFSET; addr < end_mem; addr += PAGE_SIZE)
-   {
-     set_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);                
-   }
-
    /* mark the first page RO since all vectors have been set up by now */
    _sske (0x0, KTEXT_STORAGE_KEY);
 
-   for (addr = PAGE_OFFSET; addr < end_mem; addr += PAGE_SIZE) 
+   for (addr = 0x0; addr < end_mem; addr += PAGE_SIZE) 
    {
-      if (PageReserved(mem_map + MAP_NR(addr))) 
+      if (addr < (ulong) start_mem)
       {
+         /* mark this page as in use by the kernel */
+         set_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);                
          if (addr < (ulong) _text)
          {
             lowpages++;
@@ -66,19 +63,22 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
          {
             initpages++;
          }
-         else if (addr < (ulong) start_mem)
+         else 
          {
             _sske (addr, KDATA_STORAGE_KEY);
             datapages++;
          }
-         continue;
-      }
-      atomic_set(&mem_map[MAP_NR(addr)].count, 1);
+      } else {
+         /* the reserved bit was set previously, in page_init
+          * by free_mem_init.  Clear the bit now */
+         clear_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);                
+         atomic_set(&mem_map[MAP_NR(addr)].count, 1);
 #ifdef CONFIG_BLK_DEV_INITRD
-      if (!initrd_start ||
-           addr < (initrd_start & PAGE_MASK) || addr >= initrd_end)
+         if (!initrd_start ||
+              addr < (initrd_start & PAGE_MASK) || addr >= initrd_end)
 #endif /* CONFIG_BLK_DEV_INITRD */
-       free_page(addr);
+          free_page(addr);
+      }
    }
 
    printk("Memory: %luk available "

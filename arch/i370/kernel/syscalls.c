@@ -63,7 +63,7 @@ asmlinkage int i370_sys_execve(unsigned long a0, unsigned long a1,
 		putname(filename);
 	}
 	unlock_kernel();
-	printk("i370_sys_execve: hello problem state DAT\n");
+	printk("i370_sys_execve: return err=%d\n", error);
 	return error;
 }
 

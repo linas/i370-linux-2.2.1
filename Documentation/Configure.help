@@ -10837,6 +10837,40 @@ CONFIG_BVME6000_SCC
   boards from BVM Ltd.  Everyone using one of these boards should say
   Y here.
 
+IBM 390 string feature
+CONFIG_STRING_FEATURE
+  Say Y here if your machine has the String Feature (additional
+  instructions) installed. These are then used to speed up string 
+  operations.  If you are unsure, say N, to avoid run time errors.
+
+IBM 390 string inlines
+CONFIG_STRING_INLINES
+  Say Y here if you want to test the inlined string functions;
+  presently, you need to have the String Feature for some of them 
+  as well.
+ 
+
+#
+# ------------------------ L I N U X / 3 9 0 ------------------------
+#
+
+IBM 390 Virtual Machine Environment
+CONFIG_VM_GUEST
+
+  Say Y here if you want to run Linux as a guest operating system in a
+  virtual machine (VM/390) environment. In this case, the kernel will
+  include drivers for special I/O facilities and use special services
+  provided by the host operating system. It is safe to say Y, as the
+  kernel will not fail if it is run out of VM, but the additional code
+  is then redundant.
+
+IBM 390 Hercules Environment
+CONFIG_HERCULES_GUEST
+  Say Y here if you want to run Linux in a Hercules (simulator)
+  environment. In this case, special services are made available to
+  the kernel. It is safe to say Y, as the kernel will not fail if it
+  is run out of Hercules, but the additional code is then redundant.
+
 #
 # A couple of things I keep forgetting:
 #   capitalize: AppleTalk, Ethernet, DMA, FTP, Internet, Intel, IRQ, 

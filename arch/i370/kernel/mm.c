@@ -19,13 +19,14 @@
 #include <asm/uaccess.h>
 
 extern unsigned long free_area_init(unsigned long, unsigned long);
-
+extern __initfunc(void i370_trap_init(int key));
 
 atomic_t next_mmu_context; 
 extern char __init_text_begin[], __init_text_end[];
 extern char __init_data_begin[], __init_data_end[];
 extern char _text[], _etext[];  
 extern unsigned char CPUID[8];
+
 
 /* mem_init() will put the kernel text pages into a different
  * storage key than the data pages, effectively rendering them read-only.
@@ -143,13 +144,15 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 		}
 	}
 
-	/* take away write privledges from text pages. */
+	/* Take away write privledges from text pages. */
 	_spka (KDATA_STORAGE_KEY);
+
+	/* Interrupt vectors can't have the keys to the kingdom either */
+	i370_trap_init (KDATA_STORAGE_KEY);
 
 	/* Do allow kernel to access key-9 storage --
 	   by setting the storage protection override bit in cr0 .
-	   Protect addresses in 0-512 from accidental storage.
-	*/
+	   Protect addresses in 0-512 from accidental storage.  */
 	cr0.raw = _stctl_r0();
 	cr0.bits.spoc = 1;
 	cr0.bits.lapc = 1;
@@ -549,7 +552,7 @@ __clear_user(void *addr, unsigned long len)
 		}
 		if (len < rlen) rlen = len;
 		ra = pte_page (*pte) | off;
-		printk ("clear_user va=%lx ra=%lx len=%d\n", va, ra, len);
+		printk ("clear_user va=%lx ra=%lx len=%ld\n", va, ra, len);
 		memset ((void *)ra, 0, rlen);
 		len -= rlen;
 		va += rlen;
@@ -587,7 +590,7 @@ strlen_user(const char *str)
 			make_pages_present (va,va);
 		}
 		ra = pte_page (*pte) | off;
-		printk ("strlen_user va=%x ra=%x\n", va, ra);
+		printk ("strlen_user va=%lx ra=%lx\n", va, ra);
 		while (i<rlen) {
 			if (0 == *(char *)(ra+i)) {
 				notdone = 0;
@@ -637,7 +640,7 @@ put_user_data(long data, void *addr, long len)
 		printk ("put_user_data make_pages_present at va=%lx\n", va);
 		make_pages_present (va, va+len);
 	}
-	printk ("put_user_data: va=%lx pte=%p = %x\n", va, pte, pte_val(*pte));
+	printk ("put_user_data: va=%lx pte=%p pteval=%lx\n", va, pte, pte_val(*pte));
 
 	/* put together the real address */
 	off = va & ~PAGE_MASK;

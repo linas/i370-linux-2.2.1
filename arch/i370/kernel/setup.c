@@ -16,6 +16,7 @@
 #include <asm/pgtable.h>
 #include <asm/processor.h>
 #include <asm/trace.h>
+#include <asm/vmdiag.h>
 
 // cmd_line is array of 512 in head.S
 extern char cmd_line[512];

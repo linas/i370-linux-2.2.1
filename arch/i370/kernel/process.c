@@ -114,7 +114,7 @@ print_backtrace (unsigned long stackp)
 		sp = (i370_elf_stack_t *) stackp;
 
 		printk ("   %02d   base=0x%lx link=0x%lx stack=%p\n", 
-			cnt, sp->caller_r3, sp->caller_r14, sp);
+			cnt, sp->caller_r3, sp->caller_r14, stackp);
 		stackp = sp->caller_sp;
 		cnt ++;
         } while (stackp &&  (cnt < 6)) ;

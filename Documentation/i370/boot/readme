@@ -9,24 +9,26 @@ ftp.  It will upload to a single record of 400 bytes; however, you want
 5 records of 80 bytes (of fixed length).  You can do this with XEDIT,
 type 'next' to position the cursor, and 'split 81 161 241 321' to
 split the line.  Finally, make it a fixed reclen with:
-'copy / ( recfm F lrecl 80'
+'COPY / ( RECfm F LRecl 80'
 
 Booting
 -------
 Currently, the boot process works as follows:
 A rexx script LINUXTXT.REXX will accept a kernel you've uploaded,
 read its ELF header, and punch out a card deck containing that
-kernel.  You need to preface this deck with the binary
-LINUX390.LOADER, put the whole thing on a device and IPL.
+kernel.  The LINUXIPL.EXEC will preface this deck with the 
+'three card loader' (actually five cards) LINUX390.LOADER, 
+which consists of five 80-character punch cards, and punch
+the whole deck into your RDR spool.
 
-Most convenient is to IPL from your reader spool.  The exec
-LINUXIPL.EXEC will punch out the kernel to the RDR spool.
-
-To boot, type 'CP IPL 00C CLEAR' and you should be on your way.
+Reader spools are conventionally device 'C', so, to boot,
+type 'CP IPL 00C CLEAR' and you should be on your way.
 
 Note that '00C' is the virtual device usually associated with 
 the reader sppol, you will want to verify that this is the case
 for your account with 'Q ALL'.
+
+IPL CMS to get back to your familiar VM environment.
 
 Debugging
 ---------
@@ -34,17 +36,23 @@ You will want to debug in CP.  So, during boot, you will want to
 'CP IPL 00C CLEAR STOP'.  Then set any tracepoints you want, and 'B'.
 
 Some handy commands:
-TRACE ALL        trace all instructions
-TRACE END        clear all tracepoints
-TRACE PROGRAM    trace program interrupts
-Begin            run the thing
-Query TRACE      show trace status
-Display G0-16    show general registers 0-16
-Display X0-16    show control registers 0-16
-Display PSW ALL  show old and new psw's for all interupts
-Display SCHIB    display subchannel info block ...
-STORE G5 ...     load a value into GPR 5
-STORE PSW ...    load a new PSW ...
+TRace ALL               trace all instructions
+TRace END               clear all tracepoints
+TRace PROGram           trace program interrupts
+TRace SSKE	        trace all 'sske' instructions
+TR I FRom f00f-faad     trace instructions in an address range
+TR STore INTO f00f-faad trace stores into an address range
+Begin                   run the thing
+Query TRace             show trace status
+Display G0-16           show general registers 0-16
+Display X0-16           show control registers 0-16
+Display PSW ALL         show old and new psw's for all interupts
+Display SCHIB           display subchannel info block ...
+D f00f-faad	        display contents of a range of real-memory 
+D PRIf00f-faad	        display contents of a range of virtual-memory 
+D I f00f-faad	        disassemble a range of real memory
+STORE G5 ...            load a value into GPR 5
+STORE PSW ...           load a new PSW ...
 
 
 

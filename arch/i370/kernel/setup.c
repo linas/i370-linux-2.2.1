@@ -17,6 +17,7 @@
 #include <asm/processor.h>
 #include <asm/trace.h>
 #include <asm/vmdiag.h>
+#include <asm/psa.h>
 
 // cmd_line is array of 512 in head.S
 extern char cmd_line[512];
@@ -32,6 +33,45 @@ char saved_command_line[512];
 
 extern void i370_find_devices (unsigned long *memory_start_p, 
 				unsigned long *memory_end_p);
+struct scatter_block {
+  struct scatter_block * next;
+  long                 len;
+  long                 offset;
+  char                 data[0];
+};
+void scatter_move(void * area, struct scatter_block * first_block)
+{
+  struct scatter_block *  block;
+  for (block = first_block; block; block = block->next){
+    if (block->len > 0)
+      memcpy((char *) area + block->offset, block->data, block->len);
+    else 
+      memset((char *) area + block->offset, 0, -(block->len));
+  }
+}
+  
+void setup_psa(void)
+{
+  extern long  entry_psa_initializer;
+  long * io_addr = (long *) 124;
+
+  scatter_move (& _PSA_, (struct scatter_block *)&entry_psa_initializer);
+
+  /* XXX what's this??? these are setup in traps.c ??! 
+   * Why does this need to be set here ??? */
+  * io_addr |= 0x80000000;	/* ld bug prevents setting AMODE31 bit    */
+  
+  _PSA_.initflag.hercules |= _i370_hercules_guest_p();
+  
+  set_current  (&init_task);	/* static, is in fact in the constant data */
+  
+  __asm__("STAP %0; STAP %1;" : "=m"(_PSA_.cpuadp), "=m"(_PSA_.cpuadl));
+  _PSA_.cpuno = 1;
+  _PSA_.cpumask = 0x0001;
+  
+ /* that is, really, very minimal, in an smp env. it will fail blatantly */
+
+} 
 
 /* ========================================================== */
 /*
@@ -80,6 +120,9 @@ __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long mycpu, i_cpu;
 	extern int panic_timeout;
 	extern char _etext[], _edata[], _end[];
+
+
+	setup_psa();		/*  */
 
 	/* reboot on panic */	
 	panic_timeout = 180;
@@ -190,4 +233,3 @@ get_cpuinfo(char *buffer)
 }
 
 /* ============================= END OF FILE ======================== */
-

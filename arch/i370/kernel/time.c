@@ -10,6 +10,7 @@ unsigned long last_rtc_update = 0;
 
 __initfunc(void time_init(void))
 {
+   printk ("time init\n");
 }
 
 /*

@@ -200,4 +200,5 @@ trace_syscall(struct pt_regs *regs)
 
 __initfunc(void trap_init(void))
 {
+   printk ("trap init");
 }

@@ -1,25 +1,90 @@
 
 #include <linux/init.h>
 #include <linux/kernel.h>
+#include <linux/mm.h>
 #include <linux/sched.h>
+#include <linux/swap.h>
 
+#include <asm/asm.h>
 #include <asm/atomic.h>
 #include <asm/pgtable.h>
 
 atomic_t next_mmu_context; 
 struct pgtable_cache_struct quicklists;
+// extern char __init_begin, __init_end;
+extern char etext[], _stext[];  
+
 
 __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 {
+   unsigned long addr;
+   int codepages = 0;
+   int datapages = 0;
+   int initpages = 0;
+
+   printk ("enter mem init\n");
+   end_mem &= PAGE_MASK;
+   high_memory = (void *) end_mem;
+   max_mapnr = MAP_NR(high_memory);
+
+   /* mark usable pages in the mem_map[] */
+   start_mem = PAGE_ALIGN(start_mem);
+   num_physpages = max_mapnr;      /* RAM is assumed contiguous */
+
+   for (addr = PAGE_OFFSET; addr < end_mem; addr += PAGE_SIZE)
+   {
+     set_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);                
+   }
+
+// hack alert should probably change the storage keys here
+   for (addr = PAGE_OFFSET; addr < end_mem; addr += PAGE_SIZE) 
+   {
+      if (PageReserved(mem_map + MAP_NR(addr))) 
+      {
+         if (addr < (ulong) etext)
+         {
+             codepages++;
+         }
+/*
+         else if (addr >= (unsigned long)&__init_begin
+               && addr < (unsigned long)&__init_end)
+         {
+             initpages++;
+         }
+*/
+         else if (addr < (ulong) start_mem)
+         {
+            datapages++;
+         }
+         continue;
+      }
+      atomic_set(&mem_map[MAP_NR(addr)].count, 1);
+#ifdef CONFIG_BLK_DEV_INITRD
+      if (!initrd_start ||
+           addr < (initrd_start & PAGE_MASK) || addr >= initrd_end)
+#endif /* CONFIG_BLK_DEV_INITRD */
+       free_page(addr);
+   }
+
+   printk("Memory: %luk available "
+          "(%dk kernel code, %dk data, %dk init) "
+          "[%08x,%08lx]\n",
+     (unsigned long) nr_free_pages << (PAGE_SHIFT-10),
+     codepages << (PAGE_SHIFT-10),
+     datapages << (PAGE_SHIFT-10),
+     initpages << (PAGE_SHIFT-10),
+     PAGE_OFFSET, end_mem);
 }
 
 /*
  * paging_init() sets up the page tables
  */
-__initfunc(unsigned long paging_init(unsigned long start_mem, unsigned long
-end_mem))
+__initfunc(unsigned long paging_init(unsigned long start_mem, 
+                                     unsigned long end_mem))
 {
-   return 0;
+   _sske (start_mem, 0x00);  // just for grins
+   printk ("paging init\n");
+   return start_mem;
 }
 
 

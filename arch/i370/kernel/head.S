@@ -9,10 +9,16 @@
 _stext:
 
 /* first instruction executed is here */
+/* at this point we expect to have the following registers 
+ * to contain valid values:
+ * r3 -- base register
+ * r4 -- page origin table
+ * r13 -- stack pointer
+ */
+
         .text
 	.globl	_start
 _start:
-	LPSW	0(r0)
 	BAS	r14, start_kernel
 
 /*

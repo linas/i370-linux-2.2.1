@@ -10,6 +10,7 @@ unsigned int local_irq_count[NR_CPUS];
 
 __initfunc(void init_IRQ(void))
 {
+   printk ("init irq\n");
 }
 
 void

@@ -7,15 +7,76 @@
 
 #include <asm/atomic.h>
 
+/* XXX hack alert these atomic routines are completely broken ... */
 
-void atomic_add(int a, atomic_t *v) {}
-int  atomic_add_return(int a, atomic_t *v) {return 0;}
-void atomic_sub(int a, atomic_t *v) {}
-void atomic_inc(atomic_t *v) {}
-int  atomic_inc_return(atomic_t *v) {return 0;}
-void atomic_dec(atomic_t *v) {}
-int  atomic_dec_return(atomic_t *v) {return 0;}
-int  atomic_dec_and_test(atomic_t *v) {return 0;}
+void atomic_add(int a, atomic_t *v)
+{
+   atomic_t t;
+   t = *v;
+   t.counter += a;
+   *v = t;
+}
+
+int  atomic_add_return(int a, atomic_t *v) 
+{
+   atomic_t t;
+   t = *v;
+   t.counter += a;
+   *v = t;
+   return t.counter;
+}
+
+void atomic_sub(int a, atomic_t *v) 
+{
+   atomic_t t;
+   t = *v;
+   t.counter -= a;
+   *v = t;
+}
+
+void atomic_inc(atomic_t *v)
+{
+   atomic_t t;
+   t = *v;
+   t.counter ++;
+   *v = t;
+}
+
+int  atomic_inc_return(atomic_t *v) 
+{
+   atomic_t t;
+   t = *v;
+   t.counter ++;
+   *v = t;
+   return t.counter;
+}
+
+void atomic_dec(atomic_t *v) 
+{
+   atomic_t t;
+   t = *v;
+   t.counter --;
+   *v = t;
+}
+
+int  atomic_dec_return(atomic_t *v) 
+{
+   atomic_t t;
+   t = *v;
+   t.counter --;
+   *v = t;
+   return t.counter;
+}
+
+int  atomic_dec_and_test(atomic_t *v) 
+{
+   atomic_t t;
+   t = *v;
+   t.counter --;
+   *v = t;
+   return 0 == t.counter;
+}
+
 
 void atomic_clear_mask(unsigned long mask, unsigned long *addr) {}
 void atomic_set_mask(unsigned long mask, unsigned long *addr) {}

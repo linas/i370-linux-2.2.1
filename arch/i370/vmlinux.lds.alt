@@ -1,0 +1,43 @@
+OUTPUT_ARCH(i370)
+SEARCH_DIR(/lib); SEARCH_DIR(/usr/lib); SEARCH_DIR(/usr/local/lib); 
+SECTIONS
+{
+  . = + SIZEOF_HEADERS;
+  .text      :
+  {
+    *(.text)
+  }
+  _etext = .;
+  PROVIDE (etext = .);
+  .rodata    :
+  {
+    *(.rodata)
+  }
+  .ctors     : { *(.ctors)   }
+  .dtors     : { *(.dtors)   }
+  /* Read-write section, merged into data segment: */
+  . = (. + 0x0FFF) & 0xFFFFF000;
+  .data    :
+  {
+    *(.data)
+  }
+  _edata  =  .;
+  PROVIDE (edata = .);
+
+  . = ALIGN(4096);
+  __init_begin = .;
+  .text.init : { *(.text.init) }
+  .data.init : { *(.data.init) }
+  . = ALIGN(4096);
+  __init_end = .;
+
+  __bss_start = .;
+  .bss       :
+  {
+   *(.sbss) *(.scommon)
+   *(.bss)
+  }
+  _end = . ;
+  PROVIDE (end = .);
+}
+

@@ -193,7 +193,7 @@ int check_stack(struct task_struct *tsk)
 		printk("bad stack, halting\n");
 		show_regs (tsk->tss.regs);
 		print_backtrace (tsk->tss.regs->irregs.r13);
-		i370_halt();
+	// 	i370_halt();
 	}
 	return(ret);
 }
@@ -296,7 +296,7 @@ switch_to(struct task_struct *prev, struct task_struct *next)
                next->tss.regs->psw.flags,
                next->tss.regs->psw.addr,
                next->processor);
-	printk ("current sp=%x next sp=%x\n", _get_SP(), next->tss.ksp);
+	printk ("current sp=0x%lx next sp=0x%lx\n", _get_SP(), next->tss.ksp);
 #endif
 #ifdef __SMP__
         prev->last_processor = prev->processor;
@@ -524,9 +524,11 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 asmlinkage int 
 i370_sys_fork (void) 
 {
+	struct pt_regs *regs;
 	int res = 0;
 
 	lock_kernel();
+	regs = current->tss.regs;
 	res = do_fork(SIGCHLD, regs->irregs.r13, regs);
 
 	/* only parent returns here */
@@ -548,7 +550,7 @@ asmlinkage int
 i370_sys_clone (unsigned long clone_flags)
 {
 	struct pt_regs *regs;
-        int res;
+        int res = 0;
 
 	printk ("i370_sys_clone flags=0x%lx\n", clone_flags);
         lock_kernel();

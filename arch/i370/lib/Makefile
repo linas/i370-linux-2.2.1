@@ -7,7 +7,7 @@
 
 O_TARGET = lib.o
 # O_OBJS  = checksum.o string.o strcase.o
-O_OBJS  = string.o 
+O_OBJS  = string.o misc.o
 
 ifdef CONFIG_SMP
 O_OBJS += locks.o

@@ -78,6 +78,22 @@ union _i370_cr1_u {
 typedef union _i370_cr1_u cr1_t;
 
 /* ---------------------------------------------------------------- */
+/* Control register six bit definitions */
+struct _i370_cr6_s {
+	/* MSB */
+	unsigned long iosm:8;	/* I/O Interruption subclass mask */
+	unsigned long :24;	/* unused */
+	/* LSB */
+};
+typedef struct _i370_cr6_s i370_cr6_t;
+
+union _i370_cr6_u {
+	i370_cr6_t    bits;
+	unsigned long raw;
+};
+typedef union _i370_cr6_u cr6_t;
+
+/* ---------------------------------------------------------------- */
 /* The current i370-elf stack entry.  This corresponds to 
  * what the current gcc/egcs generates, but is subject to 
  * change (!?).  Currently, it appears to be largely MVS 

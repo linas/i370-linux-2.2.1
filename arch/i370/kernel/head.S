@@ -68,24 +68,28 @@ tcaStackOverflow:
 /*
  * Exception handling code.  
  * Does just enough work to call a C routine.
- * Takes as arguments the exception handler to call, and 
- * a temporary scratch area in the prefix page.
+ * Macro takes as arguments the exception handler to call, and 
+ * address of a temporary scratch area in the prefix page.
  * -- Save just some of the registers; the C prologue will
  *    save the rest on stack.
- * -- The C routine will return the double-word PSW on the stack 
+ * -- The C routine will return the double-word PSW on 
+ *    in the prefix page
  *
  * We check the psw to see if we were in problem state or supervisor 
  * state. If we were interrupted from supervisor state, then the 
- * kernel stack pointer and tca are already valid and set up, so we 
- * just go.  If we were interrupted from problem state, then r13
+ * kernel tca is OK and ready to go.  The kernel stack pointer is OK
+ * too, but we need to buy a frame anyway, in case the interrupt 
+ * happened in a function prolog.
+ *
+ * If we were interrupted from problem state, then r13
  * contains the user's stack pointer; we need to track down the kernel 
  * stack pointer and set that up before launching into C.
  *
  * Memory map:
  * starting at sav, the memory map should match the memory layout 
- * of the C struct _i370_regs_s exactly; a pointer to this struct is
- * taken as input to the called C function, and this memory is copied
- * to on return.
+ * of the C struct _i370_regs_s exactly; this struct is passed by 
+ * value to the called C function, and this memory is copied
+ * to on return (because its a return by value).
  * 
  * Floating point regs get saved only during task switch, and not here ...
  *
@@ -102,7 +106,7 @@ tcaStackOverflow:
  * sav+32  saved r1
  * sav+36  saved r2
  */
-#define F_SIZE 0x100
+#define SF_SIZE 0x98	/* stack-frame size */
 
 #define EXCEPTION_HANDLER(sav,oldpsw,handler)  				\
 	STM	r11,r2,sav+8(0);	/* save gprs to low mem */	\
@@ -128,14 +132,14 @@ tcaStackOverflow:
 	ST	r1,116(,rtca);		/* bogosity */			\
 .L##handler:				/* branch here if kernel */	\
 	L	r2,76(,sp);		/* find top of kernel stack */	\
-	LA	r1,F_SIZE(,r2);		/* add double stackframe */	\
+	LA	r1,SF_SIZE(,r2);	/* add stackframe size */	\
 	CL	r1,12(,rtca);		/* got room ? */		\
 	BNH	.L2##handler;		/* if so blast ahead */		\
 	LR	r0,r1;			/* overflow in r0 not r1 */	\
 	L	r1,116(,rtca);		/* load overflow handler */	\
 	BASR	r14,r1;			/* call overflow handler */	\
 	LR	r1,r0;			/* stack top in r1 not r0 */	\
-.L2##handler:								\
+.L2##handler:				/* yes we have room on stack */	\
 	L	r0,72(,sp);		/* propagate */			\
 	STM	r0,r1,72(r2);		/* store new stack top */	\
 	MVI	0(r2),0x10;		/* store marker */		\

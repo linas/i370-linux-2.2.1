@@ -1,10 +1,15 @@
 /*
- * i370 atomic operations
+ * ESA/390 atomic operations
+ * Copyright (c) 1999 Linas Vepstas
  */
 
 #ifndef _ASM_I370_ATOMIC_H_ 
 #define _ASM_I370_ATOMIC_H_
 
+/* 
+ * We use a funky typdef struct for this atomic type in order
+ * to let the compiler catch any accidental assignemnts, increments, etc.
+ */
 #ifdef __SMP__
 typedef struct { volatile int counter; } atomic_t;
 #else
@@ -14,109 +19,141 @@ typedef struct { int counter; } atomic_t;
 #define ATOMIC_INIT(i)	{ (i) }
 
 #define atomic_read(v)		((v)->counter)
-#define atomic_set(v,i)		(((v)->counter) = (i))
 
-extern void atomic_add(int a, atomic_t *v);
-extern int  atomic_add_return(int a, atomic_t *v);
-extern void atomic_sub(int a, atomic_t *v);
-extern void atomic_inc(atomic_t *v);
-extern int  atomic_inc_return(atomic_t *v);
-extern void atomic_dec(atomic_t *v);
-extern int  atomic_dec_return(atomic_t *v);
-extern int  atomic_dec_and_test(atomic_t *v);
-
-extern void atomic_clear_mask(unsigned long mask, unsigned long *addr);
-extern void atomic_set_mask(unsigned long mask, unsigned long *addr);
-
-#if 0	/* for now */
-/* XXX this is powerpc assembly, not i370 assembly ... */
-extern __inline__ void atomic_add(atomic_t a, atomic_t *v)
+extern __inline__ void atomic_set(atomic_t *v, int setval)
 {
-	atomic_t t;
+	int oldval, newval;
 
-	__asm__ __volatile__("\n\
-1:	lwarx	%0,0,%3\n\
-	add	%0,%2,%0\n\
-	stwcx.	%0,0,%3\n\
-	bne	1b"
-	: "=&r" (t), "=m" (*v)
-	: "r" (a), "r" (v)
-	: "cc");
+	__asm__ __volatile__("
+1:	L	%0,%2;
+	L	%1,%2;
+	AR	%1,%3;
+	CS	%0,%1,%2;
+	BNE	1b"
+	: "+r" (oldval), "+r" (newval), "+m" (*v)
+	: "r" (setval)
+	: "memory");
 }
 
-extern __inline__ void atomic_sub(atomic_t a, atomic_t *v)
+extern __inline__ int atomic_add_return(int inc, atomic_t *v)
 {
-	atomic_t t;
+	int oldval, newval;
 
-	__asm__ __volatile__("\n\
-1:	lwarx	%0,0,%3\n\
-	subf	%0,%2,%0\n\
-	stwcx.	%0,0,%3\n\
-	bne	1b"
-	: "=&r" (t), "=m" (*v)
-	: "r" (a), "r" (v)
-	: "cc");
+	__asm__ __volatile__("
+1:	L	%0,%2;
+	L	%1,%2;
+	AR	%1,%3;
+	CS	%0,%1,%2;
+	BNE	1b"
+	: "+r" (oldval), "+r" (newval), "+m" (*v)
+	: "r" (inc)
+	: "memory");
+
+	return newval;
 }
 
-extern __inline__ int atomic_sub_and_test(atomic_t a, atomic_t *v)
+extern __inline__ void atomic_add(int inc, atomic_t *v)
 {
-	atomic_t t;
-
-	__asm__ __volatile__("\n\
-1:	lwarx	%0,0,%3\n\
-	subf	%0,%2,%0\n\
-	stwcx.	%0,0,%3\n\
-	bne	1b"
-	: "=&r" (t), "=m" (*v)
-	: "r" (a), "r" (v)
-	: "cc");
-
-	return t == 0;
+	atomic_add_return (inc,v);
 }
 
+extern __inline__ int atomic_sub_return(int inc, atomic_t *v)
+{
+	int oldval, newval;
+
+	__asm__ __volatile__("
+1:	L	%0,%2;
+	L	%1,%2;
+	SR	%1,%3;
+	CS	%0,%1,%2;
+	BNE	1b"
+	: "+r" (oldval), "+r" (newval), "+m" (*v)
+	: "r" (inc)
+	: "memory");
+
+	return newval;
+}
+extern __inline__ void atomic_sub(int inc, atomic_t *v)
+{
+	atomic_sub_return (inc,v);
+}
+
+extern __inline__ int atomic_sub_and_test(int inc, atomic_t *v)
+{
+	int oldval, newval;
+
+	__asm__ __volatile__("
+1:	L	%0,%2;
+	L	%1,%2;
+	SR	%1,%3;
+	CS	%0,%1,%2;
+	BNE	1b"
+	: "+r" (oldval), "+r" (newval), "+m" (*v)
+	: "r" (inc)
+	: "memory");
+
+	return 0 == newval;
+}
+
+extern __inline__ int atomic_inc_return(atomic_t *v)
+{
+	int oldval, newval;
+
+	__asm__ __volatile__("
+1:	L	%0,%2;
+	L	%1,%2;
+	LA	%1,1(,%1);
+	CS	%0,%1,%2;
+	BNE	1b"
+	: "+r" (oldval), "+r" (newval), "+m" (*v)
+	: 
+	: "memory");
+
+	return newval;
+}
 extern __inline__ void atomic_inc(atomic_t *v)
 {
-	atomic_t t;
-
-	__asm__ __volatile__("\n\
-1:	lwarx	%0,0,%2\n\
-	addic	%0,%0,1\n\
-	stwcx.	%0,0,%2\n\
-	bne	1b"
-	: "=&r" (t), "=m" (*v)
-	: "r" (v)
-	: "cc");
+	atomic_inc_return (v);
 }
 
+extern __inline__ int atomic_dec_return(atomic_t *v)
+{
+	int oldval, newval;
+	int inc = 1;
+
+	__asm__ __volatile__("
+1:	L	%0,%2;
+	L	%1,%2;
+	SR	%1,%3;
+	CS	%0,%1,%2;
+	BNE	1b"
+	: "+r" (oldval), "+r" (newval), "+m" (*v)
+	: "r" (inc)
+	: "memory");
+
+	return newval;
+}
 extern __inline__ void atomic_dec(atomic_t *v)
 {
-	atomic_t t;
-
-	__asm__ __volatile__("\n\
-1:	lwarx	%0,0,%2\n\
-	addic	%0,%0,-1\n\
-	stwcx.	%0,0,%2\n\
-	bne	1b"
-	: "=&r" (t), "=m" (*v)
-	: "r" (v)
-	: "cc");
+	atomic_dec_return (v);
 }
 
 extern __inline__ int atomic_dec_and_test(atomic_t *v)
 {
-	atomic_t t;
+	int oldval, newval;
+	int inc = 1;
 
-	__asm__ __volatile__("\n\
-1:	lwarx	%0,0,%2\n\
-	addic	%0,%0,-1\n\
-	stwcx.	%0,0,%2\n\
-	bne	1b"
-	: "=&r" (t), "=m" (*v)
-	: "r" (v)
-	: "cc");
+	__asm__ __volatile__("
+1:	L	%0,%2;
+	L	%1,%2;
+	SR	%1,%3;
+	CS	%0,%1,%2;
+	BNE	1b"
+	: "+r" (oldval), "+r" (newval), "+m" (*v)
+	: "r" (inc)
+	: "memory");
 
-	return t == 0;
+	return 0 == newval;
 }
-#endif /* 0 */
 
 #endif /* _ASM_I370_ATOMIC_H_ */

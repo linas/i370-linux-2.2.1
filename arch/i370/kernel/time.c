@@ -44,7 +44,8 @@ __initfunc(void time_init(void))
 
 	/* wait for an interrupt */
 	skippy = jiffies;
-	while (skippy == jiffies) {/* empty */};
+	if (! _i370_hercules_guest_p())
+	  while (skippy == jiffies) {/* empty */};
 
 	printk ("exit time init\n");
 }

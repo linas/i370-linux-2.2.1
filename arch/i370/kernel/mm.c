@@ -483,80 +483,79 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 	return 0;
 }
 
+/* The following routines accept virtual addresses only:
+ * clear_user
+ * strlen_user
+ *
+ * The way tht these routines are curently used in the kernel, one must 
+ * assume that thier arguments are always a virtual addresses, and never 
+ * real addresses.   For example, create_elf_tables() calls strlen_user()
+ * without first doing an appropriate set_fs(). Similarly, padzero in
+ * load_elf_binary() does the same ...
+ */
+
 unsigned long __clear_user(void *addr, unsigned long len)
 {
 	/* set a block of bytes to zero */  
-	if (__kernel_ok) {
-		memset (addr, 0, len);
-		return 0;
-	} else {
-		unsigned long va;
-		va = (unsigned long) addr;
-		while (len > 0) {
-			pte_t *pte;
-			pte = find_pte (current->mm, va);
-			if (pte_none(*pte)) {
-				printk ("Error: clear_user: unmaped page \n");
-				i370_halt();
-			} else {
-				unsigned long off = va & ~PAGE_MASK;
-				unsigned long rlen = PAGE_SIZE - off;
-				unsigned long ra;
-				if (len < rlen) rlen = len;
-				ra = pte_page (*pte) | off;
-				printk ("clear_user va=%x ra=%x\n", va, ra);
-				memset ((void *)ra, 0, rlen);
-				len -= rlen;
-				va += rlen;
-			}
+	unsigned long va;
+	va = (unsigned long) addr;
+	while (len > 0) {
+		pte_t *pte;
+		pte = find_pte (current->mm, va);
+		if (pte_none(*pte)) {
+			printk ("Error: clear_user: unmaped page \n");
+			i370_halt();
+		} else {
+			unsigned long off = va & ~PAGE_MASK;
+			unsigned long rlen = PAGE_SIZE - off;
+			unsigned long ra;
+			if (len < rlen) rlen = len;
+			ra = pte_page (*pte) | off;
+			printk ("clear_user va=%x ra=%x\n", va, ra);
+			memset ((void *)ra, 0, rlen);
+			len -= rlen;
+			va += rlen;
 		}
 	}
-	return 0;
 }
 
 /*
- * strlen_user(): Return the size of a string (including the ending 0)
- *
- * Return 0 for error
+ * strlen_user():  Return the size of a string (including the ending 0)
+ * Return 0 for error.  
  */
 
 long strlen_user(const char *str)
 {
-	if (__kernel_ok) {
-		return (strlen(str) +1);
-	} else {
-		unsigned long clen, va;
-		int notdone = 1;
-		clen = 0;
-		va = (unsigned long) str;
-		while (notdone) {
-			pte_t *pte;
-			pte = find_pte (current->mm, va);
-			if (pte_none(*pte)) {
-				printk ("Error: strncpy_from_user: unmaped page \n");
-				i370_halt();
-			} else {
-				unsigned long off = va & ~PAGE_MASK;
-				unsigned long rlen = PAGE_SIZE - off;
-				unsigned long ra;
-				unsigned long i=0;
-				ra = pte_page (*pte) | off;
-				printk ("strlen_user va=%x ra=%x\n", va, ra);
-				while (i<rlen) {
-					if (0 == *(char *)(ra+i)) {
-						notdone = 0;
-						i++;  /* count null byte */
-						break;
-					}
-					i++;
+	unsigned long clen, va;
+	int notdone = 1;
+	clen = 0;
+	va = (unsigned long) str;
+	while (notdone) {
+		pte_t *pte;
+		pte = find_pte (current->mm, va);
+		if (pte_none(*pte)) {
+			printk ("Error: strncpy_from_user: unmaped page \n");
+			i370_halt();
+		} else {
+			unsigned long off = va & ~PAGE_MASK;
+			unsigned long rlen = PAGE_SIZE - off;
+			unsigned long ra;
+			unsigned long i=0;
+			ra = pte_page (*pte) | off;
+			printk ("strlen_user va=%x ra=%x\n", va, ra);
+			while (i<rlen) {
+				if (0 == *(char *)(ra+i)) {
+					notdone = 0;
+					i++;  /* count null byte */
+					break;
 				}
-				clen += i;
-				va += rlen;
+				i++;
 			}
+			clen += i;
+			va += rlen;
 		}
-		return clen;
 	}
-	return 0;
+	return clen;
 }
 
 /* put_user_data() will only be called with len of 1,2 or 4 
@@ -571,6 +570,7 @@ put_user_data(long data, void *addr, long len)
 /* XXX note we need to figure out some way of walking the 
  * the pte in some SMP-safe fashion, which find_pte isn't ...
  * maybe mark the page w/ compare & swap?
+ * note LRA (load real addr) is not enough ...
  */
 	va = (unsigned long) addr;
 	pte = find_pte (current->mm, va);

@@ -9,7 +9,7 @@
   is permitted under the obligations of the GNU General Public Licence.
   See file COPYRIGHT for details. There is NO warranty.
 
-  Date: $Id: current.h,v 1.6 1999/10/07 04:12:55 linas Exp $
+  Date: $Id: current.h,v 1.7 1999/10/07 04:14:24 linas Exp $
   Description:
 
   Changes:
@@ -18,6 +18,8 @@
  
 #ifndef _I370_CURRENT_H
 #define _I370_CURRENT_H
+
+#include <psa.h>
 
  /*	  -- N O T E S --
  ---------------------------------------------------------------------------

@@ -455,6 +455,7 @@ i370_sys_clone (unsigned long clone_flags)
 #endif /* __SMP__ */
         unlock_kernel();
 
+	printk ("i370_sys_clone(): after do_fork, res=%d\n", res);
 /* XXX why are we cli'ing here ??? */
 // cli();
 

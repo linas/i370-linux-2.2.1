@@ -11,7 +11,7 @@
 #include <asm/processor.h>
 
 // cmd_line is array of 512 in head.S
-extern char *cmd_line;
+extern char cmd_line[512];
 char saved_command_line[512];
 
 __initfunc(void setup_arch(char **cmdline_p,

@@ -1,10 +1,10 @@
 /************************************************************/
-/*							  */
-/* Module ID  - irq.					*/
-/*							  */
+/*							    */
+/* Module ID  - irq.					    */
+/*							    */
 /* Function   - Support Interrupts under S/390 using the    */
-/*	      interrupt subclass which vaguely equates    */
-/*	      to the IRQ mechanism used on other systems. */
+/*              interrupt subclass which vaguely equates    */
+/*              to the IRQ mechanism used on other systems. */
 /*							  */
 /* Called By  - Kernel.				     */
 /*							  */
@@ -118,12 +118,10 @@ init_IRQ(void))
 	cr6.raw       = _stctl_r6();
 	cr6.bits.iosm = ~0;
 	_lctl_r6(cr6.raw);
-#ifdef __SMP__
 	for (i_bh = 0; i_bh < NR_CPUS; i_bh++) {
 		local_bh_count[i_bh] = 0;
 		local_irq_count[i_bh] = 0;
 	}
-#endif  // __SMP__
 }
 
 /*===================== End of Function ====================*/

@@ -19,6 +19,10 @@
 
 // cmd_line is array of 512 in head.S
 extern char cmd_line[512];
+ 
+// CPUID is the result of a STIDP
+unsigned char CPUID[8];
+ 
 char saved_command_line[512];
 
 
@@ -74,6 +78,11 @@ __initfunc(void setup_arch(char **cmdline_p,
 	/* reboot on panic */	
 	panic_timeout = 180;
 	
+__asm__ __volatile__ ("
+	STIDP	%0"
+	: "=m" (CPUID) :
+	: "memory");
+ 
 	init_task.mm->start_code = PAGE_OFFSET;
 	init_task.mm->end_code = (unsigned long) _etext;
 	init_task.mm->end_data = (unsigned long) _edata;
@@ -85,7 +94,16 @@ __initfunc(void setup_arch(char **cmdline_p,
 	*cmdline_p = cmd_line;
 
 	/* hardcode the memory size */
- 	*memory_start_p = _end;
+	*memory_start_p = (unsigned long) _end;
+	if (CPUID[0] == 0xff) {
+		__asm__ __volatile__ ("
+		SLR	r15,r15;
+		EX	r15,=X'83F00060';
+		LR	%0,r15"
+		: "=r" (*memory_end_p) :
+		: "r0", "memory", "r15");
+	}
+	else
 	*memory_end_p = 0x2000000;  // 32M
 
 	i370_find_devices(memory_start_p,memory_end_p);

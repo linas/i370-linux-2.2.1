@@ -13,9 +13,18 @@ unsigned long last_rtc_update = 0;
 
 __initfunc(void time_init(void))
 {
+	cr0_t cr0;
+
 	unsigned long skippy;
 	unsigned long long tod;
 	printk ("enter time init\n");
+
+	/*------------------------------------------------------------*/
+	/* Enable clock comparator interrupts to present themselves   */
+	/*------------------------------------------------------------*/
+	cr0.raw = _stctl_r0();
+	cr0.bits.clksm |= 1;
+	_lctl_r0(cr0.raw);
 
 	/* enable interrupts */
 	__sti();

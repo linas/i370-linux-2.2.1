@@ -22,6 +22,7 @@
 #include <asm/ptrace.h>
 #include <asm/signal.h>
 #include <asm/system.h>
+#include <asm/trace.h>
 
 extern void sys_call_table(void);
 #ifdef CONFIG_XMON
@@ -83,6 +84,10 @@ _exception(int signr, struct pt_regs *regs)
 	force_sig(signr, current);
 }
 
+/*----------------------------------------------------------------*/
+/* Machine Check Handling                                         */
+/*----------------------------------------------------------------*/
+ 
 void
 MachineCheckException(i370_interrupt_state_t *saved_regs)
 {
@@ -91,6 +96,90 @@ MachineCheckException(i370_interrupt_state_t *saved_regs)
 	i370_halt();
 }
 
+/*----------------------------------------------------------------*/
+/* Program Check Handling                                         */
+/*----------------------------------------------------------------*/
+   
+static void ei_time_slice(i370_interrupt_state_t *, unsigned short);
+static void pc_reset_trace(i370_interrupt_state_t *,
+                           unsigned short,
+                           unsigned long);
+static void pc_monitor(i370_interrupt_state_t *,
+                       unsigned short,
+                       unsigned long);
+static void pc_unsupported(i370_interrupt_state_t *,
+                           unsigned short,
+                           unsigned long);
+ 
+static pc_handler pc_table[] = {
+	{-1,                   pc_unsupported},
+	{PIC_OPERATION,        pc_unsupported},
+	{PIC_PRIVLEDGED,       pc_unsupported},
+	{PIC_EXECUTE,          pc_unsupported},
+	{PIC_PROTECTION,       pc_unsupported},
+	{PIC_ADDRESSING,       pc_unsupported},
+	{PIC_SPECIFICATION,    pc_unsupported},
+	{PIC_DATA,             pc_unsupported},
+	{PIC_FIXED_OVERFLOW,   pc_unsupported},
+	{PIC_FIXED_DIVIDE,     pc_unsupported},
+	{PIC_DECIMAL_OVERFLOW, pc_unsupported},
+	{PIC_DECIMAL_DIVIDE,   pc_unsupported},
+	{PIC_EXP_OVERFLOW,     pc_unsupported},
+	{PIC_EXP_UNDERFLOW,    pc_unsupported},
+	{PIC_SIGNIFICANCE,     pc_unsupported},
+	{PIC_FP_DIVIDE,        pc_unsupported},
+	{PIC_SEGEMENT_TRANS,   pc_unsupported},
+	{PIC_PAGE_TRANS,       pc_unsupported},
+	{PIC_TRANSLATION,      pc_unsupported},
+	{PIC_SPECIAL_OP,       pc_unsupported},
+	{PIC_PAGEX,            pc_unsupported},
+	{PIC_OPERAND,          pc_unsupported},
+	{PIC_TRACE_TABLE,      pc_reset_trace},
+	{PIC_ASN_TRANS,        pc_unsupported},
+	{-1,                   pc_unsupported},
+	{PIC_VECTOR_OP,        pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{PIC_SPACE_SWITCH,     pc_unsupported},
+	{PIC_SQROOT,           pc_unsupported},
+	{PIC_UNNORMALIZED,     pc_unsupported},
+	{PIC_PC_TRANS,         pc_unsupported},
+	{PIC_AFX_TRANS,        pc_unsupported},
+	{PIC_ASX_TRANS,        pc_unsupported},
+	{PIC_LX_TRANS,         pc_unsupported},
+	{PIC_EX_TRANS,         pc_unsupported},
+	{PIC_PRIMARY_AUTH,     pc_unsupported},
+	{PIC_SECONDARY_AUTH,   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{PIC_ALET_SPEC,        pc_unsupported},
+	{PIC_ALEN_TRANS,       pc_unsupported},
+	{PIC_ALE_SEQ,          pc_unsupported},
+	{PIC_ASTE_VALIDITY,    pc_unsupported},
+	{PIC_ASTE_SEQ,         pc_unsupported},
+	{PIC_EXTENDED_AUTH,    pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{PIC_STACK_FULL,       pc_unsupported},
+	{PIC_STACK_EMPTY,      pc_unsupported},
+	{PIC_STACK_SPEC,       pc_unsupported},
+	{PIC_STACK_TYPE,       pc_unsupported},
+	{PIC_STACKOP,          pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported},
+	{PIC_MONITOR,          pc_monitor}
+};
+ 
 
 void
 ProgramCheckException(i370_interrupt_state_t *saved_regs)
@@ -98,54 +187,64 @@ ProgramCheckException(i370_interrupt_state_t *saved_regs)
 	unsigned long pfx_prg_code = *((unsigned long *) PFX_PRG_CODE);
 	unsigned long pfx_prg_trans = *((unsigned long *) PFX_PRG_TRANS);
 
-#ifdef JUNK_XXX_RIMPLEMENT_THIS_SOMEDAY
-	if (regs->msr & 0x100000) {
-		/* IEEE FP exception */
-		_exception(SIGFPE, regs);
-	} else if (regs->msr & 0x20000) {
-		/* trap exception */
-#if defined(CONFIG_XMON) || defined(CONFIG_KGDB)
-		if (debugger_bpt(regs))
-			return;
-#endif
-		_exception(SIGTRAP, regs);
-	} else {
-		_exception(SIGILL, regs);
+	unsigned short pic_code,
+                per_event;
+ 
+	pic_code  = pfx_prg_code & 0x00ff;
+	per_event = pic_code & 0x0080;
+	pic_code  &= 0x007f;
+	if (per_event)
+		printk("PER event triggered\n");
+	pc_table[pic_code].pc_flih(saved_regs, pic_code, pfx_prg_trans);
 	}
-#endif /* JUNK .. */
 
-	show_regs (saved_regs);
-	printk ("Program Check code=0x%x trans=0x%x\n", 
-		pfx_prg_code, pfx_prg_trans);
+extern trc_page_t	*trace_base;
 
-	switch (pfx_prg_code) 
+static void
+pc_reset_trace(i370_interrupt_state_t *saved_regs,
+               unsigned short code,
+               unsigned long  trans)
 	{
-		case PIC_PRIVLEDGED:
-			printk ("privleded \n");
-			break;
-		case PIC_ADDRESSING:
-			printk ("addressing\n");
-			break;
-		case PIC_SPECIFICATION:
-			printk ("specification\n");
-			break;
-		case PIC_OPERAND:
-			printk ("operand\n");
-			break;
-		default:
-			printk ("unexpected prgram check code\n");
+	unsigned long cr12;
+ 
+	cr12 = trace_base = (unsigned long) trace_base->trc_next;
+	cr12 |= 0x1;
+	_lctl_r12 (cr12);
+	printk ("Trace table reset\n");
 	}
 
+static void
+pc_monitor(i370_interrupt_state_t *saved_regs,
+           unsigned short code,
+           unsigned long  trans)
+{
+	printk ("Monitor Event Triggered\n");
+}
+ 
+static void
+pc_unsupported(i370_interrupt_state_t *saved_regs,
+               unsigned short code,
+               unsigned long  trans)
+{
+	show_regs (saved_regs);
+	printk ("Program Check code=0x%x trans=0x%x\n",
+		code, trans);
 	i370_halt(); 
 }
 
+/*----------------------------------------------------------------*/
+/* System Restart Handling                                        */
+/*----------------------------------------------------------------*/
 void
 RestartException(i370_interrupt_state_t *saved_regs)
 {
-	printk ("restart exception\n");
+	printk ("System restart not supported\n");
 	i370_halt();
 }
 
+/*----------------------------------------------------------------*/
+/* Input and Output Interrupt Handling                            */
+/*----------------------------------------------------------------*/
 void
 InputOutputException(i370_interrupt_state_t *saved_regs)
 {
@@ -156,21 +255,55 @@ InputOutputException(i370_interrupt_state_t *saved_regs)
 	//	pfx_subsysid, pfx_io_parm);
 }
 
+/*----------------------------------------------------------------*/
+/* External Interrupt Handling                                    */
+/*----------------------------------------------------------------*/
+static void ei_time_slice(i370_interrupt_state_t *, unsigned short);
+static void ei_unsupported(i370_interrupt_state_t *, unsigned short);
+ 
+static ei_handler ei_table[] = {
+ {EI_INTERRUPT_KEY,  ei_unsupported},
+ {EI_TOD_CLOCK_SYNC, ei_unsupported},
+ {EI_CLOCK_COMP,     ei_time_slice},
+ {EI_CPU_TIMER,      ei_unsupported},
+ {EI_MALFUNCTION,    ei_unsupported},
+ {EI_EMERGENCY,      ei_unsupported},
+ {EI_CALL,           ei_unsupported},
+ {EI_SERVICE,        ei_unsupported},
+ {EI_IUCV,           ei_unsupported},
+ {0,                 ei_unsupported},
+};
+ 
 void
 ExternalException (i370_interrupt_state_t *saved_regs)
 {
-	unsigned short code;
-	unsigned long long ticko;
+	unsigned short code,
+                i_ei;
 
+	/*----------------------------------------------------------*/
 	/* get the interruption code */
+	/*----------------------------------------------------------*/
 	code = *((unsigned long *) PFX_EXT_CODE);
+	for (i_ei = 0; ei_table[i_ei].ei_code != 0; i_ei++)
+		if (code == ei_table[i_ei].ei_code)
+			break;
 
-	/* currently we only handle and expect clock interrupts */
-	if ( EI_CLOCK_COMP != code) {
+		ei_table[i_ei].ei_flih(saved_regs, code);
+}
+ 
+static void
+ei_unsupported(i370_interrupt_state_t *saved_regs,
+               unsigned short code)
+{
 		printk ("unexpected external exception code=0x%x\n", code);
 		i370_halt();
 	}
 
+static void
+ei_time_slice(i370_interrupt_state_t *saved_regs,
+             unsigned short code)
+{
+	unsigned long long ticko;
 	/* get and set the new clock value */
 	/* clock ticks every 250 picoseconds (actually, every
 	 * microsecond/4K). We want an interrupt every HZ of 
@@ -258,6 +391,7 @@ __initfunc(void trap_init(void))
 	unsigned long long clock_reset;
 	unsigned long *sz;
 	psw_t psw;
+	cr0_t cr0;
 	printk ("trap init");
 
 	/* clear any pending timer interrupts before installing
@@ -266,7 +400,7 @@ __initfunc(void trap_init(void))
 	 */
 	clock_reset = 0xffffffffffffffffLL;
 	_sckc (clock_reset);
-
+ 
 	/* store the offset between the task struct and the kernel stack
 	 * pointer in low memory where we can get at it for calculation
 	 */

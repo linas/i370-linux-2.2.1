@@ -50,41 +50,41 @@
 _stext:
 	.globl	_start
 _start:
-	STM	r0,r15,0x200(0)		// command line passed in regs
+	STM	r0,r15,0x200(0)		/* command line passed in regs    */
 
-	BASR	r15,0			// load r15 with PSW 
-	.using	.,r15			// use r15 as base register
+	BASR	r15,0			/* load r15 with PSW              */
+	.using	.,r15			/* use r15 as base register       */
 
-	// make sure AMODE is 31, interrupts disabled
-	L	r1,=X'00080000'		// everything disabled
-	ST	r1,INTERRUPT_BASE(,0)	// store into prefex page
-	L	r1,=A(_cinit)		// jump to cinit next
-	O	r1,=X'80000000'		// AMODE 31
-	ST	r1,INTERRUPT_BASE+4(,0)	// store into prefix page
-	LPSW	INTERRUPT_BASE(0)	// jump to label
+	/* make sure AMODE is 31, interrupts disabled                     */
+	L	r1,=X'00080000'		/* everything disabled            */
+	ST	r1,INTERRUPT_BASE(,0)	/* store into prefex page         */
+	L	r1,=A(_cinit)		/* jump to cinit next             */
+	O	r1,=X'80000000'		/* AMODE 31                       */
+	ST	r1,INTERRUPT_BASE+4(,0)	/* store into prefix page         */
+	LPSW	INTERRUPT_BASE(0)	/* jump to label                  */
 	
-	// perform initialization to call C routines
+	/* perform initialization to call C routines
 _cinit:
-	L	sp,=A(init_ksp)		// load address of stack pointer into r13
-	L	sp,0(,sp)		// load address of stack into r13
-	LA	sp,7(,sp)		// doubleword align
+	L	sp,=A(init_ksp)		/* load addr of stackptr into r13 */
+	L	sp,0(,sp)		/* load address of stack into r13 */
+	LA	sp,7(,sp)		/* doubleword align               */
 	SRL	sp,3
 	SLL	sp,3
-	LA	r2,152(,sp)		// load r2 with top of stack
-	ST	r2,76(,sp)		// store top of stack at 76
-	L	rtca,=A(init_tca)	// load address of pointer to tca.
-	L	rtca,0(,rtca)		// load address of tca
-	L	r1,=A(init_kstend)	// r1 == address of pointer end of stack
-	L	r1,0(,r1)		// r1 == end of stack
-	ST	r1,12(,rtca)		// store end of stack in the tca
-	L	r1,=A(tcaStackOverflow)	// bogus bogus hack alert XXX
-	ST	r1,116(,rtca)		// bogosity
-	L	r15,=A(start_kernel)	// load address of C routine
-	BASR	lr,r15			// jump to C routine
-	HALT (INTERRUPT_BASE)		// it's impossible to return to here ...
+	LA	r2,152(,sp)		/* load r2 with top of stack      */
+	ST	r2,76(,sp)		/* store top of stack at 76       */
+	L	rtca,=A(init_tca)	/* load address of pointer to tca.*/
+	L	rtca,0(,rtca)		/* load address of tca            */
+	L	r1,=A(init_kstend)	/* r1 == addr of ptr end of stack */
+	L	r1,0(,r1)		/* r1 == end of stack             */
+	ST	r1,12(,rtca)		/* store end of stack in the tca  */
+	L	r1,=A(tcaStackOverflow)	/* bogus bogus hack alert XXX     */
+	ST	r1,116(,rtca)		/* bogosity                       */
+	L	r15,=A(start_kernel)	/* load address of C routine      */
+	BASR	lr,r15			/* jump to C routine              */
+	HALT (INTERRUPT_BASE)		/* it's impossible to return here */
 
-	.balign	4			// align literal pool
-	.ltorg				// dump literal pool
+	.balign	4			/* align literal pool             */
+	.ltorg				/* dump literal pool              */
 
 
 
@@ -392,11 +392,26 @@ SupervisorCall:
 /* Program Interruption */
 	.global ProgramCheck
 ProgramCheck:
-	SAVE_REGS (INTERRUPT_BASE)
+	SAVE_REGS (PC_INTERRUPT_BASE)
+	BASR	r15,0
+	.using	*,r15
+/*--------------------------------------------------------------*/
+/* If this is a trace table related program check then we'd     */
+/* better not generate a trace record or we could get ourselves */
+/* in a rather tight loop                                       */
+/*--------------------------------------------------------------*/
+	L	r0,PFX_PRG_CODE(0)
+	LA	r14,0x7f(0)
+	NR	r0,r14
+	LA	r14,PIC_TRACE_TABLE(0)
+	CR	r0,r14
+	BE	.SkipPCTrace
 	EXCEPTION_TRACE (PRG_TRC_ID, PFX_PRG_TRANS, PFX_PRG_CODE, PROG_PSW_OLD)
-	EXCEPTION_PROLOG (INTERRUPT_BASE, ADJUST_BASE, PROG_PSW_OLD)
+.SkipPCTrace:
+	.drop	r15
+	EXCEPTION_PROLOG (PC_INTERRUPT_BASE, ADJUST_BASE, PROG_PSW_OLD)
 	EXCEPTION_CALL_C (ProgramCheckException)
-	EXCEPTION_EPILOG (INTERRUPT_BASE)
+	EXCEPTION_EPILOG (PC_INTERRUPT_BASE)
 
 /* External */
 	.global External
@@ -425,7 +440,7 @@ InputOutput:
  * This stuff goes at the beginning of the data segment,
  * which is page-aligned.
  */
-	.section .data.init	// we throw this section away after init
+	.section .data.init	/* we throw this section away after init */
 	.balign	8
 
 	.data

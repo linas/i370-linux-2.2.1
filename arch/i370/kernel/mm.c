@@ -24,7 +24,7 @@ atomic_t next_mmu_context;
 extern char __init_text_begin[], __init_text_end[];
 extern char __init_data_begin[], __init_data_end[];
 extern char _text[], _etext[];  
-
+extern unsigned char CPUID[8];
 
 /* mem_init() will put the kernel text pages into a different
  * storage key than the data pages, effectively rendering them read-only.
@@ -49,6 +49,36 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
    /* mark usable pages in the mem_map[] */
    start_mem = PAGE_ALIGN(start_mem);
    num_physpages = max_mapnr;      /* RAM is assumed contiguous */
+ 
+#ifdef CONFIG_BLK_DEV_INITRD
+	/*-------------------------------------------------------*/
+	/* If we are running under VM then we can load the RAM   */
+	/* disk from a shared segment (isn't VM wonderful!)      */
+	/*-------------------------------------------------------*/
+	if (CPUID[0] == 0xff)
+	{
+			static char NSSID[8] = {0xd9, 0xc1, 0xd4, 0xc4,
+			                        0xc9, 0xe2, 0xd2, 0x40};
+		static struct {
+			  double alignment;
+			  char RAMNSS[8];
+		} NSS;
+ 
+		memcpy(NSS.RAMNSS, NSSID, 8);
+		__asm__ __volatile__ ("
+			LA	r14,%2;
+			LA	r15,4(0);
+			SLR	r0,r0;
+			EX	r0,=X'83EF0064';
+			ST	r14,%0;
+			ST	r15,%1"
+			: "=m" (initrd_start), "=m" (initrd_end)
+			: "m" (*NSS.RAMNSS)
+			: "memory", "r0", "r14", "r15");
+ 
+		printk("RAMDISK NSS loaded\n");
+	}
+#endif /* CONFIG_BLK_DEV_INITRD */
 
    /* mark the first page RO since all vectors have been set up by now */
    _sske (KTEXT_STORAGE_KEY, 0x0);

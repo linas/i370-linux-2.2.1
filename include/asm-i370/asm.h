@@ -127,6 +127,12 @@ extern inline unsigned int _iske (unsigned int realaddr)
    return key;
 }
 
+/* set psw key from address */
+extern inline void _spka (unsigned int key)
+{
+   asm volatile ("SPKA	0(%0)" : : "r" (key));
+}
+
 /* -------------------------------------------------------- */
 /* load control registers */
 #define _lctl(REGNO)						\

@@ -195,7 +195,8 @@ struct _i370_interrupt_state_s {
 
 #define INIT_REGS { 			\
 	{0,0},	/* psw */ 		\
-	{0,0,0,0,0,0,0,0}, /* irregs */	\
+	{0,0,0,0,0,0,0,0, /* irregs */	\
+	 0,0,0,0,0,0,0,0}, /* irregs */	\
 	0,0, /* cr */			\
 	0}
 

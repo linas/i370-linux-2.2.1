@@ -25,9 +25,10 @@ extern __inline__ void udelay(unsigned long usecs)
 
 	/* stunt to avoid a divide */
 	/* compute (usecs * 2^32 / 10^6) * loops_per_sec / 2^32 */
-	usecs *= 0x10c6;		/* 2^32 / 10^6 */
+	loops = usecs;
+	loops *= 0x10c6;		/* 2^32 / 10^6 */
 
-	loops = usecs * loops_per_sec;
+	loops *= loops_per_sec;
         loops = loops >> 32;
 	__delay(loops);
 }

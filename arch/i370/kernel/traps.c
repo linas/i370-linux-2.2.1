@@ -138,36 +138,17 @@ extern inline void i370_halt (void)
 	_lpsw (*((unsigned long long *) &halt_psw));
 }
 	
-
-#define EX_HEADER					\
-	saved_regs->oldregs = current->tss.regs;	\
-	current->tss.regs = saved_regs;			
-
-
-#define EX_TRAILER {					\
-	current->tss.regs = saved_regs->oldregs;	\
-}
-
-
 void
 RestartException(i370_interrupt_state_t *saved_regs)
 {
-	EX_HEADER;
-
 	printk ("restart exception\n");
 	panic("machine check");
-
-	EX_TRAILER;
 }
 
 void
 InputOutputException(i370_interrupt_state_t *saved_regs)
 {
-	EX_HEADER;
-
 	printk ("io exception\n");
-
-	EX_TRAILER;
 }
 
 void
@@ -175,8 +156,6 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 {
 	unsigned short code;
 	unsigned long long ticko;
-
-	EX_HEADER;
 
 	/* get the interruption code */
 	code = *((unsigned short *) EXT_INT_CODE);
@@ -197,8 +176,6 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 	
 	/* let Linux do its timer thing */
 	do_timer (saved_regs);
-
-	EX_TRAILER;
 }
 
 /* ================================================================ */
@@ -249,7 +226,8 @@ __initfunc(void trap_init(void))
 	 */
 	sz = (unsigned long *) INTERRUPT_BASE;
 	*(sz-1) = (unsigned long) &(((struct task_struct *) 0) ->tss.ksp);
-	*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.tca[0]);
+	*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.regs);
+	*(sz-3) = (unsigned long) &(((struct task_struct *) 0) ->tss.tca[0]);
 
 	// install the SVC handler
 	psw.flags = PSW_VALID;        // disable all interupts

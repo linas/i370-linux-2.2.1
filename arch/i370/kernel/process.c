@@ -26,7 +26,7 @@ struct mm_struct init_mm = INIT_MM;
 union task_union init_task_union = { INIT_TASK };
 
 /* only used to get secondary processor up */
-// struct task_struct *current_set[NR_CPUS] = {&init_task, };
+struct task_struct *current_set[NR_CPUS] = {&init_task, };
 
 struct task_struct *current = &init_task;
 

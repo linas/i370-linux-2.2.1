@@ -93,13 +93,13 @@ tcaStackOverflow:
  *
  * Memory map:
  * starting at sav, the memory map should match the memory layout 
- * of the C struct _i370_regs_s exactly; this struct is passed by 
- * value to the called C function, and this memory is copied
- * to on return (because its a return by value).
+ * of the C struct _i370_interrupts_state_s exactly; this struct is 
+ * saved on the stack and passed to C routines as a pointer.
  * 
- * Floating point regs get saved only during task switch, and not here ...
+ * NB: Floating point regs get saved only during task switch, and not here ...
  *
- * sav-8   offset from struct task_struct to tca
+ * sav-12  offset from struct task_struct to tca
+ * sav-8   offset from struct task_struct to sav area
  * sav-4   offset from struct task_struct to ksp
  * sav     psw flags
  * sav+4   psw addr
@@ -113,43 +113,77 @@ tcaStackOverflow:
  * sav+36  saved r2
  */
 
-#define SF_BASE 0x50	/* stack-frame offset, past STM r15,r0,72(r2) of prolog */
-#define SF_SIZE (0x98 +	0x48) /* stack-frame size */
+/* these defines map the struct _i370_interrupt_state_s in <asm/ptrace.h> */
+#define IR_PSW		0x0
+#define IR_R11		0x8
+#define IR_R12		0xc
+#define IR_R13		0x10
+#define IR_R14		0x14
+#define IR_R15		0x18
+#define IR_R0		0x1c
+#define IR_R1		0x20
+#define IR_R2		0x24
+
+#define IR_CR0		0x28
+#define IR_CR1		0x2c
+#define IR_OLDREGS	0x30
+
+#define IR_R3		0x40	/* used only by sys calls, not other rupts */
+#define IR_R4		0x44
+#define IR_R5		0x48
+#define IR_R6		0x4c
+#define IR_R7		0x50
+#define IR_R8		0x54
+#define IR_R9		0x58
+#define IR_R10		0x5c
+
+#define SF_BASE		0x50	/* stack offset, past STM r15,r0,72(r2) of prolog */
+#define STACK_SIZE	0x94	/* stack size */
+#define ARGS_BASE	STACK_SIZE
+#define ARGS_SIZE	0x4	/* args size */
+#define FRAME_BASE	STACK_SIZE + ARGS_SIZE
+#define FRAME_SIZE	0x60	/* frame size */
+#define SF_SIZE		STACK_SIZE + ARGS_SIZE + FRAME_SIZE
 
 /* location of saved registers on stack */
-#define ARGP		0x94
-#define SAVED_PSW	0x98
-#define SAVED_R11	0xa0
-#define SAVED_R12	0xa4
-#define SAVED_R13	0xa8
-#define SAVED_R14	0xac
-#define SAVED_R15	0xb0
-#define SAVED_R0	0xb4
-#define SAVED_R1	0xb8
-#define SAVED_R2	0xbc
-#define SAVED_R3	0xc0
-#define SAVED_R4	0xc4
-#define SAVED_R5	0xc8
-#define SAVED_R6	0xcc
-#define SAVED_R7	0xd0
-#define SAVED_R8	0xd4
-#define SAVED_R9	0xd8
-#define SAVED_R10	0xdc
+#define ARGP		ARGS_BASE
+#define SAVED_PSW	FRAME_BASE + IR_PSW
+#define SAVED_R11	FRAME_BASE + IR_R11
+#define SAVED_R12	FRAME_BASE + IR_R12
+#define SAVED_R13	FRAME_BASE + IR_R13
+#define SAVED_R14	FRAME_BASE + IR_R14
+#define SAVED_R15	FRAME_BASE + IR_R15
+#define SAVED_R0	FRAME_BASE + IR_R0
+#define SAVED_R1	FRAME_BASE + IR_R1
+#define SAVED_R2	FRAME_BASE + IR_R2
+
+#define SAVED_OLDREGS	FRAME_BASE + IR_OLDREGS
+
+#define SAVED_R3	FRAME_BASE + IR_R3
+#define SAVED_R4	FRAME_BASE + IR_R4
+#define SAVED_R5	FRAME_BASE + IR_R5
+#define SAVED_R6	FRAME_BASE + IR_R6
+#define SAVED_R7	FRAME_BASE + IR_R7
+#define SAVED_R8	FRAME_BASE + IR_R8
+#define SAVED_R9	FRAME_BASE + IR_R9
+#define SAVED_R10	FRAME_BASE + IR_R10
 
 #define EXCEPTION_PROLOG(sav,oldpsw)  					\
 	STM	r11,r2,sav+8(0);	/* save gprs to low mem */	\
 	BASR	r15,0;			/* load r15 with PSW  */	\
 	.using	.,r15;			/* use r15 as base register */	\
+	L	r11,=V(current);	/* addr of current pointer */	\
+	L	r11,0(,r11);		/* addr of current process */	\
+	/* interrupted from user space or kernel space ? */		\
 	L	r1,oldpsw(,0);		/* get old psw flags into r1 */	\
 	N	r1,=X'00010000';	/* is in problem state? */	\
 	BZ	1f;			/* sp is already ok if kern */	\
-	L	r11,=V(current);	/* addr of current pointer */	\
-	L	r11,0(,r11);		/* addr of current process */	\
+	/* interrupted user proc, so need to find a kernel stack */	\
 	LA	sp,0(,r11);		/* copy r11 to r13 */		\
 	A	sp,sav-4(,0);		/* add offset to ksp */		\
 	L	sp,0(,sp);		/* load kernel sp */		\
-	LA	rtca,0(,r11);		/* copy r12 to r13 */		\
-	A	rtca,sav-8(,0);		/* add offset to tca */		\
+	LA	rtca,0(,r11);		/* copy r11 to r12 */		\
+	A	rtca,sav-12(,0);	/* add offset to tca */		\
 	/* XXX the following 6 insns can be chopped out later */	\
 	/* do this by having a ready-to-run stackframe initialized */	\
 	LA	r0,SF_SIZE(,sp);	/* load r0 with top of stack */	\
@@ -159,6 +193,7 @@ tcaStackOverflow:
 	L	r1,=A(tcaStackOverflow);/* bogus hack alert XXX */	\
 	ST	r1,116(,rtca);		/* bogosity */			\
 1:					/* branch here if kernel */	\
+	/* we have a valid stack pointer; build a stackframe */		\
 	L	r2,76(,sp);		/* find top of kernel stack */	\
 	LA	r2,SF_BASE(,r2);	/* safe offset to stack top */	\
 	LA	r1,SF_SIZE(,r2);	/* add stackframe size */	\
@@ -173,16 +208,24 @@ tcaStackOverflow:
 	STM	r0,r1,72(r2);		/* store new stack top */	\
 	MVI	0(r2),0x10;		/* store marker */		\
 	LR	sp,r2;			/* initialize stack pointer */	\
+	/* move saved regs out of prefix page to stackframe */		\
 	LM	r1,r2,oldpsw(0);	/* get old psw into r1,r2 */	\
-	STM	r1,r2,SAVED_PSW(sp);		/* save old psw on stack */	\
-	LM	r1,r2,sav+8(0);		/* copy regs out of prefix */	\
-	STM	r1,r2,SAVED_R11(sp);	/* copy regs */			\
-	LM	r1,r2,sav+16(0);	/* copy regs out of prefix */	\
-	STM	r1,r2,SAVED_R13(sp);	/* copy regs */			\
-	LM	r1,r2,sav+24(0);	/* copy regs out of prefix */	\
-	STM	r1,r2,SAVED_R15(sp);	/* copy regs */			\
-	LM	r1,r2,sav+32(0);	/* copy regs out of prefix */	\
-	STM	r1,r2,SAVED_R1(sp);	/* copy regs */			\
+	STM	r1,r2,SAVED_PSW(sp);	/* save old psw on stack */	\
+	LM	r1,r2,sav+IR_R11(0);	/* copy regs out of prefix */	\
+	STM	r1,r2,SAVED_R11(sp);	/* copy regs into frame */	\
+	LM	r1,r2,sav+IR_R13(0);	/* copy regs out of prefix */	\
+	STM	r1,r2,SAVED_R13(sp);	/* copy regs into frame */	\
+	LM	r1,r2,sav+IR_R15(0);	/* copy regs out of prefix */	\
+	STM	r1,r2,SAVED_R15(sp);	/* copy regs into frame */	\
+	LM	r1,r2,sav+IR_R1(0);	/* copy regs out of prefix */	\
+	STM	r1,r2,SAVED_R1(sp);	/* copy regs into frame */	\
+	/* chain the interrupt state pointer into thread_struct */	\
+	LA	r1,0(,r11);		/* copy r11 to r1 */		\
+	A	r1,sav-8(,0);		/* add offset to regs ptr */	\
+	L	r2,0(,r1);		/* load regs ptr */		\
+	ST	r2,SAVED_OLDREGS(,sp);	/* save regs ptr to stack */	\
+	LA	r2,SAVED_PSW(,sp);	/* put addr of newregs in r2 */	\
+	ST	r2,0(,r1);		/* update regs ptr in proc */	\
 	
 
 
@@ -196,6 +239,13 @@ tcaStackOverflow:
 
 
 #define EXCEPTION_EPILOG(sav)  						\
+	/* chain the interrupt state pointer into thread_struct */	\
+	L	r11,=V(current);	/* addr of current pointer */	\
+	L	r11,0(,r11);		/* addr of current process */	\
+	A	r11,sav-8(,0);		/* add offset to regs ptr */	\
+	L	r2,SAVED_OLDREGS(,sp);	/* get old ptr from stack */	\
+	ST	r2,0(,r11);		/* restore regs ptr in proc */	\
+	/* get old PSW, restore registers, return from interrupt */	\
 	LM	r1,r2,SAVED_PSW(sp);	/* get old psw from stack */	\
 	STM	r1,r2,sav(0);		/* move to prefix page */	\
 	LM	r11,r12,SAVED_R11(sp);	/* restore r11, r12 */		\
@@ -205,7 +255,7 @@ tcaStackOverflow:
 	.balign	8;			/* align literal pool */	\
 	.ltorg;				/* dump literal pool */		\
 
-/* XXX stop the machine for debuggin purposes.
+/* XXX stop the machine for debugging purposes.
  * we can't do this in the real code; this needs to be
  * replaced by panic in some cases, or other stuff in other cases.
  */

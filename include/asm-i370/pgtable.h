@@ -203,8 +203,21 @@ extern unsigned long empty_zero_page[1024];
  * positions.  This distinguishes them from swaped-out pte's, which don't 
  * contain 'true' ptes, but instead contain swapfile info.
  */
+/*
+XXX these seem to have compiler bug problems ... ??
+We really want either the first or second one, so that swap spaces
+work right.  However they both evoke a compiler bug with the O,N,X insn's
+The third one works for now ...
+
 extern inline int 
 	pte_none(pte_t pte)	{ return !((pte_val(pte) & ~(_PAGE_INVALID |_PAGE_RO))); }
+*/
+extern inline int 
+	pte_none(pte_t pte)	{ return ((pte_val(pte) == (_PAGE_INVALID |_PAGE_RO))); }
+/*
+extern inline int 
+	pte_none(pte_t pte)	{ return (pte_val(pte) & _PAGE_INVALID ); }
+*/
 extern inline int 
 	pte_present(pte_t pte)	{ return !((pte_val(pte) & _PAGE_INVALID)); }
 extern inline void 
@@ -304,7 +317,7 @@ set_pte (pte_t * ptep, pte_t val)
 
 static inline pte_t mk_pte_phys(unsigned long page, pgprot_t pgprot)
 { pte_t pte; 
-printk ("mk_pte_phys %lx %lx\n",page,pgprot_val(pgprot));
+printk ("mk_pte_phys for vaddr=%lx flags=%lx\n",page,pgprot_val(pgprot));
 pte_val(pte) = (page & PFRA_MASK) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t mk_pte(unsigned long page, pgprot_t pgprot)

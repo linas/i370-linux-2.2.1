@@ -1,0 +1,77 @@
+# $Id: config.in,v 1.1 1999/02/08 06:58:47 linas Exp $
+# For a description of the syntax of this configuration file,
+# see the Configure script.
+#
+mainmenu_name "Linux/i370 Kernel Configuration"
+
+mainmenu_option next_comment
+comment 'Platform support'
+define_bool CONFIG_I370 y
+choice 'Processor type' \
+	"390		CONFIG_390"  yo
+
+choice 'Machine Type' \
+	"ES390		CONFIG_ES390" ya ha
+
+bool 'Symmetric multi-processing support' CONFIG_SMP
+
+endmenu
+
+if [ "$CONFIG_MBX" = "y" ];then
+  define_bool CONFIG_SERIAL_CONSOLE y
+fi
+
+mainmenu_option next_comment
+comment 'General setup'
+
+bool 'Prompt for development and/or incomplete code/drivers' CONFIG_EXPERIMENTAL
+bool 'Enable loadable module support' CONFIG_MODULES
+if [ "$CONFIG_MODULES" = "y" ]; then
+  bool 'Set version information on all symbols for modules' CONFIG_MODVERSIONS
+  bool 'Kernel module loader' CONFIG_KMOD
+fi
+
+bool 'Networking support' CONFIG_NET
+bool 'Sysctl support' CONFIG_SYSCTL
+bool 'System V IPC' CONFIG_SYSVIPC
+bool 'BSD Process Accounting' CONFIG_BSD_PROCESS_ACCT
+
+# only elf supported, a.out is not
+define_bool CONFIG_BINFMT_ELF y
+define_bool CONFIG_KERNEL_ELF y
+tristate 'Kernel support for MISC binaries' CONFIG_BINFMT_MISC
+
+bool 'Include kgdb kernel debugger' CONFIG_KGDB
+bool 'Include xmon kernel debugger' CONFIG_XMON
+bool 'Support for early boot text console (BootX only)' CONFIG_BOOTX_TEXT
+
+endmenu
+
+source drivers/block/Config.in
+#source drivers.new/Config.in
+
+if [ "$CONFIG_NET" = "y" ]; then
+  source net/Config.in
+fi
+
+if [ "$CONFIG_NET" = "y" ]; then
+  mainmenu_option next_comment
+  comment 'Network device support'
+
+  bool 'Network device support' CONFIG_NETDEVICES
+  if [ "$CONFIG_NETDEVICES" = "y" ]; then
+    source drivers/net/Config.in
+  fi
+  endmenu
+fi
+
+
+mainmenu_option next_comment
+comment 'Console drivers'
+source drivers/video/Config.in
+endmenu
+
+source drivers/char/Config.in
+source fs/Config.in
+
+endmenu

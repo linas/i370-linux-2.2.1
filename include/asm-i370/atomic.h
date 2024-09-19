@@ -35,10 +35,10 @@ void *xchg_u32(void *ptr, unsigned long newval)
 	unsigned long oldval;
 	unsigned long *v = (unsigned long *) ptr;
 
-	__asm__ __volatile__("
-1:	L	%0,%2;
-	CS	%0,%1,%2;
-	BNE	1b"
+	__asm__ __volatile__(
+"1:	L	%0,%2;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
 	: "+r" (oldval), "+r" (newval), "+m" (*v)
 	:
 	: "memory");
@@ -51,12 +51,12 @@ extern __inline__ int atomic_add_return(int inc, atomic_t *v)
 {
 	int oldval, newval;
 
-	__asm__ __volatile__("
-1:	L	%0,%2;
-	L	%1,%2;
-	AR	%1,%3;
-	CS	%0,%1,%2;
-	BNE	1b"
+	__asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	AR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
 	: "+r" (oldval), "+r" (newval), "+m" (*v)
 	: "r" (inc)
 	: "memory");
@@ -73,12 +73,12 @@ extern __inline__ int atomic_sub_return(int inc, atomic_t *v)
 {
 	int oldval, newval;
 
-	__asm__ __volatile__("
-1:	L	%0,%2;
-	L	%1,%2;
-	SR	%1,%3;
-	CS	%0,%1,%2;
-	BNE	1b"
+	__asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	SR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
 	: "+r" (oldval), "+r" (newval), "+m" (*v)
 	: "r" (inc)
 	: "memory");
@@ -94,12 +94,12 @@ extern __inline__ int atomic_sub_and_test(int inc, atomic_t *v)
 {
 	int oldval, newval;
 
-	__asm__ __volatile__("
-1:	L	%0,%2;
-	L	%1,%2;
-	SR	%1,%3;
-	CS	%0,%1,%2;
-	BNE	1b"
+	__asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	SR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
 	: "+r" (oldval), "+r" (newval), "+m" (*v)
 	: "r" (inc)
 	: "memory");
@@ -111,12 +111,12 @@ extern __inline__ int atomic_inc_return(atomic_t *v)
 {
 	int oldval, newval;
 
-	__asm__ __volatile__("
-1:	L	%0,%2;
-	L	%1,%2;
-	LA	%1,1(,%1);
-	CS	%0,%1,%2;
-	BNE	1b"
+	__asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	LA	%1,1(,%1);"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
 	: "+r" (oldval), "+r" (newval), "+m" (*v)
 	: 
 	: "memory");
@@ -133,12 +133,12 @@ extern __inline__ int atomic_dec_return(atomic_t *v)
 	int oldval, newval;
 	int inc = 1;
 
-	__asm__ __volatile__("
-1:	L	%0,%2;
-	L	%1,%2;
-	SR	%1,%3;
-	CS	%0,%1,%2;
-	BNE	1b"
+	__asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	SR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
 	: "+r" (oldval), "+r" (newval), "+m" (*v)
 	: "r" (inc)
 	: "memory");
@@ -155,12 +155,12 @@ extern __inline__ int atomic_dec_and_test(atomic_t *v)
 	int oldval, newval;
 	int inc = 1;
 
-	__asm__ __volatile__("
-1:	L	%0,%2;
-	L	%1,%2;
-	SR	%1,%3;
-	CS	%0,%1,%2;
-	BNE	1b"
+	__asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	SR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
 	: "+r" (oldval), "+r" (newval), "+m" (*v)
 	: "r" (inc)
 	: "memory");
@@ -172,12 +172,12 @@ extern __inline__ void atomic_set_mask (unsigned long mask, unsigned long *addr)
 {
 	unsigned long oldval, newval;
 
-	__asm__ __volatile__("
-1:	L	%0,%2;
-	L	%1,%2;
-	OR	%1,%3;
-	CS	%0,%1,%2;
-	BNE	1b"
+	__asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	OR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
 	: "+r" (oldval), "+r" (newval), "+m" (*addr)
 	: "r" (mask)
 	: "memory");
@@ -189,12 +189,12 @@ extern __inline__ void atomic_clear_mask (unsigned long mask, unsigned long *add
 
 	mask = ~mask;	/* bit comopliment */
 
-	__asm__ __volatile__("
-1:	L	%0,%2;
-	L	%1,%2;
-	NR	%1,%3;
-	CS	%0,%1,%2;
-	BNE	1b"
+	__asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	NR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
 	: "+r" (oldval), "+r" (newval), "+m" (*addr)
 	: "r" (mask)
 	: "memory");
@@ -213,12 +213,12 @@ unsigned long compare_and_swap (void *memloc,
 	unsigned long *memptr = (unsigned long *) memloc;
 	unsigned long rc = 0;
 
-	__asm__ __volatile__("
-	CS	%0,%1,%2;
-	BZ	1f;
-	LA	%3,1(,0);
-	ST	%0,%4;
-1:	;	"
+	__asm__ __volatile__(
+"	CS	%0,%1,%2;"
+"	BZ	1f;"
+"	LA	%3,1(,0);"
+"	ST	%0,%4;"
+"1:	;	"
 
 	: "+r" (*old), "+r" (newval), "+m" (*memptr), "+r" (rc), "=m" (*old)
 	: 

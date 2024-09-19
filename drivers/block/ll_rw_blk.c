@@ -745,7 +745,7 @@ __initfunc(int blk_dev_init(void))
 #endif
 #ifdef CONFIG_ISP16_CDI
 	isp16_init();
-#endif CONFIG_ISP16_CDI
+#endif // CONFIG_ISP16_CDI
 #ifdef CONFIG_BLK_DEV_IDE
 	ide_init();		/* this MUST precede hd_init */
 #endif
@@ -783,40 +783,40 @@ __initfunc(int blk_dev_init(void))
 #endif
 #ifdef CONFIG_CDU31A
 	cdu31a_init();
-#endif CONFIG_CDU31A
+#endif // CONFIG_CDU31A
 #ifdef CONFIG_ATARI_ACSI
 	acsi_init();
-#endif CONFIG_ATARI_ACSI
+#endif // CONFIG_ATARI_ACSI
 #ifdef CONFIG_MCD
 	mcd_init();
-#endif CONFIG_MCD
+#endif // CONFIG_MCD
 #ifdef CONFIG_MCDX
 	mcdx_init();
-#endif CONFIG_MCDX
+#endif // CONFIG_MCDX
 #ifdef CONFIG_SBPCD
 	sbpcd_init();
-#endif CONFIG_SBPCD
+#endif // CONFIG_SBPCD
 #ifdef CONFIG_AZTCD
         aztcd_init();
-#endif CONFIG_AZTCD
+#endif // CONFIG_AZTCD
 #ifdef CONFIG_CDU535
 	sony535_init();
-#endif CONFIG_CDU535
+#endif // CONFIG_CDU535
 #ifdef CONFIG_GSCD
 	gscd_init();
-#endif CONFIG_GSCD
+#endif // CONFIG_GSCD
 #ifdef CONFIG_CM206
 	cm206_init();
 #endif
 #ifdef CONFIG_OPTCD
 	optcd_init();
-#endif CONFIG_OPTCD
+#endif // CONFIG_OPTCD
 #ifdef CONFIG_SJCD
 	sjcd_init();
-#endif CONFIG_SJCD
+#endif // CONFIG_SJCD
 #ifdef CONFIG_BLK_DEV_MD
 	md_init();
-#endif CONFIG_BLK_DEV_MD
+#endif // CONFIG_BLK_DEV_MD
 #ifdef CONFIG_APBLOCK
 	ap_init();
 #endif

@@ -140,7 +140,7 @@ extern inline
 int strcmp(const char *s1, const char *s2)
 {
  /*   register int result __asm__("r0");
-   __asm__ __volatile__(".set  _i379_implied_op1,%0;
+   __asm__ __volatile__(".set  _i370_implied_op1,%0;
            SLR   r0,r0;
        1:  CLST  %1,%2; 
            BZ    3f; 

@@ -676,6 +676,7 @@ asmlinkage void schedule(void)
 		default:
 			del_from_runqueue(prev);
 		case TASK_RUNNING:
+			break;
 	}
 
 	sched_data->prevstate = prev->state;

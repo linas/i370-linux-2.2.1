@@ -1,3 +1,40 @@
+README for i370-linux-2.2.1
+---------------------------
+This git repo contains a version of the Linux-2.2.1 kernel adapted for
+the IBM System/370. This is copy of the original Bigfoot CVS tree,
+dating to February-December 1999, plus some recent September 2024
+cleanups and updates.
+
+### History
+Bigfoot was a port of the Linux kernel to the IBM mainframe, created by
+Linas Vepstas, over the course of February to December 1999. The port
+was done in public, with support from mailing lists. It reached the
+point of being able to boot into user space;  a port of glibc and zsh
+gave a user-space shell prompt.
+
+At this point, IBM announced that it *also* had a Linux port. It had
+been done in secret, as a skunkworks project by IBM Germany. The secrecy
+was due to internal IBM politics: Linux on the Mainframe was considered
+to be a threat to billions of dollars of ESA/390 software licensing
+revenue. But once the public project reached a point of viability, the
+CEO of IBM, Lou Gerstner, decided that it would be best to retain
+control over the future of Linux on the mainframe, and accept any risks
+to revenue.
+
+The original i370 port can be found on
+[Linas' i370 website](https://linas.org/linux/i370/i370.html). Work on
+the port halted in December 1999, as it seemed futile to continue in the
+face of competition from IBM. The competition wasn't freindly; IBM plays
+for keeps. Linas was spurned and excluded. The thrill was gone, the
+excitment evaporated, replaced by anger at being snubbed and disinvited.
+
+Due to popular demand (pressure from Paul Edwards), the original CVS
+sources are being published here, together with some cleanup to see if
+they still work. They should work, right?
+
+The original README
+-------------------
+```
 	Linux kernel release 2.2.xx
 
 These are the release notes for Linux version 2.2.  Read them carefully,
@@ -293,4 +330,4 @@ IF SOMETHING GOES WRONG:
 
    gdb'ing a non-running kernel currently fails because gdb (wrongly)
    disregards the starting offset for which the kernel is compiled.
-
+```

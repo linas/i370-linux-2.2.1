@@ -1,22 +1,22 @@
-
-/* arch/i370/lib/misc.c
- * Miscellaneous i370 usitlities
+/*
+ * arch/i370/lib/misc.c
+ * Miscellaneous i370 utilities
  *
- * Copyright (c) 1999 Neale Fergusen 
+ * Copyright (c) 1999 Neale Fergusen
  */
 
 #include <linux/kernel.h>
 #include <asm/asm.h>
 
-/* XXX might be useful to move abs to some ehadr file and inline? */
+/* XXX might be useful to move abs to some header file and inline? */
 
 int
 abs (int j)
 {
 	int absj;
 
-	__asm__ __volatile__ ("
-		LPR     %0,%1"
+	__asm__ __volatile__ (
+		"LPR     %0,%1"
 		: "=r" (absj)
 		: "r" (j)
 		);
@@ -45,15 +45,15 @@ csum_partial(const unsigned char * buff, int len,
 	unsigned int cksum = 0;
 
 #ifdef CONFIG_CKSM
-	/* The CKSM instruction exists only if the checksum 
+	/* The CKSM instruction exists only if the checksum
 	 * facility is installed. */
-	__asm__ __volatile__ ("
-		L       r8,%1;
-		L       r9,%2;
-		L       r1,%3;
-	1:	CKSM    r1,r8;
-		BO      1b;
-		ST      r1,%0"
+	__asm__ __volatile__ (
+	"	L       r8,%1;"
+	"	L       r9,%2;"
+	"	L       r1,%3;"
+	"1:	CKSM    r1,r8;"
+	"	BO      1b;"
+	"	ST      r1,%0"
 	: "=m" (cksum)
 	: "m" (buff), "m" (len), "m" (sum)
 	: "r1", "r8", "r9");
@@ -79,9 +79,9 @@ csum_partial(const unsigned char * buff, int len,
 unsigned int csum_partial_copy_generic(const char *src, char *dst,
                                               int len, unsigned int sum,
                                               int *src_err, int *dst_err)
-{ 
+{
 	printk ("Error: csum_partial_copy_generic not implemented \n");
 	i370_halt();
-	return 0; 
+	return 0;
 }
 

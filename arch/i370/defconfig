@@ -9,7 +9,7 @@ CONFIG_I370=y
 CONFIG_390=y
 CONFIG_ES390=y
 # CONFIG_SMP is not set
-CONFIG_CKSM=n
+# CONFIG_CKSM is not set
 
 #
 # General setup

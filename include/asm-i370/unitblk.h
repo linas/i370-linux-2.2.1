@@ -8,7 +8,8 @@
 #include <linux/fs.h>
 #include <linux/major.h>
 #include <asm/iorb.h>
-#define  _PACK __attribute__ ((packed))
+// #define  _PACK __attribute__ ((packed))
+#define  _PACK
 
 /*
  *	Define Unit Control Block
@@ -69,7 +70,7 @@ typedef	struct _idchar
 	/* Device Type Information...                              */
 	/*---------------------------------------------------------*/
 
-} idchar_t __attribute__ ((packed));
+} idchar_t _PACK;
 
 /*
  *	Read Device Characteristics Structure
@@ -133,7 +134,7 @@ typedef struct {
 	unsigned int 	isc;    	/* Interrupt sub-class    */
 	void     	(*irqh)(int,    /* Interupt handler       */
 				void *, struct pt_regs *);
-} S390dev_t __attribute__ ((packed));
+} S390dev_t _PACK;
 
 #define T3990 0x3990
 #define T3880 0x3880

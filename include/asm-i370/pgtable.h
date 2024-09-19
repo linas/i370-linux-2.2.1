@@ -171,7 +171,7 @@ extern pte_t __bad_page(void);
 extern pte_t * __bad_pagetable(void);
 
 extern unsigned long empty_zero_page[1024];
-#endif __ASSEMBLY__
+#endif /* __ASSEMBLY__ */
 #define BAD_PAGETABLE	__bad_pagetable()
 #define BAD_PAGE	__bad_page()
 #define ZERO_PAGE	((unsigned long) empty_zero_page)
@@ -517,5 +517,5 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
 /* Needs to be defined here and not in linux/mm.h, as it is arch dependent */
 #define PageSkip(page)		(0)
 
-#endif __ASSEMBLY__
+#endif /* __ASSEMBLY__ */
 #endif /* _I370_PGTABLE_H */

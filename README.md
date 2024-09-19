@@ -32,6 +32,21 @@ Due to popular demand (pressure from Paul Edwards), the original CVS
 sources are being published here, together with some cleanup to see if
 they still work. They should work, right?
 
+### Quickstart
+You will need both binutils and gcc, compiled for the i370 target.
+```
+git clone https://github.com/linas/i370-binutils
+git clone https://github.com/linas/i370-gcc
+```
+Follow the instructions there, concluding with `make install`. This will
+create the `i370-ibm-linux-gcc` binary in `/usr/local/bin`; this will be
+used to complie this kernel.  Look for `CROSS_COMPILE` in the
+`Makefile`.  Then
+```
+make oldconfig
+make
+```
+
 The original README
 -------------------
 ```

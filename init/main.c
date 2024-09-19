@@ -194,41 +194,41 @@ extern void reboot_setup(char *str, int *ints);
 extern void video_setup(char *str, int *ints);
 #ifdef CONFIG_CDU31A
 extern void cdu31a_setup(char *str, int *ints);
-#endif CONFIG_CDU31A
+#endif // CONFIG_CDU31A
 #ifdef CONFIG_BLK_DEV_PS2
 extern void ed_setup(char *str, int *ints);
 extern void tp720_setup(char *str, int *ints);
-#endif CONFIG_BLK_DEV_PS2
+#endif // CONFIG_BLK_DEV_PS2
 #ifdef CONFIG_MCD
 extern void mcd_setup(char *str, int *ints);
-#endif CONFIG_MCD
+#endif // CONFIG_MCD
 #ifdef CONFIG_MCDX
 extern void mcdx_setup(char *str, int *ints);
-#endif CONFIG_MCDX
+#endif // CONFIG_MCDX
 #ifdef CONFIG_SBPCD
 extern void sbpcd_setup(char *str, int *ints);
-#endif CONFIG_SBPCD
+#endif // CONFIG_SBPCD
 #ifdef CONFIG_AZTCD
 extern void aztcd_setup(char *str, int *ints);
-#endif CONFIG_AZTCD
+#endif // CONFIG_AZTCD
 #ifdef CONFIG_CDU535
 extern void sonycd535_setup(char *str, int *ints);
-#endif CONFIG_CDU535
+#endif // CONFIG_CDU535
 #ifdef CONFIG_GSCD
 extern void gscd_setup(char *str, int *ints);
-#endif CONFIG_GSCD
+#endif // CONFIG_GSCD
 #ifdef CONFIG_CM206
 extern void cm206_setup(char *str, int *ints);
-#endif CONFIG_CM206
+#endif // CONFIG_CM206
 #ifdef CONFIG_OPTCD
 extern void optcd_setup(char *str, int *ints);
-#endif CONFIG_OPTCD
+#endif // CONFIG_OPTCD
 #ifdef CONFIG_SJCD
 extern void sjcd_setup(char *str, int *ints);
-#endif CONFIG_SJCD
+#endif // CONFIG_SJCD
 #ifdef CONFIG_ISP16_CDI
 extern void isp16_setup(char *str, int *ints);
-#endif CONFIG_ISP16_CDI
+#endif // CONFIG_ISP16_CDI
 #ifdef CONFIG_BLK_DEV_RAM
 static void ramdisk_start_setup(char *str, int *ints);
 static void load_ramdisk(char *str, int *ints);
@@ -237,7 +237,7 @@ static void ramdisk_size(char *str, int *ints);
 #ifdef CONFIG_BLK_DEV_INITRD
 static void no_initrd(char *s,int *ints);
 #endif
-#endif CONFIG_BLK_DEV_RAM
+#endif // CONFIG_BLK_DEV_RAM
 #ifdef CONFIG_ISDN_DRV_ICN
 extern void icn_setup(char *str, int *ints);
 #endif
@@ -718,37 +718,37 @@ static struct kernel_param cooked_params[] __initdata = {
 #endif
 #ifdef CONFIG_CDU31A
 	{ "cdu31a=", cdu31a_setup },
-#endif CONFIG_CDU31A
+#endif // CONFIG_CDU31A
 #ifdef CONFIG_MCD
 	{ "mcd=", mcd_setup },
-#endif CONFIG_MCD
+#endif // CONFIG_MCD
 #ifdef CONFIG_MCDX
 	{ "mcdx=", mcdx_setup },
-#endif CONFIG_MCDX
+#endif // CONFIG_MCDX
 #ifdef CONFIG_SBPCD
 	{ "sbpcd=", sbpcd_setup },
-#endif CONFIG_SBPCD
+#endif // CONFIG_SBPCD
 #ifdef CONFIG_AZTCD
 	{ "aztcd=", aztcd_setup },
-#endif CONFIG_AZTCD
+#endif // CONFIG_AZTCD
 #ifdef CONFIG_CDU535
 	{ "sonycd535=", sonycd535_setup },
-#endif CONFIG_CDU535
+#endif // CONFIG_CDU535
 #ifdef CONFIG_GSCD
 	{ "gscd=", gscd_setup },
-#endif CONFIG_GSCD
+#endif // CONFIG_GSCD
 #ifdef CONFIG_CM206
 	{ "cm206=", cm206_setup },
-#endif CONFIG_CM206
+#endif // CONFIG_CM206
 #ifdef CONFIG_OPTCD
 	{ "optcd=", optcd_setup },
-#endif CONFIG_OPTCD
+#endif // CONFIG_OPTCD
 #ifdef CONFIG_SJCD
 	{ "sjcd=", sjcd_setup },
-#endif CONFIG_SJCD
+#endif // CONFIG_SJCD
 #ifdef CONFIG_ISP16_CDI
 	{ "isp16=", isp16_setup },
-#endif CONFIG_ISP16_CDI
+#endif // CONFIG_ISP16_CDI
 #ifdef CONFIG_SOUND_OSS
 	{ "sound=", sound_setup },
 #endif

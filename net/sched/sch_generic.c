@@ -30,7 +30,7 @@
 #include <net/sock.h>
 #include <net/pkt_sched.h>
 
-#define BUG_TRAP(x) if (!(x)) { printk("Assertion (" #x ") failed at " __FILE__ "(%d):" __FUNCTION__ "\n", __LINE__); }
+#define BUG_TRAP(x) if (!(x)) { printk("Assertion (" #x ") failed at " __FILE__ "(%d):%s\n", __FUNCTION__, __LINE__); }
 
 /* Main transmission queue. */
 

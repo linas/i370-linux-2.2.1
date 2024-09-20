@@ -99,7 +99,7 @@ vid3270_putcs(struct vc_data *conp, const unsigned short *s,
 {
 	int i;
 	if (80 == count) {  /* quick hack don't print blank lines */
-		for(i=0; i<count; i++) if (0x20 != 0xff & s[i]) goto prt;
+		for(i=0; i<count; i++) if (0x20 != (0xff & s[i])) goto prt;
 		return;
 	}
 prt:
@@ -130,6 +130,7 @@ vid3270_cursor(struct vc_data *conp, int mode)
 	case CM_ERASE:
 	case CM_MOVE:
 	case CM_DRAW:
+		break;
 	}
 }
 
@@ -164,6 +165,7 @@ vid3270_scroll(struct vc_data *conp, int t, int b, int dir, int count)
 	switch (dir) {
 	case SM_UP:
 	case SM_DOWN:
+		break;
 	}
 
 	return 0;
@@ -171,7 +173,14 @@ vid3270_scroll(struct vc_data *conp, int t, int b, int dir, int count)
 
 /* ================================================================ */
 
-static int vid3270_dummy(void)
+static int
+vid3270_set_palette(struct vc_data *c, unsigned char *table)
+{
+	return 0;
+}
+
+static int
+vid3270_scrolldelta(struct vc_data *conp, int lines)
 {
 	return 0;
 }
@@ -192,8 +201,8 @@ struct consw video3270_con = {
 	con_switch:		vid3270_switch,
 	con_blank:		vid3270_blank,
 	con_font_op:		vid3270_font_op,
-	con_set_palette:	vid3270_dummy,
-	con_scrolldelta:	vid3270_dummy,
+	con_set_palette:	vid3270_set_palette,
+	con_scrolldelta:	vid3270_scrolldelta,
 	con_set_origin:		NULL,
 	con_save_screen:	NULL,
 	con_build_attr:		NULL,

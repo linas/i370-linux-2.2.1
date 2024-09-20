@@ -6,7 +6,7 @@
  *
  * XXX These should probably be moved to the header file and made inline.
  * They are here right now for debugging & convenience purposes.
- * 
+ *
  * These bitops are implmented in an atomic SMP-safe fashion so that we don't
  * have to worry about multiple setters accidentally clobbering different
  * bits in the same byte.
@@ -21,15 +21,15 @@ void set_bit(int nr, volatile void *addr)
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
 	if ((unsigned long)addr & 3)
-		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);        
+		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);
 
-        __asm__ __volatile__("
-1:      L	%0,%2;
-	L	%1,%2;
-	OR	%1,%3;
-	CS	%0,%1,%2;
-        BNE	1b"
-        : "+r" (oldval), "+r" (newval), "+m" (*p)             
+        __asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	OR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
+        : "+r" (oldval), "+r" (newval), "+m" (*p)
         : "r" (mask)
         : "memory");
 }
@@ -41,17 +41,17 @@ void clear_bit(int nr, volatile void *addr)
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
 	if ((unsigned long)addr & 3)
-		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);        
+		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);
 
 	mask = ~mask;  /* complement */
 
-        __asm__ __volatile__("
-1:      L	%0,%2;
-	L	%1,%2;
-	NR	%1,%3;
-	CS	%0,%1,%2;
-        BNE	1b"
-        : "+r" (oldval), "+r" (newval), "+m" (*p)             
+        __asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	NR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
+        : "+r" (oldval), "+r" (newval), "+m" (*p)
         : "r" (mask)
         : "memory");
 }
@@ -63,15 +63,15 @@ void change_bit(int nr, volatile void *addr)
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
 	if ((unsigned long)addr & 3)
-		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);        
+		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);
 
-        __asm__ __volatile__("
-1:      L	%0,%2;
-	L	%1,%2;
-	XR	%1,%3;
-	CS	%0,%1,%2;
-        BNE	1b"
-        : "+r" (oldval), "+r" (newval), "+m" (*p)             
+        __asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	XR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
+        : "+r" (oldval), "+r" (newval), "+m" (*p)
         : "r" (mask)
         : "memory");
 }
@@ -83,15 +83,15 @@ int test_and_set_bit(int nr, volatile void *addr)
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
 	if ((unsigned long)addr & 3)
-		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);        
+		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);
 
-        __asm__ __volatile__("
-1:      L	%0,%2;
-	L	%1,%2;
-	OR	%1,%3;
-	CS	%0,%1,%2;
-        BNE	1b"
-        : "+r" (oldval), "+r" (newval), "+m" (*p)             
+        __asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	OR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
+        : "+r" (oldval), "+r" (newval), "+m" (*p)
         : "r" (mask)
         : "memory");
 
@@ -106,15 +106,15 @@ int test_and_clear_bit(int nr, volatile void *addr)
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
 	if ((unsigned long)addr & 3)
-		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);        
+		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);
 
-        __asm__ __volatile__("
-1:      L	%0,%2;
-	L	%1,%2;
-	NR	%1,%3;
-	CS	%0,%1,%2;
-        BNE	1b"
-        : "+r" (oldval), "+r" (newval), "+m" (*p)             
+        __asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	NR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
+        : "+r" (oldval), "+r" (newval), "+m" (*p)
         : "r" (maskcomp)
         : "memory");
 
@@ -128,18 +128,17 @@ int test_and_change_bit(int nr, volatile void *addr)
 	unsigned long *p = ((unsigned long *)addr) + (nr >> 5);
 
 	if ((unsigned long)addr & 3)
-		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);        
+		printk(KERN_ERR "set_bit(%x, %p)\n", nr, addr);
 
-        __asm__ __volatile__("
-1:      L	%0,%2;
-	L	%1,%2;
-	XR	%1,%3;
-	CS	%0,%1,%2;
-        BNE	1b"
-        : "+r" (oldval), "+r" (newval), "+m" (*p)             
+        __asm__ __volatile__(
+"1:	L	%0,%2;"
+"	L	%1,%2;"
+"	XR	%1,%3;"
+"	CS	%0,%1,%2;"
+"	BNE	1b"
+        : "+r" (oldval), "+r" (newval), "+m" (*p)
         : "r" (mask)
         : "memory");
 
 	return  (oldval & mask);
 }
-

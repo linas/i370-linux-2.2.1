@@ -216,7 +216,7 @@ int    VM_Diagnose_Code_64(const enum VM_DIAGNOSE_64_FUNCTION  subfunction,
     aaddr1 = (long) &hcpsxibk.namei;
   }
     __asm__ __volatile__(
-	   " .set _i370_implied_op,%5;""
+	   " .set _i370_implied_op,%5;"
 	   " .set _i370_implied_op,%6;"
 	   " L    %0,%2;"
 	   " MVC  %O1(8,%R1),0(%0);"

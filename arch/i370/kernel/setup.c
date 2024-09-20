@@ -140,14 +140,14 @@ __initfunc(void setup_arch(char **cmdline_p,
 	panic_timeout = 180;
 	
 	/* query & construct CPU info */
-	__asm__ __volatile__ ("
-		STIDP	%0"
+	__asm__ __volatile__ (
+		"STIDP	%0"
 		: "=m" (CPUID) );
  
 	memset(cpu_details, 0, sizeof(cpu_details));
 	mycpu = _stap();
 	cpu_details[0].CPU_address = mycpu;
-	sprintf(cpu_details[0].CPU_name,"S390%03ld",mycpu);
+	sprintf(cpu_details[0].CPU_name, "S390%03ld", mycpu);
 	cpu_details[0].CPU_status  = 0;
 	for (i_cpu = 1; i_cpu < NR_CPUS; i_cpu++) {
 		if (i_cpu != mycpu) {

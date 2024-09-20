@@ -41,21 +41,22 @@
 /*================== End of Include Statements =============*/
 
 
-void i370_cons_open (struct inode *tty, struct file *filp) 
+int i370_cons_open (struct inode *tty, struct file *filp)
 {
 	printk ("i370_cons_open\n");
+	return 0;
 }
 
-void i370_cons_write (struct file *filp, const char *str, size_t len, loff_t n) 
+ssize_t i370_cons_write (struct file *filp, const char *str,
+                      size_t len, loff_t *noidea)
 {
-	printk ("i370_cons_write: len=%d %s<<<\n", len, str);
+	printk ("i370_cons_write: len=%ld %s<<<\n", len, str);
+	return 0;
 }
 
 void
 i370_console_driver(void)
 {
-
-
 }
 
 /*===================== End of Mainline ====================*/

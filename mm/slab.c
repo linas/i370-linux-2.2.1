@@ -1816,6 +1816,7 @@ next:
 			 */
 			goto dma_fail;
 good_dma:
+			while(0) {};
 		}
 		if (slabp == best_cachep->c_freep)
 			best_cachep->c_freep = slabp->s_nextp;

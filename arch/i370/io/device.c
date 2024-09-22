@@ -46,7 +46,7 @@
 #include <linux/string.h>
 #include <linux/sched.h>
 #include <linux/fs.h>
- 
+
 
 #include <asm/delay.h>
 #include <asm/iorb.h>
@@ -183,7 +183,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	/*------------------------------------------------------*/
 	/* Bump memory_start by count of valid subchannels.     */
 	/* Build Unit Blocks for all subchannels with	        */
-	/* device valid.					*/
+	/* device valid.                                        */
 	/*------------------------------------------------------*/
 
 	sid = 0x00010000;       /* back to subch 0 */
@@ -207,7 +207,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 			_msch(sid, &schib);
 
 			/*----------------------------------------------------*/
-			/* If we can find a device '009' under VM	      */
+			/* If we can find a device '009' under VM             */
 			/*----------------------------------------------------*/
 			if ((schib.devno == 0x0009) && (CPUID[0] == 0xff)) {
 				dev_cons	   = devices;
@@ -222,7 +222,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 printk ("Device 9 is %s (%d, %d)\n", devices->unitname, devices->unitmajor, devices->unitminor);
 			}
 			else {
-				rc = i370_getsid(sid,&schib,&dev_id);
+				rc = i370_getsid(sid, &schib, &dev_id);
 				if (!rc) i370_register_driver(sid, &schib, devices, &dev_id);
 			}
 			devices++;
@@ -266,8 +266,8 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 		return(rc); /* we lost the subchannel - tell caller */
 	}
 
-	/* 
-	 *	This really is bad form, but we can't handle an I/O 
+	/*
+	 *	This really is bad form, but we can't handle an I/O
 	 *	interrupt yet.
 	 */
 
@@ -305,9 +305,8 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 			rc = 1000;
 			break;
 		}
-
 	}
-        return rc;
+	return rc;
 }
 
 /************************************************************/
@@ -320,15 +319,15 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 /*                                                          */
 /************************************************************/
 
- 
-static int 
+
+static int
 i370_getsid(int sid, schib_t *schib, idchar_t *id)
 {
 	int     rc;
 	int     lign_ccw[5];
 	ccw_t	*ioccw;
- 
-        /* double-word align the ccw's */
+
+	/* double-word align the ccw's */
         ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
 
 	/*
@@ -344,12 +343,12 @@ i370_getsid(int sid, schib_t *schib, idchar_t *id)
 	ioccw[1].flags   = CCW_SLI;	     /* Suppress Length Incorrect */
 	ioccw[1].dataptr = 0;	             /* buffer = 0 */
 	ioccw[1].count   = 1;
- 
+
 	rc = i370_doio(sid, schib, ioccw);
- 
+
 	return rc;
 }
- 
+
 /************************************************************/
 /*                                                          */
 /* Name       - i370_getrdc.                                */
@@ -360,20 +359,20 @@ i370_getsid(int sid, schib_t *schib, idchar_t *id)
 /*                                                          */
 /************************************************************/
 
-int     
+int
 i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
 {
 	int     rc;
 	int     lign_ccw[5];
 	ccw_t	*ioccw;
- 
+
         /* double-word align the ccw's */
         ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) +7) >>3) << 3);
- 
+
 	/*
 	 *	Build CCWS for Read Device Characteristics.
 	 */
- 
+
 	memset(rdc, 0, sizeof(devchar_t));
 	ioccw[0].flags = CCW_CC | CCW_SLI;  /* Write chained to NOOP + SLI */
 	ioccw[0].cmd =   CCW_CMD_RDC;	    /* ccw command is read */
@@ -383,24 +382,23 @@ i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
 	ioccw[1].flags = CCW_SLI;	/* Suppress Length Incorrect */
 	ioccw[1].dataptr = 0;	/* buffer = 0 */
 	ioccw[1].count =   1;
- 
+
 	rc = i370_doio(sid, schib, ioccw);
- 
+
 	return rc;
- 
 }
 
 /************************************************************/
-/*                                                       */
-/* Name       - i370_getvol_eckd.                         */
-/*                                                       */
+/*                                                          */
+/* Name       - i370_getvol_eckd.                           */
+/*                                                          */
 /* Function   - Issue a read for the volume label from a    */
-/*           ECKD device.                              */
-/*                                                       */
+/*           ECKD device.                                   */
+/*                                                          */
 /************************************************************/
 
-static int     
-i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc) 
+static int
+i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 {
 	int     rc;
 
@@ -411,12 +409,12 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 	char 	label[12];
 	int     lign_ccw[7];
 	ccw_t	*ioccw;	        /* DE, LOCR, READ DATA */
- 
-        /* double-word align the ccw's */
-        ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) +7) >>3) << 3);
 
-	/* 
-	 *	Build CCWS to Read DASD Volume Label. Start with 
+	/* double-word align the ccw's */
+	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) +7) >>3) << 3);
+
+	/*
+	 *	Build CCWS to Read DASD Volume Label. Start with
 	 *	Parameters to Define Extent.
 	 */
 
@@ -439,7 +437,6 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 	locbuf.sector = 0xff;		/* Set Sector 0 */
 	locbuf.zeros  = 0x0000;		/* Set Must be zeros */
 
-
 	ioccw[0].flags = CCW_CC;	/* Command is Define Extent */
 	ioccw[0].cmd = CCW_CMD_DEXT;	/* ccw command is DE */
 	ioccw[0].count = sizeof(de_t);  /* length of DE PARM */
@@ -455,7 +452,7 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 	ioccw[2].count = sizeof(label); /* length of label */
 	ioccw[2].dataptr = &label[0];	/* address of read buffer */
 
-	/* 
+	/*
 	 *	Construct an ORB for the SSCH.
 	 */
 
@@ -471,8 +468,8 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 		return(rc); /* we lost the subchannel - tell caller */
 	}
 
-	/* 
-	 *	This really is bad form, but we can't handle an I/O 
+	/*
+	 *	This really is bad form, but we can't handle an I/O
 	 *	interrupt yet.
 	 */
 
@@ -513,7 +510,7 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 		}
 
 	}
-        return rc;
+	return rc;
 }
 
 /*===================== End of Function ====================*/
@@ -536,16 +533,15 @@ i370_register_driver(long sid, schib_t *schib,
 	int i_map, i_dev, rc;
 	devchar_t rdc;
 
-       /*----------------------------------------------------------*/
-       /* Map the control unit ID to a major node entry	           */
-       /*----------------------------------------------------------*/
-       for (i_map = 0; s390_map[i_map].cuid != 0; i_map++) {
-	       if ((s390_map[i_map].cuid == dev_id->idcuid) &&
+	/*----------------------------------------------------------*/
+	/* Map the control unit ID to a major node entry            */
+	/*----------------------------------------------------------*/
+	for (i_map = 0; s390_map[i_map].cuid != 0; i_map++) {
+		if ((s390_map[i_map].cuid == dev_id->idcuid) &&
 		   ((s390_map[i_map].model == 0) ||
 		    (s390_map[i_map].model == dev_id->idcumdl)))
 			break;
-		}
-
+	}
 
 	/*----------------------------------------------------------*/
 	/* Use the major node entry to register the device          */
@@ -580,7 +576,7 @@ printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitma
 			printk("Unable to register device %08X. Rc: %dl\n",
 			       schib->devno, rc);
 			_msch(sid,schib);
-		}							    
+		}
 
 		/*----------------------------------------------------*/
 		/* We flag the first 3270 device as our console. This */
@@ -591,7 +587,7 @@ printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitma
 			dev_con3270 = devices;
 			if (dev_cons == NULL) dev_cons = devices;
 		}
- 
+
 		rc = i370_getrdc(sid, schib, &rdc);	
 		if (!rc) {
 			devices->unitmodl = rdc.devcumod;

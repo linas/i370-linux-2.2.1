@@ -183,10 +183,12 @@ __initfunc(void setup_arch(char **cmdline_p,
 	*cmdline_p = cmd_line;
 
 	*memory_start_p = (unsigned long) _end;
-	/* If we're running under VM the first byte of the CPUID will be 0xff
-	 * in which case we can DIAGNOSE the amount of available memory */
+	/* When running under VM, the first byte of the CPUID will be 0xff,
+	 * in which case we can DIAGNOSE the amount of available memory.
+	 * On Hercules, CPUID[0] matches CPUVERID in the config file;
+	 * the reset is CPUSERIAL and CPUMODEL from the Hercules config. */
 	if (CPUID[0] == 0xff || _i370_hercules_guest_p()) {
-	        *memory_end_p = VM_Diagnose_Code_60();
+		*memory_end_p = VM_Diagnose_Code_60();
 	} else {
 		/* hardcode the memory size */
 		*memory_end_p = 0x2000000;  // 32M

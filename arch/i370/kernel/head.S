@@ -22,14 +22,14 @@
 1:	NOPR	r0;
 
 /* First instruction executed is here */
-/* 
+/*
  * We set up just enough to let a C lang call to be made.
- * Basically, this means just reserving some space for 
+ * Basically, this means just reserving some space for
  * a stack and making r13 point at it. That's all, and we can call.
  *
  * Note that we will be using this stack not just for startup,
  * but also for the exception handlers below ...
- * 
+ *
  * Note that this stack is kind of bogus, and should be replaced by
  * something that has a guard page at the end of it.
  *
@@ -85,28 +85,28 @@ _cinit:
  */
 
 /*
- * Exception handling code.  
+ * Exception handling code.
  * Does just enough work to call a C routine.
- * Macro takes as arguments the exception handler to call, and 
+ * Macro takes as arguments the exception handler to call, and
  * address of a temporary scratch area in the prefix page.
  * -- Save just some of the registers; the C prologue will
  *    save the rest on stack.
- * -- The C routine will return the double-word PSW on 
+ * -- The C routine will return the double-word PSW on
  *    in the prefix page
  *
- * We check the psw to see if we were in problem state or supervisor 
- * state. If we were interrupted from supervisor state, then the 
- * kernel stack pointer is OK and ready to go.  
+ * We check the psw to see if we were in problem state or supervisor
+ * state. If we were interrupted from supervisor state, then the
+ * kernel stack pointer is OK and ready to go.
  *
  * If we were interrupted from problem state, then r13
- * contains the user's stack pointer; we need to track down the kernel 
+ * contains the user's stack pointer; we need to track down the kernel
  * stack pointer and set that up before launching into C.
  *
  * Memory map:
- * starting at sav, the memory map should match the memory layout 
- * of the C struct _i370_interrupts_state_s exactly; this struct is 
+ * starting at sav, the memory map should match the memory layout
+ * of the C struct _i370_interrupts_state_s exactly; this struct is
  * saved on the stack and passed to C routines as a pointer.
- * 
+ *
  * NB: Floating point regs get saved only during task switch, and not here ...
  *
  * sav-16  old interrupt mask
@@ -268,7 +268,7 @@ MachineCheck:
 SupervisorCall:
 	SAVE_REGS (INTERRUPT_BASE)
 	EXCEPTION_TRACE (SVC_TRC_ID, 0, PFX_SVC_CODE, SVC_PSW_OLD)
-	EXCEPTION_PROLOG (INTERRUPT_BASE, SVC_PSW_OLD) 
+	EXCEPTION_PROLOG (INTERRUPT_BASE, SVC_PSW_OLD)
 
 	SLR	r2,r2			/* put zero in r2 */
 	LH	r2,138(,0)		/* load interruption code from pfx */
@@ -394,8 +394,8 @@ empty_zero_page:
 	.space	4096
 
 /*
- * swapper_pg_dir is the to be the virtual-mem page directory 
- * table associated with the init process.  To map 2GB, it must 
+ * swapper_pg_dir is the to be the virtual-mem page directory
+ * table associated with the init process.  To map 2GB, it must
  * two pages in size.
  */
 	.p2align 12
@@ -407,7 +407,7 @@ swapper_pg_dir:
  * This space gets a copy of optional info passed to us by the bootstrap
  * Used to pass parameters into the kernel like root=/dev/sda1, etc.
  */	
-/* 
+/*
  * XXX a hack to boot, for now
  * ramdisk size in KB, but ramdisk start in block number
  */
@@ -421,7 +421,7 @@ cmd_line:
 /* The syscall table is in the text section; making it RO.
  *
  * The syscall table is copied from the powerpc code; it should match
- * the table in <asm/unistd.h> which was copied from powerpc code 
+ * the table in <asm/unistd.h> which was copied from powerpc code
  * XXX might be a better deal to use the alpha syscall table... ??? XXX
  * XXX it needs to be hammered into shape for the i370
  */
@@ -570,7 +570,7 @@ sys_call_table:
 	.long sys_setfsuid
 	.long sys_setfsgid
 	.long sys_llseek	/* 140 */
-        .long sys_getdents
+	.long sys_getdents
 	.long sys_select
 	.long sys_flock
 	.long sys_msync

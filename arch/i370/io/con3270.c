@@ -1,6 +1,12 @@
 /*
  * Implements 3270 console
  * Currently output only, used to dump kernel printk's
+ *
+ * Public Domain 3270 driver code can be found here:
+> https://sourceforge.net/p/pdos/gitcode/ci/master/tree/pdpclib/sapstart.asm
+> https://sourceforge.net/p/pdos/gitcode/ci/master/tree/pdpclib/zpbsupa.asm
+> https://sourceforge.net/p/pdos/gitcode/ci/master/tree/pdpclib/sapsupa.asm
+
  */
 #include <linux/config.h>
 #include <linux/module.h>

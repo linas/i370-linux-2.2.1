@@ -26,7 +26,7 @@
 #define MACH_PSW_NEW	0x70	/* Machine Check new PSW */
 #define IO_PSW_NEW	0x78	/* IO Exception new PSW */
 
-#define PFX_EXT_SIG	0x80	/* External Interruption Service Signa */
+#define PFX_EXT_SIG	0x80	/* External Interruption Service Signal */
 #define PFX_EXT_CODE	0x84	/* External Interruption Code location */
 #define PFX_SVC_CODE	0x88	/* Supervisor Call Code location */
 #define PFX_PRG_CODE	0x8c	/* Program Interrrupt Code location */

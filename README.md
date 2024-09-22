@@ -5,6 +5,8 @@ the IBM System/370. This is copy of the original Bigfoot CVS tree,
 dating to February-December 1999, plus some recent September 2024
 cleanups and updates.
 
+Let's call this the __Bigfoot 25th Anniversary Edition__
+
 ### History
 Bigfoot was a port of the Linux kernel to the IBM mainframe, created by
 Linas Vepstas, over the course of February to December 1999. The port

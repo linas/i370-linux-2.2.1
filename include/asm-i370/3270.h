@@ -1,5 +1,5 @@
 /*
- * Definitions for the 3270/3210 Console
+ * Definitions for the 3270/3210/3215 Console
  */
 
 #ifndef I370_3270_H_

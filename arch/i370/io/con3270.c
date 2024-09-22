@@ -71,7 +71,7 @@ static struct console cons3210 = {
         0,
         NULL
 };
- 
+
 long		pbufnext;	/* index of next line in prtlines */
 char		conBuffer[1920];
 pbuffer_t	prtlines[MAX_PRINT_LINES];	/* PRINTK buffer array */
@@ -88,10 +88,10 @@ long		cons_init =0;
 /* ===================================================== */
 
 long	
-console_3270_init(long mstart, long mend) 
+console_3270_init(long mstart, long mend)
 {
 	cons_init = 1;
-        if (dev_cons == dev_con3270) 
+	if (dev_cons == dev_con3270)
 		register_console(&cons3270);
 	else
 		register_console(&cons3210);
@@ -100,7 +100,7 @@ console_3270_init(long mstart, long mend)
 
 /* ===================================================== */
 
-static void 
+static void
 console_write_3270(struct console *c, const char *s,
 				unsigned count)
 {
@@ -121,8 +121,8 @@ console_write_3270(struct console *c, const char *s,
 console_write_3210(c, s, count);
 return;
 
-        /* double-word align the ccw array */
-        ioccw = (ccw_t *) (((((unsigned long) lign_ccw) + 7) >>3) << 3);
+	/* double-word align the ccw array */
+	ioccw = (ccw_t *) (((((unsigned long) lign_ccw) + 7) >>3) << 3);
 
 //	flags = cli();	/* reset interrupts */
 	spin_lock_irqsave(NULL,flags);
@@ -189,11 +189,11 @@ return;
 	orb.lpm = 0xff;			/* Logical Path Mask */
 	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
 
-	rc = _tsch(dev_con3270->unitsid,&irb);     /* hack for unsolicited DE */
-	rc = _ssch(dev_con3270->unitsid,&orb);     /* issue Start Subchannel */
+	rc = _tsch(dev_con3270->unitsid, &irb);     /* hack for unsolicited DE */
+	rc = _ssch(dev_con3270->unitsid, &orb);     /* issue Start Subchannel */
 
 	while (1) {
-		rc = _tsch(dev_con3270->unitsid,&irb); 
+		rc = _tsch(dev_con3270->unitsid,&irb);
 		if (!(irb.scsw.status & 0x1)) {
 			udelay (100);	/* spin 100 microseconds */
 			continue;
@@ -206,12 +206,12 @@ return;
 	/*
 	 * Reset the 3270 Attribute for the Last Output line to Normal
 	 * Intensity.
-         */
+	 */
 
 	lastline->attribute = ATTRSKIP;
 	spin_unlock_irqrestore(NULL,flags);
 //	sti();
-}  
+}
 
 /* ===================================================== */
 
@@ -219,36 +219,36 @@ static void
 console_write_3210(struct console *c, const char *s,
 				unsigned count)
 {
-	long	rc;
-	long	i;
-	long	flags;
-        int     lign_ccw[5];
-	ccw_t	*ioccw;
-	orb_t	orb;
-	irb_t	irb;
- 
+	long  rc;
+	long  i;
+	long  flags;
+	int   lign_ccw[5];
+	ccw_t *ioccw;
+	orb_t orb;
+	irb_t irb;
+
 	if (!(cons_init)) {
 		return;
 	}
 
-        /* double-word align the ccw array */
-        ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
- 
+	/* double-word align the ccw array */
+	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
+
 //	flags = cli();	/* reset interrupts */
 	spin_lock_irqsave(NULL,flags);
- 
+
 	/*
 	 *  Build the CCW for the 3210 Console I/O
 	 *  CCW = WRITE chained to NOP.
 	 */
- 
+
 	for (i=0; i<count; i++) {
 		conBuffer[pbufnext] = ascii_to_ebcdic[(s[i])];
 		/* kill the EBCDIC line-feed */
 		if (conBuffer[pbufnext] == 0x25)  conBuffer[pbufnext] = 0x0;
 		if ((conBuffer[pbufnext] == 0x00) ||
-		    (pbufnext >= sizeof(conBuffer))) {
-			
+		    (pbufnext >= sizeof(conBuffer)))
+		{
 			ioccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
 			ioccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
 			ioccw[0].count   = pbufnext;
@@ -261,18 +261,18 @@ console_write_3210(struct console *c, const char *s,
 			/*
 			 *  Clear and format the ORB
 			*/
- 
+
 			memset(&orb,0x00,sizeof(orb_t));
 			orb.intparm = (int) dev_con3210;
 			orb.fpiau  = 0x80;		/* format 1 ORB */
 			orb.lpm    = 0xff;			/* Logical Path Mask */
 			orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
- 
+
 			rc = _tsch(dev_con3210->unitsid,&irb); /* hack for unsolicited DE */
 			rc = _ssch(dev_con3210->unitsid,&orb); /* issue Start Subchannel */
 
 			while (1) {
-				rc = _tsch(dev_con3210->unitsid,&irb);
+				rc = _tsch(dev_con3210->unitsid, &irb);
 				if (!(irb.scsw.status & 0x1)) {
 					udelay (100);	/* spin 100 microseconds */
 					continue;
@@ -285,19 +285,19 @@ console_write_3210(struct console *c, const char *s,
 		else
 			pbufnext++;
 	}
- 
+
 	spin_unlock_irqrestore(NULL,flags);
 //	sti();
 }
- 
+
 /* ===================================================== */
- 
-static kdev_t 
+
+static kdev_t
 console_device_3270(struct console *c)
 {
-        // return MKDEV(TTYAUX_MAJOR, 64 + c->index);
+	// return MKDEV(TTYAUX_MAJOR, 64 + c->index);
 	// see notes below
-        return MKDEV(TTY_MAJOR, 1);
+	return MKDEV(TTY_MAJOR, 1);
 }
 
 /* ===================================================== */
@@ -305,34 +305,33 @@ console_device_3270(struct console *c)
 static kdev_t
 console_device_3210(struct console *c)
 {
-        // return MKDEV(TTYAUX_MAJOR, 64 + c->index);
-	/* When /dev/console (5,1) is opened it gets remapped to (4.1)
+	// return MKDEV(TTYAUX_MAJOR, 64 + c->index);
+	/* When /dev/console (5,1) is opened it gets remapped to (4,1)
 	 * which is /dev/tty1 and so, we want to appear on /dev/tty1
 	 * when invoked.  I'm somewhat confused though ... don't we
-	 * want to returns n++ each time we're called ???  */
-        return MKDEV(TTY_MAJOR, 1);
+	 * want to return n++ each time we're called ???  */
+	return MKDEV(TTY_MAJOR, 1);
 }
- 
+
 /* ===================================================== */
- 
-__initfunc(static int 
+
+__initfunc(static int
 console_setup_3270(struct console *co, char *options))
 {
 	long	i;
 	
 	pbufnext = 0x0;		/* next line = zero */
 	for (i=0; i<MAX_PRINT_LINES; i++) {
-		memset(&prtlines[i].prtbuf[0],0x0,MAX_LINE_SIZE);
+		memset(&prtlines[i].prtbuf[0], 0x0, MAX_LINE_SIZE);
 	}
 	return(0);
 }
- 
+
 /* ===================================================== */
- 
+
 __initfunc(static int
 console_setup_3210(struct console *co, char *options))
 {
-	
 	pbufnext = 0x0;		/* next line = zero */
 	return(0);
 }

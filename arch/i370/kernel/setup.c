@@ -30,6 +30,12 @@ CPU_t cpu_details[NR_CPUS];
 
 char saved_command_line[512];
 
+#ifdef CONFIG_HERCULES_GUEST
+unsigned long _herc_psw[2] __attribute__ ((section(".psa"))) = {
+	0x00080000, /* Disabled wait */
+	0x80010000  /* Start of text section */ };
+#endif /* CONFIG_HERCULES_GUEST */
+
 // Overlay struct PSA onto real address zero.
 // The __attribute__ ((section(".psa"))) forces it into its own
 // linker section, which is mapped to address zero. See vmlinux.lds

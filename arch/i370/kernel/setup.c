@@ -1,4 +1,3 @@
-
 /*
  * arch/i370/kernel/setup.c
  *
@@ -31,6 +30,11 @@ CPU_t cpu_details[NR_CPUS];
 
 char saved_command_line[512];
 
+// Overlay struct PSA onto real address zero.
+// The __attribute__ ((section(".psa"))) forces it into its own
+// linker section, which is mapped to address zero. See vmlinux.lds
+// for details.
+struct PSA _PSA_  __attribute__ ((section(".psa")));
 
 extern void i370_find_devices (unsigned long *memory_start_p, 
 				unsigned long *memory_end_p);

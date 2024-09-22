@@ -1,10 +1,39 @@
+/*
+ * Linker spec.
+ *
+ * Tells the gnu linker how to arrange the various sections into
+ * various loadable segments. This spec is used to place the initial
+ * PSW at real address zero, and the text well above the "Prefix Page"
+ * (PSA) that describes the processor.
+ *
+ * Review the result with `i370-ibm-linux-readelf -a vmlinux`
+ */
+
 OUTPUT_FORMAT("elf32-i370")
 ENTRY(_start)
+
+/* Create a custom section that will be mapped to address real zero.
+ * This will cause the loader to actually put this segment in the
+ * LOAD segment, thus causing 64KB of zeros to be written into the
+ * vmlinux ELF file. The goal of doing this is to simplify the design
+ * of the ELF boatloader for Hercules: all the bootloader has to do
+ * is the strip off the ELF headers, and load the LOAD segment at
+ * address zero. Tah Dah!
+ *
+ * The alternative would to be have the bootloader load at the text
+ * segment start adddress, and then insert a PSW that jumps to that
+ * address. But we don't have that loader, yet.
+ */
+PHDRS
+{
+   psaseg PT_LOAD ;
+}
 SECTIONS
 {
-  /* psa section  */
-  _PSA_ = 0x0;
- 
+  /* Absolute (real) address zero */
+   /* _PSA_ = 0x0;  ... This is now struct PSA _PSA_; in setup.c */
+   .psa : { *(.psa) } : psaseg  /* Force into segment above */
+
   /* text section */
   /* starts at 64KB, should be enough room for a PSA for a 15-way SMP */
    . = 0x10000;

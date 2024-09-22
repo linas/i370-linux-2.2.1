@@ -101,7 +101,7 @@ struct PSA {		/* PSA: Prefixed Storage Area */
   };
 
 typedef struct PSA psa_t;
-extern struct PSA _PSA_ ;	/* defined in head.S */
+extern struct PSA _PSA_ ;	/* Defined in setup.c */
 
 #else  // __ASSEMBLY__
 

@@ -22,10 +22,10 @@
 // cmd_line is array of 512 in head.S
 extern char cmd_line[512];
  
-// CPUID is the result of a STIDP
-// Must be double-word aligned, so hack alignment
+// CPUID is the result of a STIDP. Its 8 bytes, and
+// must be double-word aligned. Grab extra, and then hack alignment.
 unsigned char* CPUID;
-unsigned char unaligned_cpuid[12];
+unsigned char unaligned_cpuid[16];
  
 // CPU Details
 CPU_t cpu_details[NR_CPUS];

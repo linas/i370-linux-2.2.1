@@ -23,7 +23,9 @@
 extern char cmd_line[512];
  
 // CPUID is the result of a STIDP
-unsigned char CPUID[8];
+// Must be double-word aligned, so hack alignment
+unsigned char* CPUID;
+unsigned char unaligned_cpuid[12];
  
 // CPU Details
 CPU_t cpu_details[NR_CPUS];
@@ -126,13 +128,6 @@ __initfunc(void setup_arch(char **cmdline_p,
 	extern char _bss[], _ebss[];
 	extern struct consw video3270_con;
 
-	/* XXX Hack around bug in 3CARD boot loader which doesn't clear
-	 * the BSS but instead puts the elf symbol table there yuck. 
-	 * Actually, we can't do it here, we have to do it in init/main.c,
-	 * start_kernel(), before the first printk.  Got to fix the loader.
-	 */
-	/* memset (_bss, 0, ((unsigned long) _ebss) - ((unsigned long)_bss)); */
-
 	/* XXX XXX XXX Serious bug alert.
 	 * gcc version egcs-2.91.66 19990314 (egcs-1.1.2 release)
 	 * seems to have a bad optimizer bug that 
@@ -149,7 +144,10 @@ __initfunc(void setup_arch(char **cmdline_p,
 	/* reboot on panic */	
 	panic_timeout = 180;
 	
-	/* query & construct CPU info */
+	/* Query & construct CPU info */
+	/* On Hercules, at least, CPUID must be double-word aligned. */
+	CPUID = (char *) (((((unsigned long) unaligned_cpuid) + 7) >>3) << 3);
+
 	__asm__ __volatile__ (
 		"STIDP	%0"
 		: "=m" (CPUID) );

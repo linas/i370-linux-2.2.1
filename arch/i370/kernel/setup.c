@@ -21,12 +21,12 @@
 
 // cmd_line is array of 512 in head.S
 extern char cmd_line[512];
- 
+
 // CPUID is the result of a STIDP. Its 8 bytes, and
 // must be double-word aligned. Grab extra, and then hack alignment.
 unsigned char* CPUID;
 unsigned char unaligned_cpuid[16];
- 
+
 // CPU Details
 CPU_t cpu_details[NR_CPUS];
 
@@ -44,7 +44,7 @@ unsigned long _herc_psw[2] __attribute__ ((section(".psa"))) = {
 // for details.
 struct PSA _PSA_  __attribute__ ((section(".psa")));
 
-extern void i370_find_devices (unsigned long *memory_start_p, 
+extern void i370_find_devices (unsigned long *memory_start_p,
 				unsigned long *memory_end_p);
 struct scatter_block {
 	struct scatter_block * next;
@@ -75,7 +75,7 @@ void setup_psa(void)
 	_PSA_.cpumask = 0x0001;
 	
 	/* that is, really, very minimal, in an smp env. it will fail blatantly */
-} 
+}
 
 /* ========================================================== */
 /*
@@ -84,7 +84,7 @@ void setup_psa(void)
 trc_page_t	*trace_base;
 
 void	
-setup_trace(unsigned long *memory_start) 
+setup_trace(unsigned long *memory_start)
 {
 	long	i;
 	unsigned long cpuid = _stap() | (1<<31);
@@ -98,7 +98,7 @@ setup_trace(unsigned long *memory_start)
 
 	/* build ciruclar list */
 	trc = trace_base;
-	for (i=0; i<MAX_TRACE_PAGES; i++) 
+	for (i=0; i<MAX_TRACE_PAGES; i++)
 	{
 		trc->trc_cpuad = cpuid;
 		trc->trc_next = (trc+1);
@@ -110,7 +110,7 @@ setup_trace(unsigned long *memory_start)
 	*memory_start = (long) (trc+1);         /* set new memory start */
 
 	/* put trace table base into control reg 12 */
-	cr12 = (unsigned long)trace_base; 
+	cr12 = (unsigned long)trace_base;
 	cr12 |= 0x1;
 	_lctl_r12 (cr12);
 }
@@ -128,8 +128,8 @@ __initfunc(void setup_arch(char **cmdline_p,
 
 	/* XXX XXX XXX Serious bug alert.
 	 * gcc version egcs-2.91.66 19990314 (egcs-1.1.2 release)
-	 * seems to have a bad optimizer bug that 
-	 * transforms 
+	 * seems to have a bad optimizer bug that
+	 * transforms
 	 * init_task.tss.ksp = (unsigned long) &init_task +1024;
 	 * into garbage. The work-around is to set the value
 	 * here, and to increment it later, after a subr call,
@@ -149,7 +149,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 	__asm__ __volatile__ (
 		"STIDP	%0"
 		: "=m" (*CPUID) );
- 
+
 	memset(cpu_details, 0, sizeof(cpu_details));
 	mycpu = _stap();
 	cpu_details[0].CPU_address = mycpu;
@@ -226,21 +226,21 @@ machine_restart(char *cmd)
 	i370_halt();
 }
 
-void 
+void
 machine_halt(void)
 {
    	printk("machine halt\n");
 	i370_halt();
 }
 
-void 
+void
 machine_power_off(void)
 {
 	printk("machine power off\n");
 	i370_halt();
 }
 
-int 
+int
 get_cpuinfo(char *buffer)
 {
 	unsigned long len = 0, i_cpu;

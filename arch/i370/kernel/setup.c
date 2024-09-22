@@ -67,8 +67,6 @@ void scatter_move(void * area, struct scatter_block * first_block)
 
 void setup_psa(void)
 {
-	_PSA_.initflag.hercules |= _i370_hercules_guest_p();
-	
 	_PSA_.Current = &init_task;		/* static, is in fact in the constant data */
 	
 	_PSA_.cpuadp = _stap();
@@ -183,10 +181,15 @@ __initfunc(void setup_arch(char **cmdline_p,
 	*cmdline_p = cmd_line;
 
 	*memory_start_p = (unsigned long) _end;
-	/* When running under VM, the first byte of the CPUID will be 0xff,
-	 * in which case we can DIAGNOSE the amount of available memory.
+
+	/* On bare metal, the first byte is supposed to (always) be zero.
+	 * On VM, the first byte is 0xff.
 	 * On Hercules, CPUID[0] matches CPUVERID in the config file;
-	 * the reset is CPUSERIAL and CPUMODEL from the Hercules config. */
+	 * and the rest is CPUSERIAL and CPUMODEL from the Hercules config.
+	 */
+	if (CPUID[0] != 0x0 && CPUID[0] != 0xff)
+		_PSA_.initflag.hercules = 1;
+
 	if (CPUID[0] == 0xff || _i370_hercules_guest_p()) {
 		*memory_end_p = VM_Diagnose_Code_60();
 	} else {
@@ -216,7 +219,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 #endif
 }
 
-void 
+void
 machine_restart(char *cmd)
 {
 	printk("machine restart XXX not implemented\n");

@@ -15,6 +15,7 @@ _$*
 *.orig
 *.rej
 .del-*
+.depend
 *.a
 *.olb
 *.o
@@ -24,5 +25,7 @@ _$*
 *.Z
 *.elc
 *.ln
+*.a.flags
+*.o.flags
 core
 # CVS default ignores end

@@ -125,7 +125,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 	unsigned long mycpu, i_cpu;
 	extern int panic_timeout;
 	extern char _etext[], _edata[], _end[];
-	extern char _bss[], _ebss[];
+	// extern char _bss[], _ebss[];
 	extern struct consw video3270_con;
 
 	/* XXX XXX XXX Serious bug alert.
@@ -150,7 +150,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 
 	__asm__ __volatile__ (
 		"STIDP	%0"
-		: "=m" (CPUID) );
+		: "=m" (*CPUID) );
  
 	memset(cpu_details, 0, sizeof(cpu_details));
 	mycpu = _stap();
@@ -242,7 +242,7 @@ get_cpuinfo(char *buffer)
 {
 	unsigned long len = 0, i_cpu;
 
-	len += sprintf(len+buffer,"Processor: %08lX\n", (unsigned long) CPUID);
+	len += sprintf(len+buffer,"Processor: %08lX\n", (unsigned long) *CPUID);
 	for (i_cpu = 0; i_cpu < NR_CPUS; i_cpu++) {
 		if (cpu_details[i_cpu].CPU_status != CPU_inoprtv) {
 			len += sprintf(len+buffer,"CPU: %s Address: %04ld Status: %08lX\n",

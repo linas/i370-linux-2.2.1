@@ -62,7 +62,7 @@ void ret_from_syscall(void);
 /*----------------------------------------------------------------*/
 /* Machine Check Handling                                         */
 /*----------------------------------------------------------------*/
- 
+
 void
 MachineCheckException(i370_interrupt_state_t *saved_regs)
 {
@@ -75,20 +75,20 @@ MachineCheckException(i370_interrupt_state_t *saved_regs)
 /*----------------------------------------------------------------*/
 /* Program Check Handling                                         */
 /*----------------------------------------------------------------*/
-   
+
 static int pc_monitor(i370_interrupt_state_t *, unsigned long,
-                       unsigned short);
+                      unsigned short);
 static int pc_unsupported(i370_interrupt_state_t *,  unsigned long,
-                       unsigned short);
+                          unsigned short);
 int do_page_fault(i370_interrupt_state_t *,  unsigned long,
                   unsigned short);
- 
+
 static pc_handler pc_table[] = {
 	{-1,                   pc_unsupported},
 	{PIC_OPERATION,        pc_unsupported},
 	{PIC_PRIVLEDGED,       pc_unsupported},
 	{PIC_EXECUTE,          pc_unsupported},
-        {PIC_PROTECTION,       do_page_fault},
+	{PIC_PROTECTION,       do_page_fault},
 	{PIC_ADDRESSING,       pc_unsupported},
 	{PIC_SPECIFICATION,    pc_unsupported},
 	{PIC_DATA,             pc_unsupported},
@@ -100,13 +100,13 @@ static pc_handler pc_table[] = {
 	{PIC_EXP_UNDERFLOW,    pc_unsupported},
 	{PIC_SIGNIFICANCE,     pc_unsupported},
 	{PIC_FP_DIVIDE,        pc_unsupported},
-        {PIC_SEGEMENT_TRANS,   do_page_fault},
-        {PIC_PAGE_TRANS,       do_page_fault},
+	{PIC_SEGEMENT_TRANS,   do_page_fault},
+	{PIC_PAGE_TRANS,       do_page_fault},
 	{PIC_TRANSLATION,      pc_unsupported},
 	{PIC_SPECIAL_OP,       pc_unsupported},
 	{PIC_PAGEX,            pc_unsupported},
 	{PIC_OPERAND,          pc_unsupported},
-        {PIC_TRACE_TABLE,      pc_unsupported}, /* Handled in head.S */
+	{PIC_TRACE_TABLE,      pc_unsupported}, /* Handled in head.S */
 	{PIC_ASN_TRANS,        pc_unsupported},
 	{-1,                   pc_unsupported},
 	{PIC_VECTOR_OP,        pc_unsupported},
@@ -151,7 +151,7 @@ static pc_handler pc_table[] = {
 	{-1,                   pc_unsupported},
 	{PIC_MONITOR,          pc_monitor}
 };
- 
+
 
 void
 ProgramCheckException(i370_interrupt_state_t *saved_regs)
@@ -161,7 +161,7 @@ ProgramCheckException(i370_interrupt_state_t *saved_regs)
 
 	unsigned short pic_code,
                 per_event;
- 
+
 	pic_code  = pfx_prg_code & 0x00ff;
 	per_event = pic_code & 0x0080;
 	pic_code  &= 0x007f;
@@ -179,7 +179,7 @@ pc_monitor(i370_interrupt_state_t *saved_regs,
 	printk ("Monitor Event Triggered\n");
         return(0);
 }
- 
+
 static int
 pc_unsupported(i370_interrupt_state_t *saved_regs,
            unsigned long  trans,
@@ -189,7 +189,7 @@ pc_unsupported(i370_interrupt_state_t *saved_regs,
 		code, trans);
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
-	i370_halt(); 
+	i370_halt();
         return(1);
 }
 
@@ -235,7 +235,7 @@ InputOutputException(i370_interrupt_state_t *saved_regs)
 static void ei_time_slice(i370_interrupt_state_t *, unsigned short);
 static void ei_iucv(i370_interrupt_state_t *, unsigned short);
 static void ei_unsupported(i370_interrupt_state_t *, unsigned short);
- 
+
 static ei_handler ei_table[] = {
  {EI_INTERRUPT_KEY,  ei_unsupported},
  {EI_TOD_CLOCK_SYNC, ei_unsupported},
@@ -248,7 +248,7 @@ static ei_handler ei_table[] = {
  {EI_IUCV,           ei_iucv},
  {0,                 ei_unsupported},
 };
- 
+
 void
 ExternalException (i370_interrupt_state_t *saved_regs)
 {
@@ -262,7 +262,7 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 	ei_table[i_ei].ei_flih(saved_regs, code);
 
 }
- 
+
 static void
 ei_iucv(i370_interrupt_state_t *saved_regs,
         unsigned short code)
@@ -270,7 +270,7 @@ ei_iucv(i370_interrupt_state_t *saved_regs,
         printk ("IUCV external exception code=0x%x\n", code);
         return;
 }
- 
+
 static void
 ei_unsupported(i370_interrupt_state_t *saved_regs,
                unsigned short code)
@@ -286,18 +286,18 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 	unsigned long long ticko;
 	/* get and set the new clock value */
 	/* clock ticks every 250 picoseconds (actually, every
-	 * microsecond/4K). We want an interrupt every HZ of 
+	 * microsecond/4K). We want an interrupt every HZ of
 	 * a second */
 
 #define CONFIG_VM_GUEST
 #ifdef CONFIG_VM_GUEST
 	/* It is more correct to use stckc as this avoids clock skew.
 	 * However, on VM, if VM is overburdened, then we risk never
-	 * catching up.  So use stck for VM ... 
-	 * We're also going to make the clock tick 10 times a second, 
+	 * catching up.  So use stck for VM ...
+	 * We're also going to make the clock tick 10 times a second,
 	 * not 100, since that seems to be too often in some cases.
-	 * Gee, I wonder if we should #define HZ to 10 not 100??? 
-	 * Actually, while debugging, we set this to four interrupts 
+	 * Gee, I wonder if we should #define HZ to 10 not 100???
+	 * Actually, while debugging, we set this to four interrupts
 	 * a second.
 	 */
 	ticko = _stck ();
@@ -305,11 +305,11 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 	ticko += (25000000/HZ) << 12;      // effective HZ = 4 per second
 	_sckc (ticko);
 #else
-	ticko = _stckc (); 
+	ticko = _stckc ();
 	ticko += (1000000/HZ) << 12;
 	_sckc (ticko);
 #endif /* CONFIG_VM_GUEST */
-	
+
 	/* let Linux do its timer thing */
 	do_timer (saved_regs);
 
@@ -321,8 +321,8 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 /* do SLIH intrerrupt handling (the bottom half) */
 int check_stack(struct task_struct *tsk) ;
 
-void 
-ret_from_syscall (void) 
+void
+ret_from_syscall (void)
 {
 	int do_it_again = 1;
 
@@ -336,9 +336,9 @@ ret_from_syscall (void)
 #ifdef CHECK_STACK
 	check_stack(current);
 #endif
-	/* When we enable interrupts with sti(), we'll get a shower 
-	 * of interrupts here. The in_lsih flag will keep them 
-	 * returning to here quickly enough.  Handle them, and 
+	/* When we enable interrupts with sti(), we'll get a shower
+	 * of interrupts here. The in_lsih flag will keep them
+	 * returning to here quickly enough.  Handle them, and
 	 * then keep looping until they're all gone.
 	 */
 	while (do_it_again) {
@@ -361,7 +361,7 @@ ret_from_syscall (void)
 				do_it_again = 1;
 				continue;
 			}
-			/* If we are here, we were just scheduled. 
+			/* If we are here, we were just scheduled.
                          * So deliver any pending signals before returning. */
 			if (current->sigpending) {
 				i370_do_signal ();
@@ -371,7 +371,7 @@ ret_from_syscall (void)
 		}
 	}
 	/* return to FLIH with interrupts disabled */
-	cli ();  
+	cli ();
 	current->tss.in_slih = 0;
 }
 
@@ -402,7 +402,7 @@ extern void ProgramCheck (void);
 /*
  * We initialize interrupt vectors twice:
  * first with storage key zero, so that we can take timer interrupts while
- * booting, and then, with a non-zero storage key so that we can run 
+ * booting, and then, with a non-zero storage key so that we can run
  * the interrupts without clobbering text pages.
  */
 
@@ -424,7 +424,7 @@ __initfunc(void i370_trap_init (int key))
 		 */
 		clock_reset = 0xffffffffffffffffLL;
 		_sckc (clock_reset);
-	 
+
 		/* store the offset between the task struct and the kernel stack
 		 * pointer in low memory where we can get at it for calculation
 		 */
@@ -436,17 +436,17 @@ __initfunc(void i370_trap_init (int key))
 	/* note that all interrupts will run in execution key 6 ... */
 	// install the SVC handler
 	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
-	psw.addr = ((unsigned long) SupervisorCall) | PSW_31BIT; 
+	psw.addr = ((unsigned long) SupervisorCall) | PSW_31BIT;
 	*((psw_t *) SVC_PSW_NEW) = psw;
 
 	// install the External Interrupt (clock) handler
 	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
-	psw.addr = ((unsigned long) External) | PSW_31BIT; 
+	psw.addr = ((unsigned long) External) | PSW_31BIT;
 	*((psw_t *) EXTERN_PSW_NEW) = psw;
 
 	// install the I/O Interrupt handler
 	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
-	psw.addr = ((unsigned long) InputOutput) | PSW_31BIT; 
+	psw.addr = ((unsigned long) InputOutput) | PSW_31BIT;
 	*((psw_t *) IO_PSW_NEW) = psw;
 
 	// restart quick hack
@@ -456,7 +456,7 @@ __initfunc(void i370_trap_init (int key))
 
 	// install the ProgramCheck handler
 	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
-	psw.addr = ((unsigned long) ProgramCheck) | PSW_31BIT; 
+	psw.addr = ((unsigned long) ProgramCheck) | PSW_31BIT;
 	*((psw_t *) PROG_PSW_NEW) = psw;
 }
 

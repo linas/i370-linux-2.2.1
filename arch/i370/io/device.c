@@ -81,7 +81,7 @@ unitblk_t *dev_cons    = NULL,
           *dev_con3270 = NULL;
 
 long    sid_count = 0;
-extern unsigned char CPUID[8];
+extern unsigned char* CPUID;
 
 S390map_t s390_map[9] = {
 	{T3990, 0,     0,  0},
@@ -208,8 +208,10 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 
 			/*----------------------------------------------------*/
 			/* If we can find a device '009' under VM             */
+			/* VM has (CPUID[0] == 0xff)                          */
+			/* and Hercules has (CPUID[0] != 0xff) in general     */
 			/*----------------------------------------------------*/
-			if ((schib.devno == 0x0009) && (CPUID[0] == 0xff)) {
+			if ((schib.devno == 0x0009) && (CPUID[0] != 0x0)) {
 				dev_cons	   = devices;
 				dev_con3210	   = devices;
 				schib.isc	   = devices->unitisc = s390_devices[I_3210].isc;

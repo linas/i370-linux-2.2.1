@@ -28,7 +28,7 @@ extern char __init_text_begin[], __init_text_end[];
 extern char __init_data_begin[], __init_data_end[];
 extern char _text[], _etext[];  
 extern char _bss[], _ebss[];  
-extern unsigned char CPUID[8];
+extern unsigned char *CPUID;
 
 
 /* mem_init() will put the kernel text pages into a different
@@ -59,14 +59,16 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 	num_physpages = max_mapnr;      /* RAM is assumed contiguous */
  
 #ifdef CONFIG_BLK_DEV_INITRD
-#ifdef CONFIG_VM_GUEST
+// #if defined(CONFIG_VM_GUEST) || defined(CONFIG_HERCULES_GUEST)
+#if defined(CONFIG_VM_GUEST)
 	/*-------------------------------------------------------*/
 	/* If we are running under VM then we can load the RAM   */
 	/* disk from a shared segment (isn't VM wonderful!)      */
+	/* VM has CPUID[0] == 0xff and Hercules has != 0x0       */
 	/*-------------------------------------------------------*/
-	if (CPUID[0] == 0xff)
-        {
-	        VM_Diagnose_Code_64(VMDIAG_LOADNSHR,"RAMDISK ",
+	if (CPUID[0] != 0x0)
+	{
+		VM_Diagnose_Code_64(VMDIAG_LOADNSHR,"RAMDISK ",
 				    &initrd_start, &initrd_end);
 		printk("RAMDISK NSS loaded\n");
 	}

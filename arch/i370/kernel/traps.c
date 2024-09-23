@@ -159,8 +159,7 @@ ProgramCheckException(i370_interrupt_state_t *saved_regs)
 	unsigned long pfx_prg_code = *((unsigned long *) PFX_PRG_CODE);
 	unsigned long pfx_prg_trans = *((unsigned long *) PFX_PRG_TRANS);
 
-	unsigned short pic_code,
-                per_event;
+	unsigned short pic_code, per_event;
 
 	pic_code  = pfx_prg_code & 0x00ff;
 	per_event = pic_code & 0x0080;
@@ -168,7 +167,7 @@ ProgramCheckException(i370_interrupt_state_t *saved_regs)
 	if (per_event) {
 		printk("PER event triggered\n");
 	}
-        pc_table[pic_code].pc_flih(saved_regs, pfx_prg_trans, pic_code);
+	pc_table[pic_code].pc_flih(saved_regs, pfx_prg_trans, pic_code);
 }
 
 static int
@@ -177,7 +176,7 @@ pc_monitor(i370_interrupt_state_t *saved_regs,
            unsigned short code)
 {
 	printk ("Monitor Event Triggered\n");
-        return(0);
+	return(0);
 }
 
 static int
@@ -186,11 +185,11 @@ pc_unsupported(i370_interrupt_state_t *saved_regs,
            unsigned short code)
 {
 	printk ("Program Check Unsupported code=0x%x trans=0x%lx\n",
-		code, trans);
+	        code, trans);
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
 	i370_halt();
-        return(1);
+	return(1);
 }
 
 /*----------------------------------------------------------------*/
@@ -260,15 +259,14 @@ ExternalException (i370_interrupt_state_t *saved_regs)
 		if (code == ei_table[i_ei].ei_code) break;
 	}
 	ei_table[i_ei].ei_flih(saved_regs, code);
-
 }
 
 static void
 ei_iucv(i370_interrupt_state_t *saved_regs,
         unsigned short code)
 {
-        printk ("IUCV external exception code=0x%x\n", code);
-        return;
+	printk ("IUCV external exception code=0x%x\n", code);
+	return;
 }
 
 static void

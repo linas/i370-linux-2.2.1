@@ -80,6 +80,11 @@ static inline void softirq_endlock(int cpu)
 
 #else /* __SMP__ */
 
+#ifndef __SMP__
+/* XXX move this #define to smp.h */
+#define smp_processor_id() (current->processor)
+#endif
+
 extern inline void start_bh_atomic(void)
 {
 	local_bh_count[smp_processor_id()]++;

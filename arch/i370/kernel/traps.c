@@ -316,7 +316,8 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 
 /* ================================================================ */
 /* do SLIH intrerrupt handling (the bottom half) */
-int check_stack(struct task_struct *tsk) ;
+int check_stack(struct task_struct *tsk);
+void i370_do_signal (void);
 
 void
 ret_from_syscall (void)
@@ -359,7 +360,7 @@ ret_from_syscall (void)
 				continue;
 			}
 			/* If we are here, we were just scheduled.
-                         * So deliver any pending signals before returning. */
+			 * So deliver any pending signals before returning. */
 			if (current->sigpending) {
 				i370_do_signal ();
 				do_it_again = 1;

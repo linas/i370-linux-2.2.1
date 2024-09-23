@@ -59,7 +59,7 @@ void scatter_move(void * area, struct scatter_block * first_block)
 	for (block = first_block; block; block = block->next){
 		if (block->len > 0) {
 			memcpy((char *) area + block->offset, block->data, block->len);
-		} else	{
+		} else {
 			memset((char *) area + block->offset, 0, -(block->len));
 		}
 	}

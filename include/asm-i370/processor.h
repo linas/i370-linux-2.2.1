@@ -15,7 +15,7 @@
 #define IPL_PSW_OLD	0x8	/* Restart old PSW */
 #define IPL_CCW1	0x8
 #define IPL_CCW2	0x10
-#define	EXTERN_PSW_OLD	0x18	/* External exception old PSW */
+#define EXTERN_PSW_OLD	0x18	/* External exception old PSW */
 #define SVC_PSW_OLD	0x20	/* Service Call old PSW */
 #define PROG_PSW_OLD	0x28	/* Program exception old PSW */
 #define MACH_PSW_OLD	0x30	/* Machine Check old PSW */
@@ -47,18 +47,19 @@
 #define PRG_SAVE_CTX_TRANS      0xe4c
 #define PRG_SAVE_CTX_C12        0xe50
 
-/* TASK_STRUCT_SIZE should really be sizeof(struct task_struct) except that we need
- * to use this in assembly code.  So we're going to pad it a bit, and go from 
- * there. Last I measured, sizeof(struct task_struct) was 768 (!)   
-*/
-#define TASK_STRUCT_SIZE	1024 
+/* TASK_STRUCT_SIZE should really be sizeof(struct task_struct) except
+ * that we need to use this in assembly code.  So we're going to pad it
+ * a bit, and go from there. Last I measured, sizeof(struct task_struct)
+ * was 768 (!)
+ */
+#define TASK_STRUCT_SIZE	1024
 
 #define OFFSET_KREGS    0xef8   /* Offset to kernel register pointer */
 #define OFFSET_KSP      0xefc   /* Offset to kernel stack pointer */
-#define INTERRUPT_BASE	0xf00	/* Interrupt scratch area */
- 
-#define PC_INTERRUPT_BASE       0xf80   /* PC Interrupt scratch area */
- 
+#define INTERRUPT_BASE	0xf00	  /* Interrupt scratch area */
+
+#define PC_INTERRUPT_BASE 0xf80 /* PC Interrupt scratch area */
+
 /*------------------------------------------------------------*/
 /* External Interruption Codes */
 /*------------------------------------------------------------*/
@@ -99,13 +100,13 @@
 /* DISAB_PSW sets up flags for the kernel w/ interrupts disabled     */
 /* HALT_PSW loads a disabled wait state (cpu halt)                   */
 /*-------------------------------------------------------------------*/
-#define EN_PSW		PSW_VALID | PSW_IO | PSW_EXTERN | PSW_MACH 
+#define EN_PSW		PSW_VALID | PSW_IO | PSW_EXTERN | PSW_MACH
 /* XXX disable key 9 until the pte's are fixed up XXX */
 /* #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(9) */
 #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(6)
 #define KERN_PSW	EN_PSW | PSW_KEY(6)
 #define DISAB_PSW	PSW_VALID | PSW_KEY(6)
-#define HALT_PSW	PSW_VALID | PSW_WAIT 
+#define HALT_PSW	PSW_VALID | PSW_WAIT
 
 
 /*------------------------------------------------------------*/
@@ -161,7 +162,7 @@
 
 #define MASK_TRXADDR  0x7ffff000
 #define MASK_TRXVALID 0x00000004
- 
+
 #ifndef __ASSEMBLY__
 
 /*------------------------------------------------------------*/
@@ -184,13 +185,13 @@ typedef struct
 /*------------------------------------------------------------*/
 /* Program check interrupt structures                         */
 /*------------------------------------------------------------*/
- 
+
 typedef struct
 {
 	short int pc_code;
 	int (*pc_flih)(i370_interrupt_state_t *, unsigned long, unsigned short);
 } pc_handler;
- 
+
 /*------------------------------------------------------------*/
 /* CPU Details structure                                      */
 /*------------------------------------------------------------*/
@@ -203,7 +204,7 @@ typedef struct
 	char  xxx[4];                /* Padding                 */
 } CPU_t;
 
-#define CPU_eqptchk 0x80000000	  /* Equipment check     */
+#define CPU_eqptchk 0x80000000    /* Equipment check     */
 #define CPU_incstat 0x00000200    /* Incorrect state     */
 #define CPU_invlprm 0x00000100    /* Invalid parameter */
 #define CPU_extcall 0x00000080    /* External-call pending    */
@@ -239,7 +240,7 @@ typedef struct
 /*------------------------------------------------------------*/
 /* XXX The rest of this file is sort of garbage user beware   */
 /*------------------------------------------------------------*/
- 
+
 void i370_start_thread(struct pt_regs *regs, unsigned long pswa, unsigned long sp);
 struct task_struct;
 void release_thread(struct task_struct *);
@@ -302,7 +303,7 @@ struct thread_struct {
 	 0.0, 0.0, 0.0, 0.0,   /* FPR's */ 			\
 	 0.0, 0.0, 0.0, 0.0,}, /* FPR's */ 			\
 	0, /* in_slih */ 					\
-					\
+								\
 	0, /* wchan */ 						\
 	KERNEL_DS, /*fs*/ 					\
 	0, /* last_syscall */ 					\
@@ -318,7 +319,7 @@ struct thread_struct {
 		    1, NULL, NULL }
 
 /*
- * Return saved instruction address (PSW) of a blocked thread. 
+ * Return saved instruction address (PSW) of a blocked thread.
  */
 static inline unsigned long thread_saved_pc(struct thread_struct *t)
 {
@@ -331,7 +332,7 @@ static inline unsigned long thread_saved_pc(struct thread_struct *t)
 
 /*
  * NOTE! The task struct and the stack go together
- * alloc_task_struct is only invoked inside of do_fork() in 
+ * alloc_task_struct is only invoked inside of do_fork() in
  * the arch-indy code.
  */
 #define alloc_task_struct() \
@@ -339,5 +340,5 @@ static inline unsigned long thread_saved_pc(struct thread_struct *t)
 #define free_task_struct(p)	free_pages((unsigned long)(p),1)
 
 #endif /* endif ASSEMBLY*/
-  
+
 #endif /* __ASM_I370_PROCESSOR_H */

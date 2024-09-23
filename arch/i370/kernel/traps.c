@@ -152,7 +152,6 @@ static pc_handler pc_table[] = {
 	{PIC_MONITOR,          pc_monitor}
 };
 
-
 void
 ProgramCheckException(i370_interrupt_state_t *saved_regs)
 {
@@ -412,54 +411,55 @@ __initfunc(void i370_trap_init (int key))
 
 	key >>= 4;
 	key &= 0xf;
-	printk ("trap init with storage key=%d\n", key);
+	printk ("Trap init with storage key=%d\n", key);
 
-	/* do part of the initialization just once. */
+	/* Do part of the initialization just once. */
 	if (0 == key) {
-		/* clear any pending timer interrupts before installing
+		/* Clear any pending timer interrupts before installing
 		 * external interrupt handler. Do this by setting the
-        	 * clock comparator to -1.
+		 * clock comparator to -1.
 		 */
 		clock_reset = 0xffffffffffffffffLL;
 		_sckc (clock_reset);
 
-		/* store the offset between the task struct and the kernel stack
-		 * pointer in low memory where we can get at it for calculation
+		/* Store the offset between the task struct and the kernel stack
+		 * pointer in low memory where we can get at it for calculation.
 		 */
 		sz = (unsigned long *) INTERRUPT_BASE;
 		*(sz-1) = (unsigned long) &(((struct task_struct *) 0) ->tss.ksp);
 		*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.regs);
 	}
 
-	/* note that all interrupts will run in execution key 6 ... */
-	// install the SVC handler
+	/* All interrupts will (eventually) run in execution key 6 ... */
+
+	// Install the SVC handler.
 	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
 	psw.addr = ((unsigned long) SupervisorCall) | PSW_31BIT;
 	*((psw_t *) SVC_PSW_NEW) = psw;
 
-	// install the External Interrupt (clock) handler
+	// Install the External Interrupt (clock) handler.
 	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
 	psw.addr = ((unsigned long) External) | PSW_31BIT;
 	*((psw_t *) EXTERN_PSW_NEW) = psw;
 
-	// install the I/O Interrupt handler
+	// Install the I/O Interrupt handler.
 	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
 	psw.addr = ((unsigned long) InputOutput) | PSW_31BIT;
 	*((psw_t *) IO_PSW_NEW) = psw;
 
-	// restart quick hack
+	// restart -- quick hack
 	psw.flags = 0x000a0000;
 	psw.addr = 0x0000fffc;
 	*((psw_t *) IPL_PSW_NEW) = psw;
 
-	// install the ProgramCheck handler
+	// Install the ProgramCheck handler.
 	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
 	psw.addr = ((unsigned long) ProgramCheck) | PSW_31BIT;
 	*((psw_t *) PROG_PSW_NEW) = psw;
 }
 
 /*
- * init traps with the keys to the kingdom.
+ * Init traps with the keys to the kingdom.
  */
 
 __initfunc(void trap_init(void))

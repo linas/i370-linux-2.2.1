@@ -1,4 +1,3 @@
-
 /*
  * wrappers for misc assembly
  * Linas Vepstas February 1999
@@ -8,13 +7,13 @@
 #ifndef __I370_ASM_H__
 #define __I370_ASM_H__
 
-#ifndef __ASSEMBLY__  
+#ifndef __ASSEMBLY__
 
 /* -------------------------------------------------------- */
-/* Get and set the current value of the stack pointer SP and the stack 
- * top pointer STP.  Note that SP points at the base, and that saved 
+/* Get and set the current value of the stack pointer SP and the stack
+ * top pointer STP.  Note that SP points at the base, and that saved
  * regs, args, frame, * etc. are a positive offset from SP.  The STP
- * becomes the SP during a subrutine call. 
+ * becomes the SP during a subrutine call.
  */
 /* Get the current value of the stack pointer */
 /* Since this inlines, it will basically copy r13 to where-ever */
@@ -53,7 +52,7 @@ extern inline void _store_fpregs (double *memy)
 		"STD	f2,%1;		\n"
 		"STD	f4,%2;		\n"
 		"STD	f6,%3;		\n"
-		: "=m" (memy[0]), 
+		: "=m" (memy[0]),
 		  "=m" (memy[1]),
 		  "=m" (memy[2]),
 		  "=m" (memy[3]) );
@@ -67,7 +66,7 @@ extern inline void _load_fpregs (double *memy)
 		"LD	f2,%1;		\n"
 		"LD	f4,%2;		\n"
 		"LD	f6,%3;		\n"
-		: : "m" (memy[0]), 
+		: : "m" (memy[0]),
 		    "m" (memy[1]),
 		    "m" (memy[2]),
 		    "m" (memy[3]) );
@@ -177,9 +176,9 @@ def_lctl(15)
 
 /* -------------------------------------------------------- */
 /* Store Control Registers */
- 
+
 #define _stctl(REGNO,val) _stctl_r##REGNO (val)
- 
+
 #define def_stctl(REGNO)						\
 extern inline unsigned long _stctl_r##REGNO (void)		\
 {								\
@@ -189,7 +188,7 @@ extern inline unsigned long _stctl_r##REGNO (void)		\
                    : "=m" (area) );			\
    return(area);					\
 }
- 
+
 def_stctl(0)
 def_stctl(1)
 def_stctl(2)
@@ -206,7 +205,7 @@ def_stctl(12)
 def_stctl(13)
 def_stctl(14)
 def_stctl(15)
- 
+
 /* -------------------------------------------------------- */
 /* Store Processor Address */
 extern inline unsigned long _stap (void)
@@ -290,7 +289,7 @@ extern inline void i370_enabled_wait (void)
 	// The flags should be set for:
 	// DAT off,  real mode, supervisor state
 	// external, i/o and machine check enabled
-	// PER ??  
+	// PER ??
 	// key 6 storage (as defined in processor.h
 	asm volatile (
 	"	L	r1,=X'036e0000';	\n"
@@ -306,19 +305,19 @@ extern inline void i370_enabled_wait (void)
 /* -------------------------------------------------------- */
 /* Load Real Address...                                     */
 /* -------------------------------------------------------- */
- 
+
 extern inline void * _lra(unsigned long *va)
 {
  void *ra;
- 
+
 	asm volatile (
 		"LRA     %0,%1;		\n"
 		: "=r" (ra)
 		: "m" (*va) );
 	return(ra);
 }
- 
- 
+
+
 /* -------------------------------------------------------- */
 
 #endif /* __ASSEMBLY__ */

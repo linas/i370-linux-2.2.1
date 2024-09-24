@@ -3,10 +3,33 @@
 
 #include <linux/kernel.h>
 #include <linux/sched.h>
+#include <linux/smp_lock.h>
+
 #include <asm/current.h>
 #include <asm/signal.h>
 #include <asm/spinlock.h>
 #include <asm/system.h>
+
+extern int sys_wait4(int, int *, int, struct rusage *);
+
+/*
+ * OK, we're invoking a handler
+ */
+static void
+handle_signal(unsigned long sig, struct k_sigaction *ka,
+              siginfo_t *info, sigset_t *oldset, struct pt_regs * regs,
+              unsigned long *newspp, unsigned long frame)
+{
+}
+
+/*
+ * Set up a signal frame.
+ */
+static void
+setup_frame(struct pt_regs *regs, struct sigregs *frame,
+            unsigned long newsp)
+{
+}
 
 /*
  * Note that 'init' is a special process: it doesn't get signals it doesn't
@@ -17,11 +40,16 @@ int
 i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 {
 	siginfo_t info;
+	struct k_sigaction *ka;
+	unsigned long frame, newsp;
 
 	if (!oldset)
 		oldset = &current->blocked;
 
-	// newsp = frame = regs->gpr[1] - sizeof(struct sigregs);
+	newsp = regs->irregs.r13;
+	frame = regs->irregs.r11;
+
+printk("duuude oldset=%x sp=%x fr=%s\n", oldset, newsp, frame);
 	while (1) {
 		unsigned long signr;
 
@@ -64,8 +92,66 @@ i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 			}
 		}
 
+		ka = &current->sig->action[signr-1];
+		if (ka->sa.sa_handler == SIG_IGN) {
+			if (signr != SIGCHLD)
+				continue;
+			/* Check for SIGCHLD: it's special.  */
+			while (sys_wait4(-1, NULL, WNOHANG, NULL) > 0)
+				/* nothing */;
+			continue;
+		}
+		if (ka->sa.sa_handler == SIG_DFL) {
+			int exit_code = signr;
+
+			/* Init gets no signals it doesn't want.  */
+			if (current->pid == 1)
+				continue;
+
+			switch (signr) {
+			case SIGCONT: case SIGCHLD: case SIGWINCH:
+				continue;
+
+			case SIGTSTP: case SIGTTIN: case SIGTTOU:
+				if (is_orphaned_pgrp(current->pgrp))
+					continue;
+				/* FALLTHRU */
+
+			case SIGSTOP:
+				current->state = TASK_STOPPED;
+				current->exit_code = signr;
+				if (!(current->p_pptr->sig->action[SIGCHLD-1].sa.sa_flags & SA_NOCLDSTOP))
+					notify_parent(current, SIGCHLD);
+				schedule();
+				continue;
+
+			case SIGQUIT: case SIGILL: case SIGTRAP:
+			case SIGABRT: case SIGFPE: case SIGSEGV:
+				lock_kernel();
+				if (current->binfmt
+					 && current->binfmt->core_dump
+					 && current->binfmt->core_dump(signr, regs))
+					exit_code |= 0x80;
+				unlock_kernel();
+				/* FALLTHRU */
+
+			default:
+				lock_kernel();
+				sigaddset(&current->signal, signr);
+				current->flags |= PF_SIGNALED;
+				do_exit(exit_code);
+				/* NOTREACHED */
+			}
+		}
+
+		/* Whee!  Actually deliver the signal.  */
+		handle_signal(signr, ka, &info, oldset, regs, &newsp, frame);
 	}
 
-	printk ("called do_signal XXX not implemented \n");
-	return 0;
+// XXXX this is wrong!!!
+	if (newsp == frame)
+		return 0;      /* no signals delivered */
+
+	setup_frame(regs, (struct sigregs *) frame, newsp);
+	return 1;
 }

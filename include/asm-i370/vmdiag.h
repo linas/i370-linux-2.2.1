@@ -207,6 +207,9 @@ int    VM_Diagnose_Code_64(const enum VM_DIAGNOSE_64_FUNCTION  subfunction,
   register unsigned long aaddr1 __asm__("r1");
   register unsigned long aaddr2 __asm__("r0") = subfunction & 0xff;
 
+  char* atoe = ascii_to_ebcdic;
+  char* etoa = ebcdic_to_ascii;
+
   if (aaddr2 == VMDIAG_SEGEXT) {
     aaddr1 = (long) &hcpsxibk;
     hcpsxibk.adr1       = *addr1;
@@ -220,8 +223,8 @@ int    VM_Diagnose_Code_64(const enum VM_DIAGNOSE_64_FUNCTION  subfunction,
 	   " .set _i370_implied_op,%6;"
 	   " L    %0,%2;"
 	   " MVC  %O1(8,%R1),0(%0);"
-	   " TR   %O1(8,%R1),0(%3);"
-	   " .short 0x8310;.short 0x0064"
+	   " TR   %O1(8,%R1),%3;"
+	   " .short 0x8310;.short 0x0064;"
 	   " IPM  %0;"
 	   " SRL  %0,26;"
 	   " N    %0,=F'12';"
@@ -229,7 +232,7 @@ int    VM_Diagnose_Code_64(const enum VM_DIAGNOSE_64_FUNCTION  subfunction,
 	   " LR   %0,r0;"
       "1:    "
        :    "=r"(rc), "+m"(hcpsxibk.namei), "+m"(name)
-       :    "m"(ascii_to_ebcdic), "m"(ebcdic_to_ascii),
+       :    "m"(*atoe), "m"(*etoa),
 	   "r"(aaddr1), "r"(aaddr2));
     *addr1 = aaddr1;
     *addr2 = aaddr2;

@@ -7,10 +7,10 @@ mainmenu_option next_comment
 comment 'Platform support'
 define_bool CONFIG_I370 y
 choice 'Processor type' \
-	"390		CONFIG_390"  yo
+	"390		CONFIG_390"  yo ho ho
 
 choice 'Machine Type' \
-	"ES390		CONFIG_ES390" ya ha
+	"ES390		CONFIG_ES390" ya ha ha
 
 bool 'Symmetric multi-processing support' CONFIG_SMP
 bool 'Checksum Facility Installed' CONFIG_CKSM

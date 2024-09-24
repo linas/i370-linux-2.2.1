@@ -1,7 +1,6 @@
 /*
  * Implementation of startup code and FLIH entry/exit for ESA/390
  * Copyright (c) 1999 Linas Vepstas (linas@linas.org)
- *
  */
 
 #include <asm/errno.h>
@@ -125,18 +124,18 @@ _cinit:
  */
 
 /* -------------------------------------------------------- */
-/* stack related offsets; have nothing to do with the above */
+/* Stack related offsets; have nothing to do with the above */
 /* -------------------------------------------------------- */
-#define STACK_SIZE	0x58	/* stack size */
-#define ARGS_BASE	STACK_SIZE
-#define ARGS_SIZE	0x4	/* args size */
-#define FRAME_BASE	STACK_SIZE + ARGS_SIZE
-#define FRAME_SIZE	0x60	/* frame size */
-#define SF_SIZE		STACK_SIZE + ARGS_SIZE + FRAME_SIZE + 4
-#define SF_SIZ		192	/* add above together by hand, double-word align */
+#define STACK_SIZE  0x58        /* stack size */
+#define ARGS_BASE   STACK_SIZE
+#define ARGS_SIZE   0x4         /* args size */
+#define FRAME_BASE  STACK_SIZE + ARGS_SIZE
+#define FRAME_SIZE  0x60        /* frame size */
+#define SF_SIZE     STACK_SIZE + ARGS_SIZE + FRAME_SIZE + 4
+#define SF_SIZ      192 /* Add above together by hand, double-word align */
 
 /* -------------------------------------------------------- */
-/* location of saved registers on stack */
+/* Location of saved registers on stack                     */
 /* -------------------------------------------------------- */
 #define ARGP		ARGS_BASE
 #define SAVED_PSW	FRAME_BASE + IR_PSW
@@ -188,7 +187,7 @@ _cinit:
 	MVC	SAVED_R11(64,r13),sav+IR_R11(0);	/* 16 regs=64 bytes  */	\
 	/* chain the interrupt state pointer into thread_struct      */	\
 	LR	r1,r12;			/* addr of curr proc in r1   */	\
-        A       r1,OFFSET_KREGS(,0);    /* add offset to regs ptr    */ \
+	A       r1,OFFSET_KREGS(,0);    /* add offset to regs ptr    */ \
 	L	r2,0(,r1);		/* load regs ptr             */	\
 	ST	r2,SAVED_OLDREGS(,r13); /* save regs ptr to stack    */	\
 	LA	r2,SAVED_PSW(,r13);	/* put addr of newregs in r2 */	\
@@ -224,16 +223,16 @@ _cinit:
 	EXCEPTION_UNCHAIN(sav)						\
 	EXCEPTION_RETURN(sav)
 
-/* areas used in the prefix page used for tracing */
+/* Areas used in the prefix page used for tracing */
 #define	PFX_TRACE	0xd00
 
-/* id numbers not addresses */
-#define	IPL_TRC_ID	0x100
-#define	MCH_TRC_ID	0x200
-#define	SVC_TRC_ID	0x300
-#define	PRG_TRC_ID	0x400
-#define EXT_TRC_ID	0x500
-#define IO_TRC_ID	0x600
+/* ID numbers not addresses */
+#define IPL_TRC_ID   0x100
+#define MCH_TRC_ID   0x200
+#define SVC_TRC_ID   0x300
+#define PRG_TRC_ID   0x400
+#define EXT_TRC_ID   0x500
+#define IO_TRC_ID    0x600
 
 #define EXCEPTION_TRACE(trc_id,subid,irpt_code,old_psw)			\
 	SLR	r0,r0;			/* Not Used */			\
@@ -339,7 +338,7 @@ ProgramCheck:
 .DoPC:
 	/*--------------------------------------------------------------*/
 	/* We had better take a copy of the current context information */
-	/* just in case the TRACE does cause a program check and we	*/
+	/* just in case the TRACE does cause a program check and we     */
 	/* lose all our previous information (PSW, registers...).       */
 	/*--------------------------------------------------------------*/
 	MVC	PRG_SAVE_CTX_REGS(64,0),PC_INTERRUPT_BASE(0)
@@ -418,12 +417,9 @@ cmd_line:
 	.space	512
 
 /* ===================================================================== */
-/* The syscall table is in the text section; making it RO.
- *
- * The syscall table is copied from the powerpc code; it should match
- * the table in <asm/unistd.h> which was copied from powerpc code
- * XXX might be a better deal to use the alpha syscall table... ??? XXX
- * XXX it needs to be hammered into shape for the i370
+/*
+ * The syscall table is in the text section, making it RO.
+ * The syscall table should match the table in <asm/unistd.h>.
  */
 	.text
 	.align 4

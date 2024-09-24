@@ -406,14 +406,10 @@ swapper_pg_dir:
  * This space gets a copy of optional info passed to us by the bootstrap
  * Used to pass parameters into the kernel like root=/dev/sda1, etc.
  * Always the third page past start of .data, so bootloader can find it.
+ * Default to /dev/ram; bootloader will clobber the value here.
  */	
-/*
- * XXX a hack to boot, for now
- * ramdisk size in KB, but ramdisk start in block number
- */
 	.globl	cmd_line
 cmd_line:
-	/* .ascii "ramdisk_size=4096K root=/dev/ram" */
 	.ascii "root=/dev/ram"
 	.space	512
 

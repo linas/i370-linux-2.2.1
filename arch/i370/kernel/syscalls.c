@@ -46,15 +46,15 @@ check_bugs(void)
 }
 
 asmlinkage int i370_sys_execve(unsigned long fname, unsigned long argv,
-			       unsigned long envp)
+                               unsigned long envp)
 {
 	int error;
 	char * filename;
-        struct pt_regs *regs;
+	struct pt_regs *regs;
 
 	printk("i370_sys_execve: name = %s\n", (char *) fname);
 	lock_kernel();
-	regs = current->tss.regs; 
+	regs = current->tss.regs;
 	filename = getname((char *) fname);
 	error = PTR_ERR(filename);
 	if (IS_ERR(filename)) {
@@ -68,38 +68,38 @@ asmlinkage int i370_sys_execve(unsigned long fname, unsigned long argv,
 	return error;
 }
 
-asmlinkage int i370_sys_ptrace (void) 
-{ 
+asmlinkage int i370_sys_ptrace (void)
+{
 	printk("i370_sys_ptrace: unsupported\n");
 	i370_halt();
 	return 1;
 }
-asmlinkage int i370_sys_sigaction (void) { 
+asmlinkage int i370_sys_sigaction (void) {
 	printk("i370_sys_sigaction: unsupported\n");
 	i370_halt();
 	return 1;
 }
-asmlinkage int i370_sys_sigsuspend (void) { 
+asmlinkage int i370_sys_sigsuspend (void) {
 	printk("i370_sys_sigsuspend: unsupported\n");
 	i370_halt();
 	return 1;
 }
-asmlinkage int i370_sys_rt_sigsuspend (void) { 
+asmlinkage int i370_sys_rt_sigsuspend (void) {
 	printk("i370_sys_rt_sigsuspend: unsupported\n");
 	i370_halt();
 	return 1;
 }
-asmlinkage int i370_sys_sigreturn (void) { 
+asmlinkage int i370_sys_sigreturn (void) {
 	printk("i370_sys_sigreturn: unsupported\n");
 	i370_halt();
 	return 1;
 }
-asmlinkage int i370_sys_rt_sigreturn (void) { 
+asmlinkage int i370_sys_rt_sigreturn (void) {
 	printk("i370_sys_rt_sigreturn: unsupported\n");
 	i370_halt();
 	return 1;
 }
-asmlinkage int i370_sys_sigaltstack (void) { 
+asmlinkage int i370_sys_sigaltstack (void) {
 	printk("i370_sys_sigalstack: unsupported\n");
 	i370_halt();
 	return 1;
@@ -140,7 +140,7 @@ int i370_sys_modify_ldt(int a1, int a2, int a3, int a4)
  *
  * This is really horribly ugly.
  */
-asmlinkage int 
+asmlinkage int
 i370_sys_ipc (uint call, int first, int second, int third, void *ptr, long fifth)
 {
 	int version, ret;
@@ -224,7 +224,7 @@ i370_sys_ipc (uint call, int first, int second, int third, void *ptr, long fifth
 			break;
 		}
 		break;
-	case SHMDT: 
+	case SHMDT:
 		ret = i370_sys_shmdt ((char *)ptr);
 		break;
 	case SHMGET:
@@ -306,7 +306,7 @@ asmlinkage int i370_sys_olduname(struct oldold_utsname * name)
 		return -EFAULT;
 	if (!access_ok(VERIFY_WRITE,name,sizeof(struct oldold_utsname)))
 		return -EFAULT;
-  
+
 	error = __copy_to_user(&name->sysname,&system_utsname.sysname,__OLD_UTS_LEN);
 	error -= __put_user(0,name->sysname+__OLD_UTS_LEN);
 	error -= __copy_to_user(&name->nodename,&system_utsname.nodename,__OLD_UTS_LEN);

@@ -15,39 +15,39 @@
  * regs, args, frame, * etc. are a positive offset from SP.  The STP
  * becomes the SP during a subrutine call.
  */
-/* Get the current value of the stack pointer */
-/* Since this inlines, it will basically copy r13 to where-ever */
+/* Get the current value of the stack pointer. */
+/* Since this inlines, it will basically copy r13 to where-ever. */
 extern inline unsigned long _get_SP(void)
 {
-        unsigned long rc;
-        asm volatile ("LR	%0,r13" : "=r" (rc) : );
-        return rc;
+	unsigned long rc;
+	asm volatile ("LR	%0,r13" : "=r" (rc) : );
+	return rc;
 }
 
 extern inline unsigned long _get_STP(void)
 {
-        unsigned long rc;
-        asm volatile ("LR	%0,r11" : "=r" (rc) : );
-        return rc;
+	unsigned long rc;
+	asm volatile ("LR	%0,r11" : "=r" (rc) : );
+	return rc;
 }
 
 /* Set the current value of the stack pointer */
 /* Use with caution */
 extern inline void _set_SP (unsigned long newsp)
 {
-        asm volatile ("LR	r13,%0" : : "r" (newsp) : "memory");
+	asm volatile ("LR	r13,%0" : : "r" (newsp) : "memory");
 }
 
 extern inline void _set_STP (unsigned long newsp)
 {
-        asm volatile ("LR	r11,%0" : : "r" (newsp) : "memory");
+	asm volatile ("LR	r11,%0" : : "r" (newsp) : "memory");
 }
 
 /* -------------------------------------------------------- */
 /* copy fpregs to memory */
 extern inline void _store_fpregs (double *memy)
 {
-        asm volatile (
+	asm volatile (
 		"STD	f0,%0;		\n"
 		"STD	f2,%1;		\n"
 		"STD	f4,%2;		\n"
@@ -61,7 +61,7 @@ extern inline void _store_fpregs (double *memy)
 /* copy mem to fpregs */
 extern inline void _load_fpregs (double *memy)
 {
-        asm volatile (
+	asm volatile (
 		"LD	f0,%0;		\n"
 		"LD	f2,%1;		\n"
 		"LD	f4,%2;		\n"
@@ -218,7 +218,7 @@ extern inline unsigned long _stap (void)
 /* -------------------------------------------------------- */
 /* Signal Processor */
 extern inline long _sigp (unsigned long addr,
-                         unsigned long code)
+                          unsigned long code)
 {
 	long rc;
 
@@ -308,7 +308,7 @@ extern inline void i370_enabled_wait (void)
 
 extern inline void * _lra(unsigned long *va)
 {
- void *ra;
+	void *ra;
 
 	asm volatile (
 		"LRA     %0,%1;		\n"
@@ -316,7 +316,6 @@ extern inline void * _lra(unsigned long *va)
 		: "m" (*va) );
 	return(ra);
 }
-
 
 /* -------------------------------------------------------- */
 

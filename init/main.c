@@ -1100,6 +1100,15 @@ asmlinkage void __init start_kernel(void)
 {
 	char * command_line;
 
+#ifdef CONFIG_I370
+	/* The current bootloader style leaves garbage in bss. We really want it
+	 * to be zero. Do this before the first printk, and not in setup_arch,
+	 * as otherwise the first printk disappears.
+	 */
+	extern char _bss[], _ebss[];
+	memset (_bss, 0, ((unsigned long) _ebss) - ((unsigned long)_bss));
+#endif
+
 #ifdef __SMP__
 	static int boot_cpu = 1;
 	/* "current" has been set up, we need to load it now */

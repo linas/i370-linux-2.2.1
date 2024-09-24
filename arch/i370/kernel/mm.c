@@ -1,5 +1,5 @@
 
-/* 
+/*
  * XXX under construction ... what's in this file works for now,
  * but some of what's in this file is very wrong ...
  */
@@ -23,17 +23,17 @@
 extern unsigned long free_area_init(unsigned long, unsigned long);
 extern __initfunc(void i370_trap_init(int key));
 
-atomic_t next_mmu_context; 
+atomic_t next_mmu_context;
 extern char __init_text_begin[], __init_text_end[];
 extern char __init_data_begin[], __init_data_end[];
-extern char _text[], _etext[];  
-extern char _bss[], _ebss[];  
+extern char _text[], _etext[];
+extern char _bss[], _ebss[];
 extern unsigned char *CPUID;
 
 
 /* mem_init() will put the kernel text pages into a different
  * storage key than the data pages, effectively rendering them read-only.
- * It then changes the key under which the kernel executes.  Remaining 
+ * It then changes the key under which the kernel executes.  Remaining
  * area is marked as available for allocatin by the Linux kernel.
  */
 
@@ -57,7 +57,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 	/* mark usable pages in the mem_map[] */
 	start_mem = PAGE_ALIGN(start_mem);
 	num_physpages = max_mapnr;      /* RAM is assumed contiguous */
- 
+
 #ifdef CONFIG_BLK_DEV_INITRD
 // #if defined(CONFIG_VM_GUEST) || defined(CONFIG_HERCULES_GUEST)
 #if defined(CONFIG_VM_GUEST)
@@ -75,12 +75,12 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 #endif /* CONFIG_VM_GUEST */
 #endif /* CONFIG_BLK_DEV_INITRD */
 
-	for (addr = 0x0; addr < end_mem; addr += PAGE_SIZE) 
+	for (addr = 0x0; addr < end_mem; addr += PAGE_SIZE)
 	{
 		if (addr < (ulong) start_mem)
 		{
 			/* mark this page as in use by the kernel */
-			set_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);					 
+			set_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);
 			if (addr < (ulong) _text)
 			{
 				_sske (KTEXT_STORAGE_KEY, addr);
@@ -103,7 +103,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 				_sske (KDATA_STORAGE_KEY, addr);
 				initpages++;
 			}
-			else 
+			else
 			{
 				_sske (KDATA_STORAGE_KEY, addr);
 				datapages++;
@@ -111,7 +111,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 		} else {
 			/* The reserved bit was set previously, in page_init
 			 * by free_area_init, below.  Clear the bit now. */
-			clear_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);					 
+			clear_bit(PG_reserved, &mem_map[MAP_NR(addr)].flags);
 			atomic_set(&mem_map[MAP_NR(addr)].count, 1);
 #ifdef CONFIG_BLK_DEV_INITRD
 			if (!initrd_start ||
@@ -159,7 +159,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 #endif /* CONFIG_BLK_DEV_INITRD */
 
 	/* initialize kernel address translation tables */
-	pme = (pmd_t *) swapper_pg_dir;  
+	pme = (pmd_t *) swapper_pg_dir;
 	for (i=0; i<PTRS_PER_PGD; i++) {
 		pmd_clear (pme);
 		pme ++;
@@ -170,32 +170,33 @@ __initfunc(void free_initmem(void))
 {
 	unsigned long num_freed_pages = 0;
 
-#define FREESEC(START,END,CNT) do { \
-        unsigned long a = (unsigned long)(&START); \
-        for (; a < (unsigned long)(&END); a += PAGE_SIZE) { \
-                clear_bit(PG_reserved, &mem_map[MAP_NR(a)].flags); \
-                atomic_set(&mem_map[MAP_NR(a)].count, 1); \
-                free_page(a); \
-                CNT++; \
-        } \
-} while (0)
+#define FREESEC(START,END,CNT) \
+	do { \
+		unsigned long a = (unsigned long)(&START); \
+		for (; a < (unsigned long)(&END); a += PAGE_SIZE) { \
+			clear_bit(PG_reserved, &mem_map[MAP_NR(a)].flags); \
+			atomic_set(&mem_map[MAP_NR(a)].count, 1); \
+			free_page(a); \
+			CNT++; \
+		} \
+	} while (0)
 
-        FREESEC(__init_text_begin,__init_data_end, num_freed_pages);
+	FREESEC(__init_text_begin,__init_data_end, num_freed_pages);
 
 	printk ("freed initmem from %p to %p  (%d pages total)\n",
 		__init_text_begin, __init_data_end, num_freed_pages);
 
 	/* XXX hack alert I don't think init_irq belongs here */
 	irq_init();
-} 
+}
 
 void si_meminfo(struct sysinfo *val)
 { }
 
-void show_mem(void) 
+void show_mem(void)
 { printk (" show mem not implemented\n"); }
 
-      
+
 /*
  * The context counter has overflowed.
  * We set mm->context to NO_CONTEXT for all mm's in the system.
@@ -205,22 +206,22 @@ void show_mem(void)
 void
 mmu_context_overflow(void)
 {
-        // struct task_struct *tsk;
+	// struct task_struct *tsk;
 
-        printk("mmu_context_overflow\n");
+	printk("mmu_context_overflow\n");
 
 #ifdef JUNK
-        read_lock(&tasklist_lock);
-        for_each_task(tsk) {
-                if (tsk->mm)
-                        tsk->mm->context = NO_CONTEXT;
-        }
-        read_unlock(&tasklist_lock);
-        flush_hash_segments(0x10, 0xffffff);
-        atomic_set(&next_mmu_context, 0);
-        /* make sure current always has a context */
-        current->mm->context = MUNGE_CONTEXT(atomic_inc_return(&next_mmu_context));
-        set_context(current->mm->context);
+	read_lock(&tasklist_lock);
+	for_each_task(tsk) {
+		if (tsk->mm)
+			tsk->mm->context = NO_CONTEXT;
+	}
+	read_unlock(&tasklist_lock);
+	flush_hash_segments(0x10, 0xffffff);
+	atomic_set(&next_mmu_context, 0);
+	/* make sure current always has a context */
+	current->mm->context = MUNGE_CONTEXT(atomic_inc_return(&next_mmu_context));
+	set_context(current->mm->context);
 #endif
 }
 
@@ -259,9 +260,9 @@ i370_flush_tlb_mm(struct mm_struct *mm)
 	printk ("i370_flush_tlb_mm\n");
 	_ptlb();
 /*
-        mm->context = NO_CONTEXT;
-        if (mm == current->mm)
-                activate_context(current);
+	mm->context = NO_CONTEXT;
+	if (mm == current->mm)
+		activate_context(current);
 */
 }
 
@@ -292,7 +293,7 @@ void __bad_pte(pmd_t *pmd)
 	pmd_val(*pmd) = (unsigned long) BAD_PAGETABLE;
 }
 
-/* XXX hack alert -- we can in fact fit four page tables onto 
+/* XXX hack alert -- we can in fact fit four page tables onto
  * one page, and we should muck around in this routine to make this so.
  * but for now, we'll be slobs and use one page per page table.
  */
@@ -361,7 +362,7 @@ pte_t __bad_page(void)
 /*
  * paging_init() sets up the page tables
  */
-__initfunc(unsigned long paging_init(unsigned long start_mem, 
+__initfunc(unsigned long paging_init(unsigned long start_mem,
                                      unsigned long end_mem))
 {
 	int i;
@@ -384,18 +385,18 @@ __initfunc(unsigned long paging_init(unsigned long start_mem,
 
 	start_mem = empty_bad_page_table + PAGE_SIZE;
 
-	/* free_area_init is in linux/mm/page_malloc.c and it 
+	/* free_area_init is in linux/mm/page_malloc.c and it
 	 * sets up its arch-independent page tables*/
 	start_mem = free_area_init(start_mem, end_mem);
 
 	return start_mem;
 }
 
-void set_context(int context) {}  
+void set_context(int context) {}
 
 /* ========================================================== */
 /* copy in/out routines of various sorts */
-/* XXX probably would get a performance boost by 
+/* XXX probably would get a performance boost by
  * using the 'LRA' instruction. (assuming cr1 is valid).
  */
 /* XXX all wrong for page boundry corssings .... */
@@ -431,7 +432,7 @@ __copy_to_user (void * to, const void * from, unsigned long len)
 				/* printk ("cpy_to_user make_pages_present at va=%lx\n", va); */
 				make_pages_present (va, va+len);
 				pte = find_pte (current->mm, va);
-			} 
+			}
 
 			if (len < rlen) rlen = len;
 			ra = pte_page (*pte) | off;
@@ -477,7 +478,7 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 				/* printk ("cpy_from_user make_pages_present at va=%lx\n", va); */
 				make_pages_present (va, va+len);
 				pte = find_pte (current->mm, va);
-			} 
+			}
 
 			if (len < rlen) rlen = len;
 			ra = pte_page (*pte) | off;
@@ -509,7 +510,7 @@ int __strncpy_from_user(char *dst, const char *src, long count)
 		clen = 0;
 		va = (unsigned long) src;
 		too = (unsigned long) dst;
-		if (va < PAGE_SIZE) 
+		if (va < PAGE_SIZE)
 			printk(KERN_WARNING "strncpy_from_user null ptr va=0x%lx\n", va);
 		while (len > 0) {
 			unsigned long off = va & ~PAGE_MASK;
@@ -552,20 +553,20 @@ int __strncpy_from_user(char *dst, const char *src, long count)
  * clear_user
  * strlen_user
  *
- * The way tht these routines are curently used in the kernel, one must 
- * assume that thier arguments are always a virtual addresses, and never 
+ * The way tht these routines are curently used in the kernel, one must
+ * assume that thier arguments are always a virtual addresses, and never
  * real addresses.   For example, create_elf_tables() calls strlen_user()
  * without first doing an appropriate set_fs(). Similarly, padzero in
  * load_elf_binary() does the same ...
  */
 
-/* clear_user(): set a block of bytes to zero */  
-unsigned long 
+/* clear_user(): set a block of bytes to zero */
+unsigned long
 __clear_user(void *addr, unsigned long len)
 {
 	unsigned long va = (unsigned long) addr;
 
-	/* if we are using the kernel page tables, 
+	/* if we are using the kernel page tables,
 	 * there is no translation to be done */
 	if (current->mm->pgd == swapper_pg_dir) {
 		memset (addr, 0, len);
@@ -577,7 +578,7 @@ __clear_user(void *addr, unsigned long len)
 		unsigned long ra;
 		pte_t *pte;
 
-		if (va < PAGE_SIZE) 
+		if (va < PAGE_SIZE)
 			printk(KERN_WARNING "clear_user null ptr va=0x%lx\n", va);
 
 		pte = find_pte (current->mm, va);
@@ -600,17 +601,17 @@ __clear_user(void *addr, unsigned long len)
 
 /*
  * strlen_user():  Return the size of a string (including the ending 0)
- * Return 0 for error.  
+ * Return 0 for error.
  */
 
-long 
+long
 strlen_user(const char *str)
 {
 	int notdone = 1;
 	unsigned long clen = 0;
 	unsigned long va = (unsigned long) str;
 
-	/* if we are using the kernel page tables, 
+	/* if we are using the kernel page tables,
 	 * there is no translation to be done */
 	if (current->mm->pgd == swapper_pg_dir) {
 		return (strlen(str) + 1);
@@ -622,7 +623,7 @@ strlen_user(const char *str)
 		unsigned long i=0;
 		pte_t *pte;
 
-		if (va < PAGE_SIZE) 
+		if (va < PAGE_SIZE)
 			printk(KERN_WARNING "strlen_user null ptr va=0x%lx\n", va);
 		pte = find_pte (current->mm, va);
 		if (!pte || pte_none(*pte)) {
@@ -647,10 +648,10 @@ strlen_user(const char *str)
 }
 
 /* ========================================================== */
-/* put_user_data() will store data into address.  It is called with 
+/* put_user_data() will store data into address.  It is called with
  * len of 1,2 or 4 from uaccess.h, no other len's occur. */
 
-void 
+void
 put_user_data(long data, void *addr, long len)
 {
 	pte_t *pte;
@@ -671,13 +672,13 @@ put_user_data(long data, void *addr, long len)
 	}
 
 	/* find the page table entry for the addr */
-/* XXX note we need to figure out some way of walking the 
+/* XXX note we need to figure out some way of walking the
  * the pte in some SMP-safe fashion, which find_pte isn't ...
  * maybe mark the page w/ compare & swap?
  * note LRA (load real addr) is not enough ...
  */
 	va = (unsigned long) addr;
-	if (va < PAGE_SIZE) 
+	if (va < PAGE_SIZE)
 		printk(KERN_WARNING "put_user_data null ptr va=0x%lx\n", va);
 	pte = find_pte (current->mm, va);
 
@@ -715,7 +716,7 @@ put_user_data(long data, void *addr, long len)
 		if (0xffd > off) {
 			long *la = (long *) ra;
 			*la = (long) data;
-		} else 
+		} else
 		if (0xffd == off) {
 			short *sa = (short *) ra;
 			char *ca = (char *) (ra+2);

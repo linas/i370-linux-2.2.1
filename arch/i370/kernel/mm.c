@@ -159,7 +159,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 		initrd_start, initrd_end);
 #endif /* CONFIG_BLK_DEV_INITRD */
 
-	/* initialize kernel address translation tables */
+	/* Initialize kernel address translation tables. */
 	pme = (pmd_t *) swapper_pg_dir;
 	for (i=0; i<PTRS_PER_PGD; i++) {
 		pmd_clear (pme);
@@ -171,12 +171,12 @@ __initfunc(void free_initmem(void))
 {
 	unsigned long num_freed_pages = 0;
 
-// XXX This is broken, it is not changing the storage key to something
-// writeable.  FIXME.
+	/* This is just a shortened version of the code furthr up above */
 #define FREESEC(START,END,CNT) \
 	do { \
 		unsigned long a = (unsigned long)(&START); \
 		for (; a < (unsigned long)(&END); a += PAGE_SIZE) { \
+			_sske (KDATA_STORAGE_KEY, a); \
 			clear_bit(PG_reserved, &mem_map[MAP_NR(a)].flags); \
 			atomic_set(&mem_map[MAP_NR(a)].count, 1); \
 			free_page(a); \
@@ -184,7 +184,7 @@ __initfunc(void free_initmem(void))
 		} \
 	} while (0)
 
-	// FREESEC(__init_text_begin, __init_data_end, num_freed_pages);
+	FREESEC(__init_text_begin, __init_data_end, num_freed_pages);
 
 	printk ("freed initmem from %p to %p  (%lu pages total)\n",
 		__init_text_begin, __init_data_end, num_freed_pages);

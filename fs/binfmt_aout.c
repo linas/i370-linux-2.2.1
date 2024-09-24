@@ -94,6 +94,8 @@ do_aout_core_dump(long signr, struct pt_regs * regs)
 #       define START_DATA(u)    (u.u_tsize)
 #elif defined(__i386__) || defined(__mc68000__)
 #       define START_DATA(u)	(u.u_tsize << PAGE_SHIFT)
+#elif defined(__i370__)
+#       define START_DATA(u)	(u.start_data)
 #endif
 #ifdef __sparc__
 #       define START_STACK(u)   ((regs->u_regs[UREG_FP]) & ~(PAGE_SIZE - 1))

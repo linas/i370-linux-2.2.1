@@ -25,6 +25,7 @@
 #include <asm/pgtable.h>
 #include <asm/ptrace.h>
 #include <asm/uaccess.h>
+#include <asm/user.h>
 
 #define __KERNEL_SYSCALLS__ 1
 #include <asm/unistd.h>
@@ -606,6 +607,16 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 	fn (args);
 	while (1) {_exit (1); } 
 	return 0;
+}
+
+/* =================================================================== */
+/*
+ * Fill in the user structure for a core dump.
+ */
+void dump_thread(struct pt_regs * regs, struct user * dump)
+{
+	/* Used only for MSDOS binaries */
+	memset(dump, 0, sizeof(struct user));
 }
 
 /* ========================== END OF FILE =========================== */

@@ -17,6 +17,7 @@ extern void AlignmentException(struct pt_regs *regs);
 extern void ProgramCheckException(struct pt_regs *regs);
 extern void SingleStepException(struct pt_regs *regs);
 
+extern void dump_thread(struct pt_regs *, struct user *);
 
 EXPORT_SYMBOL(syscall_trace);
 EXPORT_SYMBOL(transfer_to_handler);
@@ -31,5 +32,6 @@ EXPORT_SYMBOL(SingleStepException);
 EXPORT_SYMBOL(strlen);   
 EXPORT_SYMBOL(strcmp);   
 EXPORT_SYMBOL(memset);
+EXPORT_SYMBOL(dump_thread);
 
 

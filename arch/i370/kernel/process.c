@@ -47,42 +47,42 @@ const unsigned long init_ksp __initdata = (unsigned long) init_stack;
 static inline unsigned long
 kernel_stack_bot(struct task_struct *tsk)
 {
-	unsigned long bot = ((unsigned long)tsk) + TASK_STRUCT_SIZE; 
-        return bot;
+	unsigned long bot = ((unsigned long)tsk) + TASK_STRUCT_SIZE;
+	return bot;
 }
 
 static inline unsigned long
 kernel_stack_top(struct task_struct *tsk)
 {
 	unsigned long top = ((unsigned long)tsk) + sizeof (union task_union);
-        return top;
+	return top;
 }
 
 /* =================================================================== */
 
-int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) { 
+int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) {
 	printk ("dump fpu \n");
 	return 0;
 }
 
-void 
+void
 show_regs(struct pt_regs * regs)
 {
 	printk("PSW flags: %08lX PSW addr: %08lX \n",
 		regs->psw.flags, regs->psw.addr);
 	// printk (" cr0: %08lX  cr1: %08lX \n", regs->cr0.raw, regs->cr1.raw);
 
-        /* Note: if debugging disabled, r5-r10 may not be valid */
-        printk ("  r0: %08lX   r1: %08lX   r2: %08lX   r3: %08lX \n", 
+	/* Note: if debugging disabled, r5-r10 may not be valid */
+	printk ("  r0: %08lX   r1: %08lX   r2: %08lX   r3: %08lX \n",
 		regs->irregs.r0, regs->irregs.r1, regs->irregs.r2, regs->irregs.r3);
 
-        printk ("  r4: %08lX   r5: %08lX   r6: %08lX   r7: %08lX \n", 
+	printk ("  r4: %08lX   r5: %08lX   r6: %08lX   r7: %08lX \n",
 		regs->irregs.r4, regs->irregs.r5, regs->irregs.r6, regs->irregs.r7);
 
-        printk ("  r8: %08lX   r9: %08lX  r10: %08lX  r11: %08lX \n", 
+	printk ("  r8: %08lX   r9: %08lX  r10: %08lX  r11: %08lX \n",
 		regs->irregs.r8, regs->irregs.r9, regs->irregs.r10, regs->irregs.r11);
 
-        printk (" r12: %08lX  r13: %08lX  r14: %08lX  r15: %08lX \n", 
+	printk (" r12: %08lX  r13: %08lX  r14: %08lX  r15: %08lX \n",
 		regs->irregs.r12, regs->irregs.r13, regs->irregs.r14, regs->irregs.r15);
 
 }
@@ -90,16 +90,16 @@ show_regs(struct pt_regs * regs)
 void
 print_backtrace (unsigned long stackp)
 {
-        int cnt = 0;
+	int cnt = 0;
 	i370_elf_stack_t *sp;
 
-        printk("Call Backtrace:\n");
+	printk("Call Backtrace:\n");
 
-	do 
+	do
 	{
-		/* If the stack is at a very high address, assume 
-		 * that its a user-space stack pointer and that 
-		 * it needs address trnslation. 
+		/* If the stack is at a very high address, assume
+		 * that its a user-space stack pointer and that
+		 * it needs address trnslation.
 		 */
 		if (0x7f000000 < stackp) {
 			pte_t *pte = find_pte (current->mm, stackp);
@@ -111,14 +111,13 @@ print_backtrace (unsigned long stackp)
 		}
 		sp = (i370_elf_stack_t *) stackp;
 
-		printk ("   %02d   base[r3]=0x%lx link[r14]=0x%lx stack=%p\n", 
+		printk ("   %02d   base[r3]=0x%lx link[r14]=0x%lx stack=%p\n",
 			cnt, sp->caller_r3, sp->caller_r14, sp);
 		stackp = sp->caller_sp;
 		cnt ++;
-        } while (stackp &&  (cnt < 6)) ;
-        printk("\n");
+	} while (stackp &&  (cnt < 6)) ;
+	printk("\n");
 }
-
 
 /* =================================================================== */
 
@@ -184,7 +183,7 @@ int check_stack(struct task_struct *tsk)
 		printk("bad stack, halting\n");
 		show_regs (tsk->tss.regs);
 		print_backtrace (tsk->tss.regs->irregs.r13);
-	// 	i370_halt();
+	//	i370_halt();
 	}
 	return(ret);
 }
@@ -200,25 +199,25 @@ int check_stack(struct task_struct *tsk)
  * -- set the user's stack pointer
  * -- set the address at which to start executing the user process
  */
-void 
+void
 i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 {
-        cr0_t cr0;
+	cr0_t cr0;
 
 	printk ("i370_start_thread(): setup for user-space thread\n");
-        set_fs(USER_DS);
-       	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
-        regs->psw.flags |= USER_PSW;
-        regs->psw.addr = nip | PSW_31BIT;
+	set_fs(USER_DS);
+	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
+	regs->psw.flags |= USER_PSW;
+	regs->psw.addr = nip | PSW_31BIT;
 	/* Currently, the elf stack grows upwards & we need to make
-	   some room for the libc _start() routine to pass parameters to main.  
-           sizeof stackframe == 88 bytes, args = 16B for total of 0x68 = 104
-           regs->irregs.r13 = sp + sizeof (elf_stack_t) + 16 ; */
-        regs->irregs.r13 = 0;
+	   some room for the libc _start() routine to pass parameters to main.
+	   sizeof stackframe == 88 bytes, args = 16B for total of 0x68 = 104
+	   regs->irregs.r13 = sp + sizeof (elf_stack_t) + 16 ; */
+	regs->irregs.r13 = 0;
 
 	/* XXX hack alert ... I really hate STACK_SIZE ...  */
-        regs->irregs.r11 = sp - I370_STACK_SIZE;
-        regs->irregs.r15 = nip | PSW_31BIT;
+	regs->irregs.r11 = sp - I370_STACK_SIZE;
+	regs->irregs.r15 = nip | PSW_31BIT;
 
 	/* r2 will point to argc, argv ... */
 	regs->irregs.r2 = sp;
@@ -237,20 +236,20 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	regs->irregs.r12 = 0xaceb0ff0;
 	regs->irregs.r14 = 0xaceb0ff0;
 
-        cr0.raw = _stctl_r0();
-        cr0.bits.tf = 0x16;
-        _lctl_r0(cr0.raw);
+	cr0.raw = _stctl_r0();
+	cr0.bits.tf = 0x16;
+	_lctl_r0(cr0.raw);
 }
 
 /* =================================================================== */
 
-// switch_to does the task switching.  
-// I'm not to clear on what it needs to do ... 
-// ... needs to switch the stack pointer, at least ... 
+// switch_to does the task switching.
+// I'm not to clear on what it needs to do ...
+// ... needs to switch the stack pointer, at least ...
 //     if we just switch the stack pointer, then I don't think we need to
 //     save/restore any registers, since merely returning from this routine
 //     will accomplish all the sve/restore we need.
-// ... change addressing modes (potentially, from real 
+// ... change addressing modes (potentially, from real
 //     to primary or v.v.  ... then again, we can defer changing addressing
 //     until we return to the user-level process. Ditto for the next two
 //     steps ...
@@ -259,11 +258,11 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 //
 // NB the first time through, switch_to() actually returns as if
 // it were do_fork() to anyone who had called do_fork(), (even
-// though switch_to() was called in schedule()).  This is because when 
-// the stack unwinds during the subr return, it unwinds into a copy 
-// of it's parent's stack (minus one stackframe).  And the last thing 
+// though switch_to() was called in schedule()).  This is because when
+// the stack unwinds during the subr return, it unwinds into a copy
+// of it's parent's stack (minus one stackframe).  And the last thing
 // the parent had done was a fork, ergo, that's were we return to.
-// 
+//
 // A non-zero return value indicates an error.
 
 int
@@ -271,35 +270,35 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 {
 	struct thread_struct *new_tss, *old_tss;
 	unsigned long thunk;
-        __cli ();
+	__cli ();
 
 #ifdef CHECK_STACK
-        check_stack(prev);
-        check_stack(next);
+	check_stack(prev);
+	check_stack(next);
 #endif /* CHECK_STACK */
 
 #define SHOW_TASK_SWITCHES
 #ifdef SHOW_TASK_SWITCHES
 	printk("task switch ");
-        printk("%s/%d -> %s/%d PSW 0x%lx 0x%lx cpu %d \n",
-               prev->comm,prev->pid,
-               next->comm,next->pid,
-               next->tss.regs->psw.flags,
-               next->tss.regs->psw.addr,
-               next->processor);
+	printk("%s/%d -> %s/%d PSW 0x%lx 0x%lx cpu %d \n",
+	       prev->comm,prev->pid,
+	       next->comm,next->pid,
+	       next->tss.regs->psw.flags,
+	       next->tss.regs->psw.addr,
+	       next->processor);
 	printk ("current sp=0x%lx next sp=0x%lx\n", _get_SP(), next->tss.ksp);
 #endif
 	if (!next->tss.regs) printk ("Warning: zero regs for next pid=%d\n", next->pid);
 #ifdef __SMP__
-        prev->last_processor = prev->processor;
+	prev->last_processor = prev->processor;
 	/* XXX copy  current=new to the pfx page of the correct processor. */
 	
 #endif /* __SMP__ */
 
-        old_tss = &prev->tss;
-        new_tss = &next->tss;
+	old_tss = &prev->tss;
+	new_tss = &next->tss;
 
-	/* Save and restore flt point regs.  We do this here because 
+	/* Save and restore flt point regs.  We do this here because
 	 * it is NOT done at return from interrupt (in order to save
 	 * some overhead) */
 	_store_fpregs (old_tss->fpr);
@@ -311,8 +310,8 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 	/* cr1 contains the segment table origin */
 	_lctl_r1 (new_tss->cr1.raw);
 
-	/* Switch kernel stack pointers. Note that as son as we enable 
-	 * interrupts below, we'll probably get hit by one, so make sure 
+	/* Switch kernel stack pointers. Note that as son as we enable
+	 * interrupts below, we'll probably get hit by one, so make sure
 	 * the stack-top is valid as well. */
 	old_tss->ksp = _get_SP();
 	thunk = _get_STP() - _get_SP();
@@ -323,7 +322,7 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 	_ptlb();
 
 	/* enable intrerupts */
-        __sti ();
+	__sti ();
 
 	/* return as if from do_fork() */
 	return 0;
@@ -354,8 +353,8 @@ release_thread(struct task_struct *t)
 	i370_halt();
 }
 
-void 
-i370_sys_exit (void) 
+void
+i370_sys_exit (void)
 {
 	printk ("i370_sys_exit(): not implemented \n");
 	show_regs (current->tss.regs);
@@ -382,7 +381,7 @@ i370_sys_exit (void)
  *
  * Return 0 if success, non-zero if not
  *
- * XXX we gotta copy the user-space thread, as well ... 
+ * XXX we gotta copy the user-space thread, as well ...
  *
  * XXX we need to check to see if usp is indeed a user-space
  * stack pointer, and if so, set irregs.r13 to it.  We do not
@@ -415,8 +414,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	dsttop = kernel_stack_top (p);
 
 	this_frame = (i370_elf_stack_t *) _get_SP();
-        this_frame_top = this_frame;
-        this_frame = (i370_elf_stack_t *) (this_frame->caller_sp);
+	this_frame_top = this_frame;
+	this_frame = (i370_elf_stack_t *) (this_frame->caller_sp);
 	srcsp = this_frame;
 
 	delta = srctop - dsttop;
@@ -425,8 +424,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	p->tss.ksp = ((unsigned long) this_frame) - delta;
 
 #ifdef CHECK_STACK
-        check_stack(current);
-        check_stack(p);
+	check_stack(current);
+	check_stack(p);
 #endif /* CHECK_STACK */
 
 	srcbase = (void *) kernel_stack_bot (current);
@@ -444,19 +443,19 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	lastdst -> caller_sp = 0;
 
 	/* Interrupt regs are stored on stack as well.  Note that when
-	 * we used SVC to get to here, r13 and r11 were stored by the SVC 
+	 * we used SVC to get to here, r13 and r11 were stored by the SVC
 	 * handler and well be restored when the SVC returns.  We have to find
 	 * these values and thunk them as well.  Note that the code below
 	 * will correctly handle nested interrupts, although in theory we
-	 * should never have more than two (?) interrupts on the kernel stack. 
+	 * should never have more than two (?) interrupts on the kernel stack.
 	 */
 	srcregs = current->tss.regs;
 	dstregs = &(p->tss.regs);
 
 	if (!srcregs) {
-		/* This can't happen, but it did ... Last time it happened, 
-		 * its because the #define _psa_current was wrong and head.S 
-		 * didn't pick up the right value.  Unfortunately, this is 
+		/* This can't happen, but it did ... Last time it happened,
+		 * its because the #define _psa_current was wrong and head.S
+		 * didn't pick up the right value.  Unfortunately, this is
 		 * likely to happen again.
 		 */
 		printk("i370_copy_thread, damaged regs pointer\n");
@@ -466,12 +465,12 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		i370_halt();
 	}
 	do {
-		*dstregs = (i370_interrupt_state_t *) 
+		*dstregs = (i370_interrupt_state_t *)
 			(((unsigned long) srcregs) - delta);
-		(*dstregs)->irregs.r13 = srcregs->irregs.r13 - delta; 
-		(*dstregs)->irregs.r11 = srcregs->irregs.r11 - delta; 
+		(*dstregs)->irregs.r13 = srcregs->irregs.r13 - delta;
+		(*dstregs)->irregs.r11 = srcregs->irregs.r11 - delta;
 		(*dstregs)->oldregs =  (i370_interrupt_state_t *)
-			(((unsigned long) (srcregs->oldregs)));     
+			(((unsigned long) (srcregs->oldregs)));
 		srcregs = srcregs->oldregs;
 		dstregs = &((*dstregs)->oldregs);
 	} while (srcregs);
@@ -480,8 +479,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	/* Now copy the 'far side' of the stack, the part that lies
 	 * on the other side of the SVC that got us here.  There are
 	 * two possibilities here: that we came from user-land,
-	 * or that we came from the kernel. If we came from the 
-	 * kernel, then in fact we are on the same stack frame.  
+	 * or that we came from the kernel. If we came from the
+	 * kernel, then in fact we are on the same stack frame.
 	 */
 	if (regs->psw.flags & PSW_PROB) {
 		printk("i370_copy_thread, copy of user stack not yet supported\n");
@@ -508,12 +507,12 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		lastdst -> caller_sp = 0;
 	}
 
-	printk ("i370_copy_thread: finished %s pid=%d regs=%p\n", 
+	printk ("i370_copy_thread: finished %s pid=%d regs=%p\n",
 		p->comm, p->pid, p->tss.regs);
 #ifdef __SMP__
-        if ( (p->pid != 0) || !(clone_flags & CLONE_PID) )
-                p->tss.smp_fork_ret = 1;
-        p->last_processor = NO_PROC_ID;
+	if ( (p->pid != 0) || !(clone_flags & CLONE_PID) )
+		p->tss.smp_fork_ret = 1;
+	p->last_processor = NO_PROC_ID;
 #endif /* __SMP__ */
 
 	return 0;
@@ -521,13 +520,13 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 /* =================================================================== */
 
-/* 
+/*
  * note:
  * do_fork will call copy_thread, passing sp and regs to it
  */
 
-asmlinkage int 
-i370_sys_fork (void) 
+asmlinkage int
+i370_sys_fork (void)
 {
 	struct pt_regs *regs;
 	int res = 0;
@@ -551,61 +550,60 @@ i370_sys_fork (void)
 
 /* =================================================================== */
 
-asmlinkage int 
+asmlinkage int
 i370_sys_clone (unsigned long clone_flags)
 {
 	struct pt_regs *regs;
-        int res = 0;
+	int res = 0;
 
 	printk ("i370_sys_clone flags=0x%lx\n", clone_flags);
-        lock_kernel();
+	lock_kernel();
 	regs = current->tss.regs;
 
 	/* all args pass to copy_thread */
-        res = do_fork(clone_flags, regs->irregs.r13, regs);
+	res = do_fork(clone_flags, regs->irregs.r13, regs);
 
 #ifdef __SMP__
-        /* When we clone the idle task we keep the same pid but
-         * the return value of 0 for both causes problems.
-         * -- Cort
-         */
-        if ((current->pid == 0) && (current == &init_task))
-                res = 1;
+	/* When we clone the idle task we keep the same pid but
+	 * the return value of 0 for both causes problems.
+	 */
+	if ((current->pid == 0) && (current == &init_task))
+		res = 1;
 #endif /* __SMP__ */
-        unlock_kernel();
+	unlock_kernel();
 
 	printk ("i370_sys_clone(): after do_fork, res=%d\n", res);
 
-        return res;
+	return res;
 }
 
 /* =================================================================== */
 /*
  * i370_kernel_thread ... creates a new kernel thread.
  * Called during initialization, and during module load to create
- * misc important kernel threads. 
+ * misc important kernel threads.
  *
  * The child is supposed to then call the arg fn(), and never return.
- * If for any reason fn() returns, the child thread is supposed to be 
- * cleaned up and discarded. 
- * 
+ * If for any reason fn() returns, the child thread is supposed to be
+ * cleaned up and discarded.
+ *
  * clone() is a system call, it results in i370_sys_clone() being
- * called.  In turn, i370_sys_clone just calls do_fork() which then 
- * calls copy_thread().  We can't call do_fork directly, we must 
- * svc into it in order to be able to schedule and return properly 
+ * called.  In turn, i370_sys_clone just calls do_fork() which then
+ * calls copy_thread().  We can't call do_fork directly, we must
+ * svc into it in order to be able to schedule and return properly
  * in the child process.
  */
 
-long 
-i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)  
+long
+i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
 	printk ("i370_kernel_thread\n");
 	pid = clone (flags);
 	printk ("i370_kernel_thread(): return from clone, pid=%ld\n",pid);
-        if (pid) return pid;
+	if (pid) return pid;
 	fn (args);
-	while (1) {_exit (1); } 
+	while (1) {_exit (1); }
 	return 0;
 }
 

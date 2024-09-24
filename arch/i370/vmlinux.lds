@@ -30,12 +30,12 @@ PHDRS
 }
 SECTIONS
 {
-  /* Absolute (real) address zero */
+   /* Absolute (real) address zero */
    /* _PSA_ = 0x0;  ... This is now struct PSA _PSA_; in setup.c */
    .psa : { *(.psa) } : psaseg  /* Force into segment above */
 
   /* text section */
-  /* starts at 64KB, should be enough room for a PSA for a 15-way SMP */
+  /* Starts at 64KB, should be enough room for a PSA for a 15-way SMP */
    . = 0x10000;
    _text = .;
    .text : { *(.text) }

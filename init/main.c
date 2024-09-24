@@ -1100,15 +1100,6 @@ asmlinkage void __init start_kernel(void)
 {
 	char * command_line;
 
-#ifdef CONFIG_I370
-	/* XXX Hack around bug in 3CARD boot loader which doesn't clear
-	 * the BSS but instead puts the elf symbol table there yuck.
-	 * Do this before the first printk, and not in setup_arch.
-	 */
-	extern char _bss[], _ebss[];
-	memset (_bss, 0, ((unsigned long) _ebss) - ((unsigned long)_bss));
-#endif
-
 #ifdef __SMP__
 	static int boot_cpu = 1;
 	/* "current" has been set up, we need to load it now */

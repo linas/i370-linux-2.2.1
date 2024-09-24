@@ -200,10 +200,6 @@ __initfunc(void setup_arch(char **cmdline_p,
 
 	i370_find_devices(memory_start_p,memory_end_p);
 
-	/* hard-code an initrd into the system */
-	initrd_start  =  0x200000;  // 2M
-	initrd_end    =  0x500000;  // 5M
-
 	/* init_task ksp hasn't been set & its bogus; set it */
 	init_task.tss.ksp += TASK_STRUCT_SIZE;
 
@@ -218,6 +214,15 @@ __initfunc(void setup_arch(char **cmdline_p,
 #ifdef CONFIG_VT
 	conswitchp = &video3270_con;
 #endif
+}
+
+__initfunc(void i370_initrd(char *str, int *ints))
+{
+	/* Expecting i370_initrd=<start-addr>,<size in KBytes> */
+	if (ints[0] < 2) return;
+
+	initrd_start = ints[1];
+	initrd_end = initrd_start + 1024 * ints[2];
 }
 
 void

@@ -238,6 +238,9 @@ static void ramdisk_size(char *str, int *ints);
 static void no_initrd(char *s,int *ints);
 #endif
 #endif // CONFIG_BLK_DEV_RAM
+#ifdef CONFIG_I370
+extern void i370_initrd(char *str, int *ints);
+#endif
 #ifdef CONFIG_ISDN_DRV_ICN
 extern void icn_setup(char *str, int *ints);
 #endif
@@ -556,6 +559,9 @@ static struct kernel_param cooked_params[] __initdata = {
 #ifdef CONFIG_BLK_DEV_INITRD
 	{ "noinitrd", no_initrd },
 #endif
+#endif
+#ifdef CONFIG_I370
+	{ "i370_initrd=", i370_initrd },
 #endif
 #ifdef CONFIG_FB
 	{ "video=", video_setup },

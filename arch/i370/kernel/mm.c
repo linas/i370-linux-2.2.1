@@ -59,12 +59,13 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 	num_physpages = max_mapnr;      /* RAM is assumed contiguous */
 
 #ifdef CONFIG_BLK_DEV_INITRD
-// #if defined(CONFIG_VM_GUEST) || defined(CONFIG_HERCULES_GUEST)
 #if defined(CONFIG_VM_GUEST)
 	/*-------------------------------------------------------*/
 	/* If we are running under VM then we can load the RAM   */
 	/* disk from a shared segment (isn't VM wonderful!)      */
 	/* VM has CPUID[0] == 0xff and Hercules has != 0x0       */
+	/* XXX But this interferes with the later initrd load.   */
+	/* So I don''t get it. May want to keep this turned off. */
 	/*-------------------------------------------------------*/
 	if (CPUID[0] != 0x0)
 	{
@@ -153,7 +154,7 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 		initpages << (PAGE_SHIFT-10));
 
 #ifdef CONFIG_BLK_DEV_INITRD
-	printk("Init Ramdisk: %luk  [%08lx,%08lx]\n",
+	printk("Init Ramdisk: %dk  [%08lx,%08lx]\n",
 		initrdpages << (PAGE_SHIFT-10),
 		initrd_start, initrd_end);
 #endif /* CONFIG_BLK_DEV_INITRD */
@@ -170,6 +171,8 @@ __initfunc(void free_initmem(void))
 {
 	unsigned long num_freed_pages = 0;
 
+// XXX This is broken, it is not changing the storage key to something
+// writeable.  FIXME.
 #define FREESEC(START,END,CNT) \
 	do { \
 		unsigned long a = (unsigned long)(&START); \
@@ -181,9 +184,9 @@ __initfunc(void free_initmem(void))
 		} \
 	} while (0)
 
-	FREESEC(__init_text_begin,__init_data_end, num_freed_pages);
+	// FREESEC(__init_text_begin, __init_data_end, num_freed_pages);
 
-	printk ("freed initmem from %p to %p  (%d pages total)\n",
+	printk ("freed initmem from %p to %p  (%lu pages total)\n",
 		__init_text_begin, __init_data_end, num_freed_pages);
 
 	/* XXX hack alert I don't think init_irq belongs here */

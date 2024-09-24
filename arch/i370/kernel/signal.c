@@ -20,6 +20,7 @@ handle_signal(unsigned long sig, struct k_sigaction *ka,
               siginfo_t *info, sigset_t *oldset, struct pt_regs * regs,
               unsigned long *newspp, unsigned long frame)
 {
+printk("XXX handle_signa for signals not implemented yet\n");
 }
 
 /*
@@ -29,6 +30,7 @@ static void
 setup_frame(struct pt_regs *regs, struct sigregs *frame,
             unsigned long newsp)
 {
+printk("XXX setup_frame for signals not implemented yet\n");
 }
 
 /*
@@ -49,7 +51,7 @@ i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 	newsp = regs->irregs.r13;
 	frame = regs->irregs.r11;
 
-printk("duuude oldset=%x sp=%x fr=%s\n", oldset, newsp, frame);
+printk("Debug: enter i370_do_signal oldset=%x sp=%x fr=%s\n", oldset, newsp, frame);
 	while (1) {
 		unsigned long signr;
 

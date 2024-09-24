@@ -405,6 +405,7 @@ swapper_pg_dir:
 /*
  * This space gets a copy of optional info passed to us by the bootstrap
  * Used to pass parameters into the kernel like root=/dev/sda1, etc.
+ * Always the third page past start of .data, so bootloader can find it.
  */	
 /*
  * XXX a hack to boot, for now

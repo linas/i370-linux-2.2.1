@@ -34,9 +34,10 @@ struct PSA {		/* PSA: Prefixed Storage Area */
   psw_t		 ipl_psw_new;
   psw_t		 ipl_psw_old;
 
-  /* Interrupt vectors are at low addresses.  See processor.h
-   * much presently omitted...... */
-  char           reserved_0 [496];
+  /* Interrupt vectors are at low addresses. This struct is not used
+	* to set those up; the defines in processor.h are used instead.
+	* Why? No reason. Maybe we should "fix" this? */
+  char           reserved_0 [512-2*8];
 
   char           eyecatcher [4];/* "PSA " in ascii                    */
 
@@ -66,7 +67,6 @@ struct PSA {		/* PSA: Prefixed Storage Area */
   unsigned short cpumask;	/* bit set according to  ...          */
   char *         istack;	/* address of first frame in interrupt stack */
 
-
   unsigned int   local_bh_count;
   unsigned int   local_irq_count;
 
@@ -79,13 +79,13 @@ struct PSA {		/* PSA: Prefixed Storage Area */
   unsigned pgm    : 1;	        /* Program interruption in progress   */
   unsigned io     : 1;          /* IO interruption handler in progress*/
   unsigned ext    : 1;	        /* External FLIH in progress          */
-  unsigned disp   : 1;		/* Dispatcher called                  */
-  unsigned ist    : 1;		/* On the interrupt stack, after FLIH */
+  unsigned disp   : 1;	        /* Dispatcher called                  */
+  unsigned ist    : 1;	        /* On the interrupt stack, after FLIH */
 
   /*             PSASUPER       SECOND BYTE                           */ 
 
   unsigned acr    : 1;	        
-  unsigned ts     : 1;		/* Task switch requested              */
+  unsigned ts     : 1;	        /* Task switch requested              */
   unsigned        : 0;
   /*             PSASUPER       THIRD BYTE                            */ 
   unsigned        : 0;
@@ -96,12 +96,11 @@ struct PSA {		/* PSA: Prefixed Storage Area */
   /* pfx trace is at 0xd00 see PFX_TRACE in head.S */
   /* INTERRUPT_BASE is 0xf00 in processor.h  */
   char reserved_544 [0xf00-0x220];
-  psw_t		 psw;
+  psw_t          psw;
   irregs_t       irregs;       /* some but not all of the GPR's       */
 
   char reserved_3912 [0x1000-0xf48];  
-
-  };
+};
 
 typedef struct PSA psa_t;
 extern struct PSA _PSA_ ;	/* Defined in setup.c */

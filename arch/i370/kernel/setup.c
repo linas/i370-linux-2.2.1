@@ -168,7 +168,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 		}
 	}
 
-	/* set up memory layout */
+	/* Set up memory layout. */
 	init_task.mm->start_code = PAGE_OFFSET;
 	init_task.mm->end_code = (unsigned long) _etext;
 	init_task.mm->end_data = (unsigned long) _edata;

@@ -31,17 +31,12 @@ struct task_struct;
 
 struct PSA {		/* PSA: Prefixed Storage Area */
    
+  psw_t		 ipl_psw_new;
+  psw_t		 ipl_psw_old;
+
   /* Interrupt vectors are at low addresses.  See processor.h
    * much presently omitted...... */
-
-#ifdef CONFIG_HERCULES_GUEST
-  // Hercules uses the first two words for a short-form PSW
-  // And we hack this so it is in the ELF file. Fix this once
-  // we get an ELF boatloader for Hercules.
-  char           reserved_0 [504];
-#else
-  char           reserved_0 [512];
-#endif
+  char           reserved_0 [496];
 
   char           eyecatcher [4];/* "PSA " in ascii                    */
 

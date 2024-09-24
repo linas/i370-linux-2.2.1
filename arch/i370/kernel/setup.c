@@ -32,17 +32,16 @@ CPU_t cpu_details[NR_CPUS];
 
 char saved_command_line[512];
 
-#ifdef CONFIG_HERCULES_GUEST
-unsigned long _herc_psw[2] __attribute__ ((section(".psa"))) = {
-	0x00080000, /* Disabled wait */
-	0x80010000  /* Start of text section */ };
-#endif /* CONFIG_HERCULES_GUEST */
-
 // Overlay struct PSA onto real address zero.
 // The __attribute__ ((section(".psa"))) forces it into its own
 // linker section, which is mapped to address zero. See vmlinux.lds
-// for details.
-struct PSA _PSA_  __attribute__ ((section(".psa")));
+// for that mapping. The first 8 bytes are initialized to the boot
+// psw; the goal is to bake these addresses into the binary; they
+// must already be set before boot can start.
+struct PSA _PSA_  __attribute__ ((section(".psa"))) = {
+	/* ipl_psw_new */
+	0x00080000, /* Disabled wait */
+	0x80010000  /* Start of text section */ };
 
 extern void i370_find_devices (unsigned long *memory_start_p,
 				unsigned long *memory_end_p);

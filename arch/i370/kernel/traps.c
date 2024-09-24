@@ -286,24 +286,20 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 	 * microsecond/4K). We want an interrupt every HZ of
 	 * a second */
 
-#define CONFIG_VM_GUEST
-#ifdef CONFIG_VM_GUEST
+#if defined (CONFIG_VM_GUEST) || defined (CONFIG_HERCULES_GUEST)
 	/* It is more correct to use stckc as this avoids clock skew.
 	 * However, on VM, if VM is overburdened, then we risk never
 	 * catching up.  So use stck for VM ...
-	 * We're also going to make the clock tick 10 times a second,
-	 * not 100, since that seems to be too often in some cases.
-	 * Gee, I wonder if we should #define HZ to 10 not 100???
-	 * Actually, while debugging, we set this to four interrupts
-	 * a second.
+	 * We're also going to make the clock tick 20 times a second,
+	 * not 100, since that makes debugging easier.
+	 * Gee, I wonder if we should #define HZ to 20 not 100???
 	 */
 	ticko = _stck ();
-	// ticko += (10000000/HZ) << 12;   // effective HZ =10 per second
-	ticko += (25000000/HZ) << 12;      // effective HZ = 4 per second
+	ticko += (5000000/HZ) << 12;   // effective HZ = 20 per second
 	_sckc (ticko);
 #else
 	ticko = _stckc ();
-	ticko += (1000000/HZ) << 12;
+	ticko += (1000000/HZ) << 12;  // Effective HZ = 100 per second
 	_sckc (ticko);
 #endif /* CONFIG_VM_GUEST */
 

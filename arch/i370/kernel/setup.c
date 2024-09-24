@@ -179,6 +179,8 @@ __initfunc(void setup_arch(char **cmdline_p,
 	strcpy(saved_command_line, cmd_line);
 	*cmdline_p = cmd_line;
 
+	printk("Boot command line: %s\n", cmd_line);
+
 	*memory_start_p = (unsigned long) _end;
 
 	/* On bare metal, the first byte is supposed to (always) be zero.

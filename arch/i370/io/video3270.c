@@ -1,10 +1,17 @@
-
-/* video3270.c 
+/*
+ * video3270.c
  *
  * Rump for mapping 3270 functions to linux style 'video'.
- * This is meant to implement a full-screen driver where 
- * text can be written anywhere, and the cursor can be 
+ * This is meant to implement a full-screen driver where
+ * text can be written anywhere, and the cursor can be
  * positioned anywhere.
+ *
+ * At this time, this is used only once, very early in boot.
+ * Its used to print the message "Console: mono vid3270 80x24"
+ * and then it's never used again. I guess that's because all
+ * later messages go to the 3270/3210/3215 console. So I guess
+ * we can leave this "unfinished", forever? Or should we swap
+ * things around?
  *
  * --linas Oct 1999
  */
@@ -25,7 +32,7 @@ static unsigned long vid3270_uni_pagedir[2] = {0,0};
 /* ================================================================ */
 
 __initfunc(static const char *vid3270_startup(void))
-{ 
+{
 	return "vid3270";
 }
 
@@ -42,7 +49,7 @@ vid3270_init(struct vc_data *conp, int init)
 		conp->vc_rows = 24;
 	}
 
-	/* beats the heck out of me wht this code does, but
+	/* Beats the heck out of me wht this code does, but
 	 * both the VGA and the promcon do this.  If we don't
 	 * do this, cuhhh-rash. */
 	p = *conp->vc_uni_pagedir_loc;
@@ -95,19 +102,35 @@ vid3270_bmove(struct vc_data *conp, int sy, int sx, int dy, int dx,
 
 static void
 vid3270_putcs(struct vc_data *conp, const unsigned short *s,
-	      int count, int y, int x)
+              int count, int y, int x)
 {
+#define LINEBU 128
+	char buf[LINEBU];
 	int i;
+
 	if (80 == count) {  /* quick hack don't print blank lines */
 		for(i=0; i<count; i++) if (0x20 != (0xff & s[i])) goto prt;
 		return;
 	}
 prt:
-	printk("vid3270_putcs %d chars at (%d,%d): ", count, y, x);
-	for(i=0; i<count; i++) {
-		printk ("%c", 0xff & s[i]);
-	} 
-	printk ("\n");
+
+	// printk("vid3270_putcs %d chars at (%d,%d): ", count, y, x);
+
+	if (LINEBU <= count)
+	{
+		printk("vid3270_putcs unexpectedly large put character string\n");
+		for(i=0; i<count; i++)
+			printk ("%c", 0xff & s[i]);
+		printk ("\n");
+	}
+	else
+	{
+		for (i=0; i<count; i++)
+			buf[i] = 0xff & s[i];
+		buf[i] = '\n';
+		buf[i+1] = 0;
+		printk("%s", buf);
+	}
 }
 
 /* ================================================================ */
@@ -212,8 +235,8 @@ struct consw video3270_con = {
 
 /* ================================================================ */
 /* takover function */
-/* XXX Note that its not really needed, as we already grabbed the console 
- * in setup.c 
+/* XXX Note that its not really needed, as we already grabbed the console
+ * in setup.c
  */
 
 __initfunc(void video3270_init(void))

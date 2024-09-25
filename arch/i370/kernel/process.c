@@ -198,6 +198,18 @@ int check_stack(struct task_struct *tsk)
  * -- we set the problem state bit in the PSW
  * -- set the user's stack pointer
  * -- set the address at which to start executing the user process
+ *
+ * XXX TODO: this final bit, of setting the address at where to start,
+ * and setting it in r15, won't actually work, because r15 holds the
+ * return value from do_fork() (see switch_to() below) and that value
+ * is zero. So, userland is entered with r15 being zero. Now, we could
+ * demand an ABI where it is the responsibility of crt0.s to set up
+ * r15 before calling main. And would could even help out, by maybe
+ * passing the start address, i I dunno, r0 or r1 or something. For
+ * just now, until the ABI solidifies, NIP never gets to userland.
+ *
+ * I'm totally confused about how userland is supposed to proceed.
+ * Later. Bedtime, now.
  */
 void
 i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
@@ -310,7 +322,7 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 	/* cr1 contains the segment table origin */
 	_lctl_r1 (new_tss->cr1.raw);
 
-	/* Switch kernel stack pointers. Note that as son as we enable
+	/* Switch kernel stack pointers. Note that as soon as we enable
 	 * interrupts below, we'll probably get hit by one, so make sure
 	 * the stack-top is valid as well. */
 	old_tss->ksp = _get_SP();

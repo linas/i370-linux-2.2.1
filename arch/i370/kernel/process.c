@@ -209,7 +209,8 @@ int check_stack(struct task_struct *tsk)
  * just now, until the ABI solidifies, NIP never gets to userland.
  *
  * I'm totally confused about how userland is supposed to proceed.
- * Later. Bedtime, now.
+ * Later. Bedtime, now. Oh wait. Userland can just do BASR r15,0 to
+ * find out where they are. So these comments need updation.
  */
 void
 i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)

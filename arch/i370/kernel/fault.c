@@ -34,8 +34,8 @@
 /*                 (2) Refer To ........................... */
 /*                                                          */
 /************************************************************/
- 
- 
+
+
 #include <linux/interrupt.h>
 #include <linux/kernel.h>
 #include <linux/mm.h>
@@ -50,8 +50,8 @@
 #include <asm/siginfo.h>
 #include <asm/system.h>
 #include <asm/uaccess.h>
- 
- 
+
+
 /************************************************************/
 /*                                                          */
 /*                     M A I N L I N E                      */
@@ -69,7 +69,7 @@
 /* If this routine detects a bad access, it returns 1,      */
 /* otherwise it returns 0.                                  */
 /************************************************************/
- 
+
 int
 do_page_fault(struct pt_regs *regs, unsigned long address,
               unsigned short pic_code)
@@ -79,7 +79,7 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
  unsigned long fixup, valid_addr;
  int write;
  unsigned short *ilc;
- 
+
   /* printk ("do_page_fault addr=0x%lx, pic=%x\n", address, pic_code); */
   /*------------------------------------------------------------*/
   /* If we're in an interrupt or have no user                   */
@@ -105,11 +105,11 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
   /* If we are here, then the address was below the vma start.
    * It might be a null-pointer deref ...
    *
-   * Note clear on what's going on here. This can happen for the 
-   * user process stack, although note that that grows up, not down.
-   * Note also, it should stact a 7fc00000 but sometimes starts at
-   * 7fbfff00 which I think is wrong, but .. anyway, this are needs
-   * work both here and in the elf loader.
+   * Not clear on what's going on here. This can happen for the
+   * user process stack; however, that grows up, not down.
+   * Note also, it should start at 7fc00000 but sometimes starts at
+   * 7fbfff00 which I think is wrong, (someone subtracted STACK_SIZE)
+	* But ... anyway, this needs to work both here and in the elf loader.
    */
 printk ("do_page_fault addr=0x%lx is below vma start=0x%lx\n", address, vma->vm_start);
   /* if (!(vma->vm_flags & VM_GROWSUP)) goto bad_area; */
@@ -125,7 +125,7 @@ printk ("do_page_fault user stack fault addr=0x%lx, frame=%lx\n", address, regs-
   }
   if (expand_stack(vma, address))
        goto bad_area;
- 
+
   /*----------------------------------------------------------*/
   /* Ok, we have a good vm_area for this memory access, so    */
   /* we can handle it..                                       */
@@ -148,7 +148,7 @@ good_area:
         write = 1;
   }
   /* printk(" handling mm fault on good page \n"); */
- 
+
   /*----------------------------------------------------------*/
   /* If for any reason at all we couldn't handle the fault,   */
   /* make sure we exit gracefully rather than endlessly redo  */
@@ -158,7 +158,7 @@ good_area:
        goto do_sigbus;
   up(&mm->mmap_sem);
   return 0;
- 
+
 /*------------------------------------------------------------*/
 /* Something tried to access memory that isn't in our memory  */
 /* map. Fix it, but check if it's kernel or user first. User  */
@@ -168,7 +168,7 @@ bad_area:
   up(&mm->mmap_sem);
   if (user_mode(regs)) {
        siginfo_t info;
- 
+
 printk("sending SEGV to user proc: bad access to 0x%lx pic=%x\n", address, pic_code);
 show_regs(regs);
 print_backtrace (regs->irregs.r13);
@@ -179,7 +179,7 @@ print_backtrace (regs->irregs.r13);
        force_sig_info(SIGSEGV, &info, current);
        return 1;
   }
- 
+
 no_context:
   /*----------------------------------------------------------*/
   /* Are we prepared to handle this kernel fault?   (not yet!)*/
@@ -188,7 +188,8 @@ no_context:
        regs->psw.addr = fixup | 0x80000000;
        return -1;
   }
-*//*----------------------------------------------------------*/
+*/
+  /*----------------------------------------------------------*/
   /* Oops. The kernel tried to access some bad page. We'll    */
   /* have to terminate things "with extreme prejudice".       */
   /*----------------------------------------------------------*/
@@ -201,7 +202,7 @@ no_context:
   show_regs(regs);
   print_backtrace (regs->irregs.r13);
   i370_halt();
- 
+
 /*-------------------------------------------------------------*/
 /* We ran out of memory, or some other thing happened to us    */
 /* that made us unable to handle the page fault gracefully.    */
@@ -218,5 +219,5 @@ do_sigbus:
        goto no_context;
   return 1;
 }
- 
+
 /*===================== End of Mainline ====================*/

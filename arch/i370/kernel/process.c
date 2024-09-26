@@ -222,18 +222,42 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
 	regs->psw.flags |= USER_PSW;
 	regs->psw.addr = nip | PSW_31BIT;
-	/* Currently, the elf stack grows upwards & we need to make
-	   some room for the libc _start() routine to pass parameters to main.
-	   sizeof stackframe == 88 bytes, args = 16B for total of 0x68 = 104
-	   regs->irregs.r13 = sp + sizeof (elf_stack_t) + 16 ; */
-	regs->irregs.r13 = 0;
 
-	/* XXX hack alert ... I really hate STACK_SIZE ...  */
-	regs->irregs.r11 = sp - I370_STACK_SIZE;
+	/* Setting r15 is pointless; userland will never see this,
+	 * because r15 will hold the return value of sys_fork() */
 	regs->irregs.r15 = nip | PSW_31BIT;
 
-	/* r2 will point to argc, argv ... */
-	regs->irregs.r2 = sp;
+	/* Don't bother setting r13; userland will figure it out. */
+	regs->irregs.r13 = 0;
+
+	/* Here it grows complicated. The i370 ELF ABI stack grows upwards.
+	 * The code in fs/exec.c assume the stack grows downwards. Thus,
+	 * it starts at the highest possible address (0x80000000 for us)
+	 * subtracts sizeof(void *) and then copies argv, envp to
+	 * progressively lower addrs, ending up at (for example) at
+	 * 7fffffdf, which it then passes to us as sp. We now have to
+	 * undo this damage.
+	 *
+	 * Our stack base will be at STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
+	 * More correctly, this is the frame base: the first frame is here.
+	 * Per ABI, r11 is the frame pointer. The stack top is just the
+	 * frame pointer, plus the size of the frame; about 100 bytes or so.
+	 * We'll pass this in r2; this eventually becomes main()'s r13.
+	 * To acheive this, _start has to `ST r2,0(,r11)` so main() can
+	 * find it. Why r2? No reason, other than to minimize confusion
+	 * about r13. The choice is arbitrary.
+	 */
+
+	unsigned long frame_base = STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
+
+	/* r11 is the frame pointer. */
+	regs->irregs.r11 = frame_base;
+
+	/* r2 gets the stack top */
+	regs->irregs.r2 = frame_base + sizeof(i370_elf_stack_t);
+
+	/* XXX hack till we do the args */
+	regs->irregs.r2 += 32;
 
 	/* boffo ace rimer in other regs */
 	regs->irregs.r0 = 0xaceb0ff0;

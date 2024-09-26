@@ -744,6 +744,7 @@ do_load_elf_binary(struct linux_binprm * bprm, struct pt_regs * regs)
 	printk("(end_data) %x\n" , current->mm->end_data);
 	printk("(start_brk) %x\n" , current->mm->start_brk);
 	printk("(brk) %x\n" , current->mm->brk);
+	printk("(arg_start) %x\n" , current->mm->arg_start);
 	printk("(start_stack) %x\n" , current->mm->start_stack);
 #endif
 

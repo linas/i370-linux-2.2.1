@@ -74,11 +74,11 @@ int
 do_page_fault(struct pt_regs *regs, unsigned long address,
               unsigned short pic_code)
 {
- struct mm_struct *mm = current->mm;
- struct vm_area_struct * vma;
- unsigned long fixup, valid_addr;
- int write;
- unsigned short *ilc;
+  struct mm_struct *mm = current->mm;
+  struct vm_area_struct * vma;
+  unsigned long fixup, valid_addr;
+  int write;
+  unsigned short *ilc;
 
   /* printk ("do_page_fault addr=0x%lx, pic=%x\n", address, pic_code); */
   /*------------------------------------------------------------*/
@@ -118,11 +118,20 @@ printk ("do_page_fault addr=0x%lx is below vma start=0x%lx\n", address, vma->vm_
        /*-----------------------------------------------------*/
        /*-----------------------------------------------------*/
 printk ("do_page_fault user stack fault addr=0x%lx, frame=%lx\n", address, regs->irregs.r13);
-       /* XXX hack alert see the corresponding stack XXXX in i370_start_thread() */
-       /* XXX basically this is a really piss-poor attempt at stack verification */
+       /* XXX FIXME see corresponding stack XXXX in i370_start_thread() */
+       /* XXX This is a really piss-poor attempt at stack verification */
        if (address < ((TASK_SIZE-I370_STACK_SIZE)-0x1000))
                goto bad_area;
   }
+
+  /* XXX FIXME: TODO. Use find_vma_intersection instead of
+   * expand_stack(). The problem is expand_stack() assumes
+   * the stack grows downward, and so our very firsst fault will
+	* allow the full 4MB stack area. Instead, we want to grow
+   * up from the frame base, which is located at
+   * STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE. But, for now, this
+   * works. At least, for user mode. I'm not sure what happens
+   * if the kernel hits this ... */
   if (expand_stack(vma, address))
        goto bad_area;
 

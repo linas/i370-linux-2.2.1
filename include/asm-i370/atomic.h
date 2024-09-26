@@ -111,13 +111,15 @@ extern __inline__ int atomic_inc_return(atomic_t *v)
 {
 	int oldval, newval;
 
+	/* +r" allows registers r0-r15 while +a allows only r1-r15.
+	 * This is needed to prevent LA from being used with r0 */
 	__asm__ __volatile__(
 "1:	L	%0,%2;"
 "	L	%1,%2;"
 "	LA	%1,1(,%1);"
 "	CS	%0,%1,%2;"
 "	BNE	1b"
-	: "+r" (oldval), "+r" (newval), "+m" (*v)
+	: "+r" (oldval), "+a" (newval), "+m" (*v)
 	: 
 	: "memory");
 
@@ -213,6 +215,8 @@ unsigned long compare_and_swap (void *memloc,
 	unsigned long *memptr = (unsigned long *) memloc;
 	unsigned long rc = 0;
 
+	/* +r" allows registers r0-r15 while +a allows only r1-r15.
+	 * This is needed to prevent LA from being used with r0 */
 	__asm__ __volatile__(
 "	CS	%0,%1,%2;"
 "	BZ	1f;"
@@ -220,7 +224,7 @@ unsigned long compare_and_swap (void *memloc,
 "	ST	%0,%4;"
 "1:	;	"
 
-	: "+r" (*old), "+r" (newval), "+m" (*memptr), "+r" (rc), "=m" (*old)
+	: "+r" (*old), "+r" (newval), "+m" (*memptr), "+a" (rc), "=m" (*old)
 	: 
 	: "memory");
 

@@ -11,8 +11,10 @@
 /* during address calcs, the 31st bit might be set... use this to clear it */
 #define ADDR_MASK	0x7fffffff
 
-/* for now, we will run in real mode, 
+/* For now, we will run in real mode,
  * so all real address == virtual addres
+ * Eventually, maybe set this to 0xC0000000 .. but why? .. as an
+ * eyecatcher? Anyway, things should work either way.
  */
 #define PAGE_OFFSET	0x0  
 

@@ -262,7 +262,7 @@ MachineCheck:
 	EXCEPTION_EPILOG (INTERRUPT_BASE)
 
 /* Supervisor Call */
-#define NR_syscalls	188
+#define NR_syscalls	189
 	.global SupervisorCall
 SupervisorCall:
 	SAVE_REGS (INTERRUPT_BASE)

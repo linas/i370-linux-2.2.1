@@ -29,7 +29,6 @@
 
 #define ON     1
 #define OFF    0
-#define I_3210 4 /* Index into s390_details for 3210 device */
 
 /*=============== End of Defines ===========================*/
 
@@ -83,18 +82,6 @@ unitblk_t *dev_cons    = NULL,
 long    sid_count = 0;
 extern unsigned char* CPUID;
 
-S390map_t s390_map[9] = {
-	{T3990, 0,     0,  0},
-	{T3880, 0,     0,  1},
-	{TFBLK, 0,     0,  2},
-	{T3274, 0,     0,  3},
-	{T3480, 0,     0,  5},
-	{T3590, 0,     0,  6},
-	{T3172, MOSAD, 0,  7},
-	{T3172, MCTCA, 0,  7},
-	{0,     0,     0, -1}
-};
-
 extern struct file_operations i370_fop_eckd;
 extern struct file_operations i370_fop_ckd;
 extern struct file_operations i370_fop_fba;
@@ -114,6 +101,20 @@ extern void i370_tape_flih (int, void *, struct pt_regs *regs);
 extern void i370_tss_flih  (int, void *, struct pt_regs *regs);
 extern void i370_osa_flih  (int, void *, struct pt_regs *regs);
 extern void i370_ctca_flih (int, void *, struct pt_regs *regs);
+
+S390map_t s390_map[9] = {
+	{T3990, 0,     0,  0},
+	{T3880, 0,     0,  1},
+	{TFBLK, 0,     0,  2},
+	{T3274, 0,     0,  3},
+	{T3480, 0,     0,  5},
+	{T3590, 0,     0,  6},
+	{T3172, MOSAD, 0,  7},
+	{T3172, MCTCA, 0,  7},
+	{0,     0,     0, -1}
+};
+
+#define I_3210 4 /* Index into s390_devices (below) for 3210 device */
 
 S390dev_t s390_devices[10] = {
 	{MJ3990, 0, 255, BLKDEV, D3990, &i370_fop_eckd,  7, i370_eckd_flih},
@@ -207,12 +208,12 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 			_msch(sid, &schib);
 
 			/*----------------------------------------------------*/
-			/* If we can find a device '009' under VM             */
+			/* If we can find a device '0009' under VM            */
 			/* VM has (CPUID[0] == 0xff)                          */
 			/* and Hercules has (CPUID[0] != 0xff) in general     */
 			/*----------------------------------------------------*/
 			if ((schib.devno == 0x0009) && (CPUID[0] != 0x0)) {
-				dev_cons	   = devices;
+				dev_cons	      = devices;
 				dev_con3210	   = devices;
 				schib.isc	   = devices->unitisc = s390_devices[I_3210].isc;
 				devices->unitmajor = s390_devices[I_3210].major;
@@ -221,7 +222,9 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 				strncpy(devices->unitname,s390_devices[I_3210].devName,7);
 				devices->unitname[7] = 0x0;
 				devices->unitstat  = UNIT_READY;
-printk ("Device 9 is %s (%d, %d)\n", devices->unitname, devices->unitmajor, devices->unitminor);
+
+				printk ("Device 0009 mapped to unix /dev/%s (%d, %d)\n",
+					devices->unitname, devices->unitmajor, devices->unitminor);
 			}
 			else {
 				rc = i370_getsid(sid, &schib, &dev_id);

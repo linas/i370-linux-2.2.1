@@ -1,5 +1,5 @@
 /*
- * structures defining ESA/390 I/O Devices
+ * Structures defining ESA/390 I/O Devices
  */
 
 #ifndef I370_UNITB_H_
@@ -21,12 +21,12 @@ typedef struct _unitblk {
 	long		unitsid;	/* Subchannel Identifier */
 	irb_t		unitirb;	/* Interrupt Request Block */
 	void           *unitaction;	/* Pointer to irq action element */
-    struct wait_queue *unitinq;    /* Input wait queue */
-    struct wait_queue *unitoutq;   /* Output wait queue */
-    struct wait_queue *unitexpq;   /* Exception wait queue */
-    struct fasync_struct *unitasyq;/* Asynchronous reader queue */
-    unsigned  long   unitnread;    /* Number of readers */
-    unsigned  long   unitnwrit;    /* Number of writers */
+	struct wait_queue *unitinq;     /* Input wait queue */
+	struct wait_queue *unitoutq;    /* Output wait queue */
+	struct wait_queue *unitexpq;    /* Exception wait queue */
+	struct fasync_struct *unitasyq; /* Asynchronous reader queue */
+	unsigned  long  unitnread;      /* Number of readers */
+	unsigned  long  unitnwrit;      /* Number of writers */
 	unsigned  int   unitmajor;	/* Major device number */
 	unsigned  int   unitminor;	/* Minor device number */
 	int             unitisc;	/* Device interrupt subclass */
@@ -43,7 +43,7 @@ typedef struct _unitblk {
 	unsigned char   unittycd;	/* Device Type code from RDC */
 	unsigned char   unitcuid;	/* CUID from RDC */
 	unsigned char   unitvol[6];	/* volume Id */
-	unsigned char   fill[10];        /* fill to next 16 byte boundary */
+	unsigned char   fill[10];       /* fill to next 16 byte boundary */
 	struct _unitblk *unitnxt;       /* Next Unit Block */
 } unitblk_t;
 
@@ -55,7 +55,7 @@ typedef struct _unitblk {
 
 typedef	struct _idchar
 {
-	unsigned char	idctrl;	/* Function control byte */
+	unsigned char	idctrl;		/* Function control byte */
 	unsigned short	idcuid _PACK;	/* Control unit ID */
 	unsigned char	idcumdl;	/* Control unit model */
 	unsigned short	iddevid _PACK;	/* Device ID */
@@ -94,7 +94,7 @@ typedef	struct _devchar {
 	unsigned char	devmodr;	/* Track Capacity Mode changed */
 	short		devnkey;	/* Non-Keyed Record Overhead */
 	short		devkey;		/* Keyed Record Overhead */
-	short		devaltc;	/* Address of first Alternate cylinder */	
+	short		devaltc;	/* Address of first Alternate cylinder */
 	short		devaltr;	/* Number of Alternate track */
 	short		devdiagc;	/* Address of diagnostic Cylinder */
 	short		devdiagt;	/* Number of diagnostic Tracks */
@@ -113,7 +113,7 @@ typedef	struct _devchar {
 /* Maps the device info. returned by Sense ID to a major no.  */
 /*------------------------------------------------------------*/
 typedef struct {
-    unsigned short int cuid;            /* Control unit ID (idcuid)     */
+	unsigned short int cuid;        /* Control unit ID (idcuid)     */
 	unsigned char	model;		/* Control unit model		*/
 	unsigned short	dev _PACK;      /* Device ID (iddevid)          */
 	int      	i_s390dev;	/* Index into s390dev table	*/

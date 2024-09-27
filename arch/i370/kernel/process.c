@@ -270,6 +270,10 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	p += envlen;
 	copy_to_user(p, kelfs, elflen);
 
+	kfree(kargs);
+	kfree(kenvs);
+	kfree(kelfs);
+
 	/* Set up the registers we will hand over to the user. */
 	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
 	regs->psw.flags |= USER_PSW;

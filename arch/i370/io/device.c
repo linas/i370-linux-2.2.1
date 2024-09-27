@@ -54,10 +54,10 @@
 #include <asm/unitblk.h>
 
 /************************************************************/
-/*							    */
-/*	         FUNCTION PROTOTYPES	                    */
-/*	         -------------------	                    */
-/*							    */
+/*                                                          */
+/*                 FUNCTION PROTOTYPES                      */
+/*                 -------------------                      */
+/*                                                          */
 /************************************************************/
 
 static int i370_doio(int, schib_t *, ccw_t *);
@@ -69,10 +69,10 @@ static void i370_register_driver(long, schib_t *, unitblk_t *, idchar_t *);
 /*================== End of Prototypes =====================*/
 
 /************************************************************/
-/*							  */
-/*	     GLOBAL VARIABLE DECLARATIONS		 */
-/*	     ----------------------------		 */
-/*							  */
+/*                                                          */
+/*             GLOBAL VARIABLE DECLARATIONS                 */
+/*             ----------------------------                 */
+/*                                                          */
 /************************************************************/
 
 unitblk_t *unit_base;
@@ -131,10 +131,10 @@ S390dev_t s390_devices[10] = {
 /*============== End of Variable Declarations ==============*/
 
 /************************************************************/
-/*							  */
-/*		     M A I N L I N E		      */
-/*		     ---------------		      */
-/*							  */
+/*                                                          */
+/*                     M A I N L I N E                      */
+/*                     ---------------                      */
+/*                                                          */
 /************************************************************/
 
 void
@@ -162,7 +162,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	/*------------------------------------------------------*/
 	/* Set Unit Block base address to memory start	        */
 	/* and calculate the number of subchannels in the       */
-	/* configuration set with device valid.		        */
+	/* configuration set with device valid.                 */
 	/*------------------------------------------------------*/
 
 	unit_base = (unitblk_t *) *memory_start;
@@ -241,12 +241,12 @@ printk ("Device 9 is %s (%d, %d)\n", devices->unitname, devices->unitmajor, devi
 /*===================== End of Mainline ====================*/
 
 /************************************************************/
-/*							  */
-/* Name       - i370_doio.				  */
-/*							  */
+/*                                                          */
+/* Name       - i370_doio.                                  */
+/*                                                          */
 /* Function   - Construct an ORB for the SSCH, issue and    */
-/*	      wait for completion.			*/
-/*							  */
+/*              wait for completion.                        */
+/*                                                          */
 /************************************************************/
 
 static int
@@ -590,7 +590,7 @@ printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitma
 			if (dev_cons == NULL) dev_cons = devices;
 		}
 
-		rc = i370_getrdc(sid, schib, &rdc);	
+		rc = i370_getrdc(sid, schib, &rdc);
 		if (!rc) {
 			devices->unitmodl = rdc.devcumod;
 			devices->unitclas = rdc.devclcd;
@@ -601,7 +601,7 @@ printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitma
 			  	 devices->unitstat = UNIT_READY;
 				 rc = i370_getvol_eckd(sid, schib, &rdc);
 				 memcpy(&devices->unitvol,rdc.devvol,6);
-			}	
+			}
 		} else {
 /* XXX  set unitmodl ??? */
 			devices->unitmodl = dev_id->idcuid;

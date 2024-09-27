@@ -7634,10 +7634,12 @@ CONFIG_VT_CONSOLE
   The system console is the device which receives all kernel messages
   and warnings and which allows logins in single user mode. If you
   answer Y here, a virtual terminal (the device used to interact with
-  a physical terminal) can be used as system console. This is the most
-  common mode of operations, so you should say Y here unless you want
-  the kernel messages be output only to a serial port (in which case
-  you should say Y to "Console on serial port", below).
+  a physical terminal) can be used as system console.
+
+  For the i370 port, you probably want to say N here.  Selecting Y will
+  prevent boot messages from going to the Hercules system console; they
+  will disappear into Device 001F or however you have a 3210/3215/3270
+  configured.
 
   If you do say Y here, by default the currently visible virtual
   terminal (/dev/tty0) will be used as system console. You can change
@@ -7649,7 +7651,7 @@ CONFIG_VT_CONSOLE
   FTP (user: anonymous) in
   ftp://metalab.unc.edu/pub/Linux/docs/HOWTO.)
 
-  If unsure, say Y.
+  If unsure, say N.
 
 Software generated cursor
 CONFIG_SOFTCURSOR

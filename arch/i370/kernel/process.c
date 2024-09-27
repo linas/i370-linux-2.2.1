@@ -17,6 +17,7 @@
 
 #include <linux/init.h>
 #include <linux/sched.h>
+#include <linux/slab.h>
 #include <linux/smp_lock.h>
 
 #include <asm/asm.h>
@@ -219,16 +220,6 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 
 	printk ("i370_start_thread(): setup for user-space thread\n");
 	set_fs(USER_DS);
-	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
-	regs->psw.flags |= USER_PSW;
-	regs->psw.addr = nip | PSW_31BIT;
-
-	/* Setting r15 is pointless; userland will never see this,
-	 * because r15 will hold the return value of sys_fork() */
-	regs->irregs.r15 = nip | PSW_31BIT;
-
-	/* Don't bother setting r13; userland will figure it out. */
-	regs->irregs.r13 = 0;
 
 	/* Here it grows complicated. The i370 ELF ABI stack grows upwards.
 	 * The code in fs/exec.c assume the stack grows downwards. Thus,
@@ -247,8 +238,49 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	 * find it. Why r2? No reason, other than to minimize confusion
 	 * about r13. The choice is arbitrary.
 	 */
-
 	unsigned long frame_base = STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
+
+	/* The code in ./fs/binfmt_elf.c tried to do the right thing,
+	 * putting the args and env on the stack... the wrong end of the
+	 * stack for us. So, copy them, from over there, to where we want
+	 * them. Kind of cheesy, but I can't think of a better soln.
+	 *
+	 * TODO: the pointers in the elf header are probably wrong.
+	 * so we ned to redo that.
+	 * TODO: I think argv[0] is wrong. We need to move it.
+	 */
+	struct mm_struct *mm = current->mm;
+	unsigned long arglen = mm->arg_end - mm->arg_start;
+	void *kargs = kmalloc(arglen, GFP_KERNEL);
+	copy_from_user(kargs, (const void *) mm->arg_start, arglen);
+
+	unsigned long envlen = mm->env_end - mm->env_start;
+	void *kenvs = kmalloc(envlen, GFP_KERNEL);
+	copy_from_user(kenvs, (const void *) mm->env_start, envlen);
+
+	unsigned long elflen = mm->arg_end - mm->start_stack;
+	void *kelfs = kmalloc(elflen, GFP_KERNEL);
+	copy_from_user(kelfs, (const void *) mm->start_stack, elflen);
+
+	/* Paste */
+	char * p = (char *) frame_base;
+	copy_to_user(p, kargs, arglen);
+	p += arglen;
+	copy_to_user(p, kenvs, envlen);
+	p += envlen;
+	copy_to_user(p, kelfs, elflen);
+
+	/* Set up the registers we will hand over to the user. */
+	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
+	regs->psw.flags |= USER_PSW;
+	regs->psw.addr = nip | PSW_31BIT;
+
+	/* Setting r15 is pointless; userland will never see this,
+	 * because r15 will hold the return value of sys_fork() */
+	regs->irregs.r15 = nip | PSW_31BIT;
+
+	/* Don't bother setting r13; userland will figure it out. */
+	regs->irregs.r13 = 0;
 
 	/* r11 is the frame pointer. */
 	regs->irregs.r11 = frame_base;

@@ -112,7 +112,7 @@ S390map_t s390_map[10] = {
 	{T3590, 0,     0,  6},
 	{T3172, MOSAD, 0,  7},
 	{T3172, MCTCA, 0,  8},
-	{T1500, 0,     0,  9}, /* non-system console 3210's */
+	{T3215, 0,     0,  9}, /* non-system console 3210's */
 	{0,     0,     0, -1}
 };
 
@@ -190,6 +190,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	/* device valid.                                        */
 	/*------------------------------------------------------*/
 
+	/* sid = Sense ID */
 	sid = 0x00010000;       /* back to subch 0 */
 
 	devices = unit_base;

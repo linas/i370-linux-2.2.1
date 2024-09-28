@@ -8,8 +8,7 @@
 #include <linux/fs.h>
 #include <linux/major.h>
 #include <asm/iorb.h>
-// #define  _PACK __attribute__ ((packed))
-#define  _PACK
+#define  _PACK __attribute__ ((packed))
 
 /*
  *	Define Unit Control Block
@@ -20,7 +19,7 @@ typedef struct _unitblk {
 	void		*unitque;	/* last queuing element */
 	long		unitsid;	/* Subchannel Identifier */
 	irb_t		unitirb;	/* Interrupt Request Block */
-	void           *unitaction;	/* Pointer to irq action element */
+	void		*unitaction;	/* Pointer to irq action element */
 	struct wait_queue *unitinq;     /* Input wait queue */
 	struct wait_queue *unitoutq;    /* Output wait queue */
 	struct wait_queue *unitexpq;    /* Exception wait queue */
@@ -38,7 +37,7 @@ typedef struct _unitblk {
 	unsigned char   unitflg2;	/* Flag byte */
 	unsigned char   unitid;		/* Unit ID */
 	unsigned char   unitstat;	/* Device Status */
-	unsigned short  unitdtyp _PACK;	/* Device type from RDC */
+	unsigned short  unitdtyp;	/* Device type from RDC */
 	unsigned short  unitdev;	/* Device Number */
 	unsigned char   unitmodl;	/* Device Model from RDC */
 	unsigned char   unitclas;	/* Device Class code from RDC */
@@ -46,7 +45,7 @@ typedef struct _unitblk {
 	unsigned char   unitcuid;	/* CUID from RDC */
 	unsigned char   unitvol[6];	/* volume Id */
 	unsigned char   unittype;	/* 1=charddev; 2=blockdev */
-	unsigned char   fill[5];       /* fill to next 16 byte boundary */
+	unsigned char   fill[5];	/* fill to next 16 byte boundary */
 	struct _unitblk *unitnxt;       /* Next Unit Block */
 } unitblk_t;
 
@@ -56,33 +55,33 @@ typedef struct _unitblk {
  *	Sense ID Structure
  */
 
-typedef	struct _idchar
+typedef	struct _PACK _idchar
 {
 	unsigned char	idctrl;		/* Function control byte */
-	unsigned short	idcuid _PACK;	/* Control unit ID */
+	unsigned short	idcuid;		/* Control unit ID */
 	unsigned char	idcumdl;	/* Control unit model */
-	unsigned short	iddevid _PACK;	/* Device ID */
+	unsigned short	iddevid;	/* Device ID */
 	unsigned char	iddevmdl;	/* Device Model */
 	unsigned char	idxxxx;		/* Unused */
 	unsigned char	idextid;	/* Extended ID entry type */
 	unsigned char	idrcdc;		/* Read Config Data command code */
-	unsigned short	idrcd;		/*  Bytes of data returned by RCD */
+	unsigned short	idrcd;		/* Bytes of data returned by RCD */
 	unsigned char	idrsv[244];	/* Reserved */
 
 	/*---------------------------------------------------------*/
 	/* Device Type Information...                              */
 	/*---------------------------------------------------------*/
 
-} idchar_t _PACK;
+} idchar_t;
 
 /*
  *	Read Device Characteristics Structure
  */
 
-typedef	struct _devchar {
+typedef	struct _PACK _devchar {
 	unsigned short	devcutyp;	/* Control Unit Type */
 	unsigned char   devcumod;	/* Control Unit Model */
-	unsigned short	devtype _PACK;	/* Device type */
+	unsigned short	devtype;	/* Device type */
 	unsigned char	devmodel;	/* Device Model */
 	unsigned char	devfeat[3];	/* Reserved */
 	unsigned char   devsubfe;	/* Subsystem Features */
@@ -92,7 +91,7 @@ typedef	struct _devchar {
 	short 		devtrk;		/* number of tracks/cylinder */
 	unsigned char	devsect;        /* number of sectors */
 	unsigned char	devtrkln[3];	/* Total usable track length */
-	unsigned short	devhar0 _PACK;	/* Length for HA and R0 */
+	unsigned short	devhar0;	/* Length for HA and R0 */
 	unsigned char	devmode;	/* Track Capacity Mode */
 	unsigned char	devmodr;	/* Track Capacity Mode changed */
 	short		devnkey;	/* Non-Keyed Record Overhead */
@@ -118,7 +117,7 @@ typedef	struct _devchar {
 typedef struct {
 	unsigned short int cuid;        /* Control unit ID (idcuid)     */
 	unsigned char	model;		/* Control unit model		*/
-	unsigned short	dev _PACK;      /* Device ID (iddevid)          */
+	unsigned short	dev;		/* Device ID (iddevid)          */
 	int      	i_s390dev;	/* Index into s390dev table	*/
 } S390map_t;
 
@@ -137,18 +136,24 @@ typedef struct {
 	unsigned int 	isc;    	/* Interrupt sub-class    */
 	void     	(*irqh)(int,    /* Interupt handler       */
 				void *, struct pt_regs *);
-} S390dev_t _PACK;
+} S390dev_t;
 
+/* System/390 Device ID */
 #define T3990 0x3990
 #define T3880 0x3880
 #define TFBLK 0x3370
 #define T3274 0x3274
 #define T3210 0x3210
+#define T3215 0x3215
 #define T3480 0x3480
 #define T3590 0x3590
 #define T3172 0x3088
-#define T1500 0x1500 /* display, 3210 */
 
+/* System/390 CU Model */
+#define MOSAD 0xe0
+#define MCTCA 0x66
+
+/* Linux Major device number */
 #define MJ3990 60
 #define MJ3880 61
 #define MJFBLK 62
@@ -160,18 +165,17 @@ typedef struct {
 #define MJ3172 NBD_MAJOR
 #define MJCTCA 122
 
+/* Linux device names in /dev/ */
 #define D3990 "eckd"
 #define D3880 "ckd"
 #define DFBLK "fba"
 #define D3274 "graf"
-#define D3210 "console"
+#define DCONS "console"
+#define D3210 "tty"
 #define D3480 "tape"
 #define D3590 "tss"
 #define D3172 "nbd"
 #define DCTCA "ctca"
-
-#define MOSAD 0xe0
-#define MCTCA 0x66
 
 #undef  _PACK
 #endif /* I370_UNITB_H_ */

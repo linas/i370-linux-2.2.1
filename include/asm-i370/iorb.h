@@ -11,18 +11,18 @@
 
 #define CCW_CD		0x80	/* Use Data (Next CCW)              */
 #define CCW_CC		0x40	/* Command Chaining                 */
-#define CCW_SLI		0x20	/* Suppress Length Incorrect        */
+#define CCW_SLI 	0x20	/* Suppress Length Incorrect        */
 #define CCW_SKIP	0x10	/* Suppress Transfer of Information */
 #define CCW_PCI 	0x08	/* PCI Intermediate Interruption    */
 #define CCW_IDAW	0x04	/* CCW specifies location of IDAW   */
 #define CCW_SUSPEND	0x02	/* Suspend before execution         */
 
-#define	CCW_CMD_RDC		0x64	/* Read Device Characteristics */
-#define	CCW_CMD_DEXT	0x63	/* Define Extent */
+#define CCW_CMD_RDC 	0x64	/* Read Device Characteristics */
+#define CCW_CMD_DEXT	0x63	/* Define Extent */
 #define CCW_CMD_LOCR	0x47	/* Locate Record */
 #define CCW_CMD_RDDATA	0x06	/* Read Data (DASD) */
 #define CCW_CMD_NOP     0x03	/* NO-OP CCW */
-#define CCW_CMD_SID		0xe4	/* Sense ID */
+#define CCW_CMD_SID	0xe4	/* Sense ID */
 
 #ifndef __ASSEMBLY__
 

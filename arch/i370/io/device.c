@@ -1,43 +1,14 @@
 /************************************************************/
 /*                                                          */
-/* Module ID  - device.                                     */
-/*                                                          */
-/* Function   - Initialize device support for the system.   */
-/*                                                          */
-/* Parameters - N/A.                                        */
-/*                                                          */
-/* Called By  - Kernel.                                     */
-/*                                                          */
-/* Notes      - (1) ....................................... */
-/*                                                          */
-/*              (2) ....................................... */
+/* Function   - Discover and configure S/390 I/O devices    */
 /*                                                          */
 /* Name       - Neale Ferguson.                             */
 /* Date       - August, 1999.                               */
-/*                                                          */
-/* Associated    - (1) Refer To ........................... */
-/* Documentation                                            */
-/*                 (2) Refer To ........................... */
-/*                                                          */
-/************************************************************/
-/************************************************************/
-/*                                                          */
-/*                       DEFINES                            */
-/*                       -------                            */
 /*                                                          */
 /************************************************************/
 
 #define ON     1
 #define OFF    0
-
-/*=============== End of Defines ===========================*/
-
-/************************************************************/
-/*                                                          */
-/*                INCLUDE STATEMENTS                        */
-/*                ------------------                        */
-/*                                                          */
-/************************************************************/
 
 #include <linux/init.h>
 #include <linux/kernel.h>
@@ -46,33 +17,17 @@
 #include <linux/sched.h>
 #include <linux/fs.h>
 
-
 #include <asm/delay.h>
 #include <asm/iorb.h>
 #include <asm/irq.h>
+#include <asm/sense.h>
 #include <asm/unitblk.h>
-
-/************************************************************/
-/*                                                          */
-/*                 FUNCTION PROTOTYPES                      */
-/*                 -------------------                      */
-/*                                                          */
-/************************************************************/
 
 static int i370_doio(int, schib_t *, ccw_t *);
 static int i370_getsid(int, schib_t *, idchar_t *);
 static int i370_getrdc(int, schib_t *, devchar_t *);
 static int i370_getvol_eckd(int, schib_t *, devchar_t *);
 static void i370_configure_device(long, schib_t *, unitblk_t *, idchar_t *);
-
-/*================== End of Prototypes =====================*/
-
-/************************************************************/
-/*                                                          */
-/*             GLOBAL VARIABLE DECLARATIONS                 */
-/*             ----------------------------                 */
-/*                                                          */
-/************************************************************/
 
 unitblk_t *unit_base;
 unitblk_t *dev_cons    = NULL,
@@ -131,8 +86,6 @@ S390dev_t s390_devices[11] = {
 	{MJ3210, 0, 255, CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
 	{-1,    -1,  -1,     -1, {0},   NULL,            0, NULL}
 };
-
-/*============== End of Variable Declarations ==============*/
 
 /************************************************************/
 /*                                                          */
@@ -257,8 +210,8 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	return;
 }
 
-/* Loop over the devices found early during arch_setup, and register
- * drivers for each. */
+/* Loop over the devices found previously, early during setup_arch,
+ * and register drivers for each. */
 void
 i370_setup_devices(void)
 {

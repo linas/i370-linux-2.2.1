@@ -113,6 +113,8 @@ extern void print_backtrace(unsigned long stack_pointer);
 extern void show_regs(struct pt_regs * regs);
 extern void giveup_fpu(void);
 extern void smp_giveup_fpu(struct task_struct *);
+extern void i370_setup_devices(void);
+
 
 struct task_struct;
 extern int i370_switch_to(struct task_struct *prev, struct task_struct *next);

@@ -63,7 +63,7 @@ static int i370_doio(int, schib_t *, ccw_t *);
 static int i370_getsid(int, schib_t *, idchar_t *);
 static int i370_getrdc(int, schib_t *, devchar_t *);
 static int i370_getvol_eckd(int, schib_t *, devchar_t *);
-static void i370_register_driver(long, schib_t *, unitblk_t *, idchar_t *);
+static void i370_configure_device(long, schib_t *, unitblk_t *, idchar_t *);
 
 /*================== End of Prototypes =====================*/
 
@@ -150,6 +150,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	long    rc;
 	schib_t schib;
 	unitblk_t *devices;
+	idchar_t dev_id;
 	irb_t irb;
 
 	/*------------------------------------------------------*/
@@ -221,15 +222,23 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 				dev_cons	      = devices;
 				dev_con3210	   = devices;
 				schib.isc	   = devices->unitisc = s390_devices[I_CONS].isc;
+				devices->unittype  = s390_devices[I_CONS].drvType;
 				devices->unitmajor = s390_devices[I_CONS].major;
 				devices->unitminor = s390_devices[I_CONS].curMinor;
-				devices->unitirqh  = (void *) s390_devices[I_CONS].irqh;
+				devices->unitirqh  = s390_devices[I_CONS].irqh;
 				strncpy(devices->unitname,s390_devices[I_CONS].devName,7);
 				devices->unitname[7] = 0x0;
 				devices->unitstat  = UNIT_READY;
 
+				devices->unitfops = s390_devices[I_CONS].fops;
+				devices->unitirqh = s390_devices[I_CONS].irqh;
+
 				printk ("Device 0009 mapped to unix /dev/%s (%d, %d)\n",
 					devices->unitname, devices->unitmajor, devices->unitminor);
+			}
+			else {
+				rc = i370_getsid(sid, &schib, &dev_id);
+				if (!rc) i370_configure_device(sid, &schib, devices, &dev_id);
 			}
 			devices++;
 		}
@@ -246,16 +255,39 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 void
 i370_setup_devices(void)
 {
-	schib_t schib;
-	idchar_t dev_id;
-	int sid, i, rc;
+	int i, rc;
 	unitblk_t *devices = unit_base;
 
 	for (i=0; i< sid_count; i++) {
-		sid = devices->unitsid;
-		rc = i370_getsid(sid, &schib, &dev_id);
-		if (!rc) i370_register_driver(sid, &schib, devices, &dev_id);
 
+		if (UNIT_READY != devices->unitstat) {
+			devices++;
+			continue;
+		}
+
+		if (devices->unittype == CHRDEV)
+		{
+			rc = register_chrdev(devices->unitmajor,
+					     devices->unitname,
+					     devices->unitfops);
+		}
+		else
+		{
+			rc = register_blkdev(devices->unitmajor,
+					     devices->unitname,
+					     devices->unitfops);
+		}
+
+#if CANT_DO_THIS_HERE
+		// Too late for this; _msch is expecting real address, but we
+		// are now running with page translation turned on.
+		if (rc < 0) {
+			schib->enabl = OFF;
+			printk("Unable to register device %08X. Rc: %dl\n",
+			       schib->devno, rc);
+			_msch(sid,schib);
+		}
+#endif
 		devices++;
 	}
 }
@@ -541,18 +573,16 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 
 /************************************************************/
 /*                                                          */
-/* Name       - i370_register_driver.                       */
+/* Name       - i370_configure_device.                      */
 /*                                                          */
-/* Function   - Register a valid device with its appropriate*/
-/*           device driver. Register its usage of its       */
-/*           configured interrupt subclass (loosely         */
-/*           equivalent to an IRQ).                         */
+/* Function   - Configure a valid device. Assign Linux      */
+/*           major/minor device numbers.                    */
 /*                                                          */
 /************************************************************/
 
 static void
-i370_register_driver(long sid, schib_t *schib,
-                     unitblk_t *devices, idchar_t *dev_id)
+i370_configure_device(long sid, schib_t *schib,
+                      unitblk_t *devices, idchar_t *dev_id)
 {
 	int i_map, i_dev, rc;
 	devchar_t rdc;
@@ -581,27 +611,6 @@ i370_register_driver(long sid, schib_t *schib,
 			s390_devices[i_dev].devName,
 			s390_devices[i_dev].curMinor++);
 
-printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitmajor, i_dev);
-		if (s390_devices[i_dev].drvType == CHRDEV)
-		{
-			rc = register_chrdev(s390_devices[i_dev].major,
-					     s390_devices[i_dev].devName,
-					     s390_devices[i_dev].fops);
-		}
-		else
-		{
-			rc = register_blkdev(s390_devices[i_dev].major,
-					     s390_devices[i_dev].devName,
-					     s390_devices[i_dev].fops);
-		}
-
-		if (rc < 0) {
-			schib->enabl = OFF;
-			printk("Unable to register device %08X. Rc: %dl\n",
-			       schib->devno, rc);
-			_msch(sid,schib);
-		}
-
 #if WE_DID_THIS_EARLIER_ALREADY
 		/*----------------------------------------------------*/
 		/* We flag the first 3270 device as our console. This */
@@ -627,9 +636,7 @@ printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitma
 				 memcpy(&devices->unitvol,rdc.devvol,6);
 			}
 		} else {
-/* XXX  set unitmodl ??? */
-			devices->unitmodl = dev_id->idcuid;
-/* XXX set unitmodl again ?? */
+			devices->unitcuid = dev_id->idcuid;
 			devices->unitmodl = dev_id->idcumdl;
 			devices->unitdtyp = dev_id->iddevid;
 			devices->unitstat = UNIT_READY;

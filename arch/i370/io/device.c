@@ -234,14 +234,14 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 				devices->unitirqh = s390_devices[I_CONS].irqh;
 
 				rc = i370_getsid(sid, &schib, &dev_id);
-				printk ("Device 0009 CU ID %04x  Model %02x  %sready\n",
+				printk ("Device 0009 CU ID %04X  Model %02X  %sready\n",
 					dev_id.idcuid, dev_id.idcumdl, rc ? "not ":"");
 				printk ("Device 0009 mapped to unix /dev/%s (%d, %d)\n",
 					devices->unitname, devices->unitmajor, devices->unitminor);
 			}
 			else {
 				rc = i370_getsid(sid, &schib, &dev_id);
-				printk("Device %04x found CU ID %04x  Model %02x  %sready\n",
+				printk("Device %04X found CU ID %04X  Model %02X  %sready\n",
 					schib.devno, dev_id.idcuid, dev_id.idcumdl, rc ? "not ":"");
 
 				if (!rc) i370_configure_device(sid, &schib, devices, &dev_id);
@@ -350,6 +350,7 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 
 		if (irb.scsw.status & 0x7) {
 
+			/* Hmm what does irb.scsw.devstat == 0xe mean? */
 			if (((irb.scsw.devstat & 0x0c) == 0x0c) &&
 				 (irb.scsw.schstat == 0))
 				return 0;
@@ -419,8 +420,8 @@ i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
 	int     lign_ccw[5];
 	ccw_t	*ioccw;
 
-        /* double-word align the ccw's */
-        ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) +7) >>3) << 3);
+	/* double-word align the ccw's */
+	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) +7) >>3) << 3);
 
 	/*
 	 *	Build CCWS for Read Device Characteristics.
@@ -599,7 +600,8 @@ i370_configure_device(long sid, schib_t *schib,
 	/*----------------------------------------------------------*/
 	i_dev = s390_map[i_map].i_s390dev;
 	if ((i_dev > -1) &&
-	    (s390_devices[i_dev].curMinor < s390_devices[i_dev].maxMinor)) {
+	    (s390_devices[i_dev].curMinor < s390_devices[i_dev].maxMinor))
+	{
 		schib->isc = devices->unitisc = s390_devices[i_dev].isc;
 		devices->unitmajor = s390_devices[i_dev].major;
 		devices->unitminor = s390_devices[i_dev].curMinor;
@@ -608,17 +610,22 @@ i370_configure_device(long sid, schib_t *schib,
 			s390_devices[i_dev].devName,
 			s390_devices[i_dev].curMinor++);
 
-#if WE_DID_THIS_EARLIER_ALREADY
+		printk ("Device %04X mapped to unix /dev/%s (%d, %d)\n",
+			schib->devno,
+			devices->unitname, devices->unitmajor, devices->unitminor);
+
 		/*----------------------------------------------------*/
 		/* We flag the first 3270 device as our console. This */
 		/* can be overridden by specification in the IPL load */
-		/* parameters.                                        */
+		/* parameters. (This maps to linux /dev/graf)         */
 		/*----------------------------------------------------*/
 		if ((dev_id->idcuid == T3274) && (dev_con3270 == NULL)) {
 			dev_con3270 = devices;
-			if (dev_cons == NULL) dev_cons = devices;
+			if (dev_cons == NULL) {
+				printk("This will be the system console\n");
+				dev_cons = devices;
+			}
 		}
-#endif
 
 		rc = i370_getrdc(sid, schib, &rdc);
 		if (!rc) {
@@ -628,15 +635,15 @@ i370_configure_device(long sid, schib_t *schib,
 			devices->unitdtyp = rdc.devtype;
 
 			if (rdc.devcutyp == 0x3990) {
-			  	 devices->unitstat = UNIT_READY;
 				 rc = i370_getvol_eckd(sid, schib, &rdc);
 				 memcpy(&devices->unitvol,rdc.devvol,6);
 			}
+			devices->unitstat = UNIT_READY;
 		} else {
 			devices->unitcuid = dev_id->idcuid;
 			devices->unitmodl = dev_id->idcumdl;
 			devices->unitdtyp = dev_id->iddevid;
-			devices->unitstat = UNIT_READY;
+			devices->unitstat = 0; /* Not ready */
 		}
 	}
 }

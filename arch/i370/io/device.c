@@ -180,8 +180,9 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 				devices->unitmajor = s390_devices[I_CONS].major;
 				devices->unitminor = s390_devices[I_CONS].curMinor;
 				devices->unitirqh  = s390_devices[I_CONS].irqh;
-				strncpy(devices->unitname,s390_devices[I_CONS].devName,7);
-				devices->unitname[7] = 0x0;
+				strncpy(devices->unitname,
+					s390_devices[I_CONS].devName, DEVNAMELEN-1);
+				devices->unitname[DEVNAMELEN] = 0x0;
 				devices->unitstat  = UNIT_READY;
 
 				devices->unitfops = s390_devices[I_CONS].fops;
@@ -565,7 +566,7 @@ i370_configure_device(long sid, schib_t *schib,
 		devices->unitminor = s390_devices[i_dev].curMinor;
 		devices->unitirqh  = s390_devices[i_dev].irqh;
 		devices->unittype  = s390_devices[i_dev].drvType;
-		sprintf(devices->unitname,"%s%d",
+		sprintf(devices->unitname, "%s%d",  /* want snprintf here. */
 			s390_devices[i_dev].devName,
 			s390_devices[i_dev].curMinor++);
 

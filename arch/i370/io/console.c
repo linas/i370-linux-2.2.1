@@ -1,39 +1,39 @@
 /************************************************************/
-/*							  */
-/* Module ID  - console.				    */
-/*							  */
+/*                                                          */
+/* Module ID  - console.                                    */
+/*                                                          */
 /* Function   - ........................................... */
-/*	      ........................................... */
-/*	      ........................................... */
-/*							  */
-/*							  */
-/* Parameters - (1) Parmname.			       */
-/*		  Description - ......................... */
-/*		  ....................................... */
-/*		  Access - Read/Write/Update.	     */
-/*							  */
-/*	      (2) Parmname.			       */
-/*		  Description - ......................... */
-/*		  ....................................... */
-/*		  Access - Read/Write/Update.	     */
-/*							  */
-/*							  */
-/* Called By  - Kernel.				     */
-/*							  */
-/*							  */
+/*              ........................................... */
+/*              ........................................... */
+/*                                                          */
+/*                                                          */
+/* Parameters - (1) Parmname.                               */
+/*                  Description - ......................... */
+/*                  ....................................... */
+/*                  Access - Read/Write/Update.             */
+/*                                                          */
+/*              (2) Parmname.                               */
+/*                  Description - ......................... */
+/*                  ....................................... */
+/*                  Access - Read/Write/Update.             */
+/*                                                          */
+/*                                                          */
+/* Called By  - Kernel.                                     */
+/*                                                          */
+/*                                                          */
 /* Notes      - (1) ....................................... */
-/*							  */
-/*	      (2) ....................................... */
-/*							  */
-/*							  */
-/* Name       - Neale Ferguson.			     */
-/* Date       - August, 1999.			       */
-/*							  */
-/*							  */
+/*                                                          */
+/*              (2) ....................................... */
+/*                                                          */
+/*                                                          */
+/* Name       - Neale Ferguson.                             */
+/* Date       - August, 1999.                               */
+/*                                                          */
+/*                                                          */
 /* Associated    - (1) Refer To ........................... */
-/* Documentation					    */
-/*		 (2) Refer To ........................... */
-/*							  */
+/* Documentation                                            */
+/*                 (2) Refer To ........................... */
+/*                                                          */
 /************************************************************/
 
 #include <linux/fs.h>
@@ -43,15 +43,15 @@
 
 int i370_cons_open (struct inode *tty, struct file *filp)
 {
-	printk ("i370_cons_open\n");
-	return 0;
+        printk ("i370_cons_open\n");
+        return 0;
 }
 
 ssize_t i370_cons_write (struct file *filp, const char *str,
                       size_t len, loff_t *noidea)
 {
-	printk ("i370_cons_write: len=%ld %s<<<\n", len, str);
-	return 0;
+        printk ("i370_cons_write: len=%ld %s<<<\n", len, str);
+        return 0;
 }
 
 void
@@ -62,14 +62,14 @@ i370_console_driver(void)
 /*===================== End of Mainline ====================*/
 
 /************************************************************/
-/*							  */
-/* Name       - Interrupt handler.			  */
-/*							  */
+/*                                                          */
+/* Name       - Interrupt handler.                          */
+/*                                                          */
 /* Function   - This Routine performs the following final   */
-/*	      processing ................................ */
-/*							  */
-/* Parameters - None.				       */
-/*							  */
+/*              processing ................................ */
+/*                                                          */
+/* Parameters - None.                                       */
+/*                                                          */
 /************************************************************/
 
 void

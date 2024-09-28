@@ -29,7 +29,7 @@ typedef struct _unitblk {
 	unsigned  long  unitnwrit;      /* Number of writers */
 	unsigned  int   unitmajor;	/* Major device number */
 	unsigned  int   unitminor;	/* Minor device number */
-	int             unitisc;	/* Device interrupt subclass */
+	unsigned  int   unitisc;	/* Device interrupt subclass */
 	struct file_operations *unitfops;
 	void     	(*unitirqh)(int,    /* Interupt handler       */
 				void *, struct pt_regs *);

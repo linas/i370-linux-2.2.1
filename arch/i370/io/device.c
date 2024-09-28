@@ -566,7 +566,9 @@ i370_configure_device(long sid, schib_t *schib,
 		schib->isc = devices->unitisc = s390_devices[i_dev].isc;
 		devices->unitmajor = s390_devices[i_dev].major;
 		devices->unitminor = s390_devices[i_dev].curMinor;
+		devices->unitfops  = s390_devices[i_dev].fops;
 		devices->unitirqh  = s390_devices[i_dev].irqh;
+		devices->unitisc   = s390_devices[i_dev].isc;
 		devices->unittype  = s390_devices[i_dev].drvType;
 		sprintf(devices->unitname, "%s%d",  /* want snprintf here. */
 			s390_devices[i_dev].devName,

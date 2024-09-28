@@ -309,7 +309,10 @@ console_device_3210(struct console *c)
 	/* When /dev/console (5,1) is opened it gets remapped to (4,1)
 	 * which is /dev/tty1 and so, we want to appear on /dev/tty1
 	 * when invoked.  I'm somewhat confused though ... don't we
-	 * want to return n++ each time we're called ???  */
+	 * want to return n++ each time we're called ???
+	 * Anyway, who's remapping this, anyway? Only one console is
+	 * allowed...
+	 */
 	return MKDEV(TTY_MAJOR, 1);
 }
 

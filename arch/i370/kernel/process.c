@@ -350,7 +350,7 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 	check_stack(next);
 #endif /* CHECK_STACK */
 
-#define SHOW_TASK_SWITCHES
+// #define SHOW_TASK_SWITCHES
 #ifdef SHOW_TASK_SWITCHES
 	printk("task switch ");
 	printk("%s/%d -> %s/%d PSW 0x%lx 0x%lx cpu %d \n",

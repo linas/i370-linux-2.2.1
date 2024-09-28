@@ -94,8 +94,8 @@ S390dev_t s390_devices[11] = {
 /*                                                          */
 /************************************************************/
 
-void
-i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
+__initfunc(void
+i370_find_devices(unsigned long *memory_start, unsigned long memory_end))
 {
 
 	long    sid = 0x00010000;
@@ -268,8 +268,8 @@ i370_setup_devices(void)
 /*                                                          */
 /************************************************************/
 
-static int
-i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
+__initfunc(static int
+i370_doio(int sid, schib_t *schib, ccw_t *ioccw))
 {
 	int   rc;
 	orb_t orb;
@@ -333,8 +333,8 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 /************************************************************/
 
 
-static int
-i370_getsid(int sid, schib_t *schib, idchar_t *id)
+__initfunc(static int
+i370_getsid(int sid, schib_t *schib, idchar_t *id))
 {
 	int     rc;
 	int     lign_ccw[5];
@@ -372,8 +372,8 @@ i370_getsid(int sid, schib_t *schib, idchar_t *id)
 /*                                                          */
 /************************************************************/
 
-int
-i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
+__initfunc(static int
+i370_getrdc(int sid, schib_t *schib, devchar_t *rdc))
 {
 	int     rc;
 	int     lign_ccw[5];
@@ -410,8 +410,8 @@ i370_getrdc(int sid, schib_t *schib, devchar_t *rdc)
 /*                                                          */
 /************************************************************/
 
-static int
-i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
+__initfunc(static int
+i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc))
 {
 	int     rc;
 
@@ -526,8 +526,6 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 	return rc;
 }
 
-/*===================== End of Function ====================*/
-
 /************************************************************/
 /*                                                          */
 /* Name       - i370_configure_device.                      */
@@ -537,9 +535,9 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 /*                                                          */
 /************************************************************/
 
-static void
+__initfunc(static void
 i370_configure_device(long sid, schib_t *schib,
-                      unitblk_t *devices, idchar_t *dev_id)
+                      unitblk_t *devices, idchar_t *dev_id))
 {
 	int i_map, i_dev, rc;
 	devchar_t rdc;

@@ -102,30 +102,33 @@ extern void i370_tss_flih  (int, void *, struct pt_regs *regs);
 extern void i370_osa_flih  (int, void *, struct pt_regs *regs);
 extern void i370_ctca_flih (int, void *, struct pt_regs *regs);
 
-S390map_t s390_map[9] = {
+S390map_t s390_map[10] = {
 	{T3990, 0,     0,  0},
 	{T3880, 0,     0,  1},
 	{TFBLK, 0,     0,  2},
 	{T3274, 0,     0,  3},
+	/* {Txxxx, 0,     0,  4}, hard-coded as device 0009 system console */
 	{T3480, 0,     0,  5},
 	{T3590, 0,     0,  6},
 	{T3172, MOSAD, 0,  7},
-	{T3172, MCTCA, 0,  7},
+	{T3172, MCTCA, 0,  8},
+	{T1500, 0,     0,  9}, /* non-system console 3210's */
 	{0,     0,     0, -1}
 };
 
-#define I_3210 4 /* Index into s390_devices (below) for 3210 device */
+#define I_CONS 4 /* Index into s390_devices (below) for system console */
 
 S390dev_t s390_devices[10] = {
 	{MJ3990, 0, 255, BLKDEV, D3990, &i370_fop_eckd,  7, i370_eckd_flih},
 	{MJ3880, 0, 255, BLKDEV, D3880, &i370_fop_ckd,   6, i370_ckd_flih},
 	{MJFBLK, 0, 255, BLKDEV, DFBLK, &i370_fop_fba,   6, i370_fba_flih},
 	{MJ3274, 0, 255, CHRDEV, D3274, &i370_fop_graf,  1, i370_graf_flih},
-	{MJ3210, 1, 1,   CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
+	{MJCONS, 1, 2,   CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
 	{MJ3480, 0, 255, CHRDEV, D3480, &i370_fop_tape,  2, i370_tape_flih},
 	{MJ3590, 0, 255, BLKDEV, D3590, &i370_fop_tss,   5, i370_tss_flih},
 	{MJ3172, 0, 255, BLKDEV, D3172, &i370_fop_osa,   4, i370_osa_flih},
 	{MJCTCA, 0, 255, BLKDEV, DCTCA, &i370_fop_ctca,  3, i370_ctca_flih},
+	{MJ3210, 1, 0, CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
 	{-1,    -1,  -1,     -1, {NULL}, NULL,       0, NULL}
 };
 
@@ -208,18 +211,21 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 			_msch(sid, &schib);
 
 			/*----------------------------------------------------*/
-			/* If we can find a device '0009' under VM            */
+			/* If we can find a device '0009' under VM, then map  */
+			/* it to /dev/console, Major, minor (5, 1)            */
+			/* Other 3210's will map to /dev/ttyN (4, N+1)        */
+			/*                                                    */
 			/* VM has (CPUID[0] == 0xff)                          */
 			/* and Hercules has (CPUID[0] != 0xff) in general     */
 			/*----------------------------------------------------*/
 			if ((schib.devno == 0x0009) && (CPUID[0] != 0x0)) {
 				dev_cons	      = devices;
 				dev_con3210	   = devices;
-				schib.isc	   = devices->unitisc = s390_devices[I_3210].isc;
-				devices->unitmajor = s390_devices[I_3210].major;
-				devices->unitminor = s390_devices[I_3210].curMinor;
-				devices->unitirqh  = (void *) s390_devices[I_3210].irqh;
-				strncpy(devices->unitname,s390_devices[I_3210].devName,7);
+				schib.isc	   = devices->unitisc = s390_devices[I_CONS].isc;
+				devices->unitmajor = s390_devices[I_CONS].major;
+				devices->unitminor = s390_devices[I_CONS].curMinor;
+				devices->unitirqh  = (void *) s390_devices[I_CONS].irqh;
+				strncpy(devices->unitname,s390_devices[I_CONS].devName,7);
 				devices->unitname[7] = 0x0;
 				devices->unitstat  = UNIT_READY;
 
@@ -533,7 +539,7 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc)
 
 static void
 i370_register_driver(long sid, schib_t *schib,
-               unitblk_t *devices, idchar_t *dev_id)
+                     unitblk_t *devices, idchar_t *dev_id)
 {
 	int i_map, i_dev, rc;
 	devchar_t rdc;

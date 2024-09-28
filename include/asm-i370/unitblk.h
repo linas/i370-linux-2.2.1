@@ -144,12 +144,14 @@ typedef struct {
 #define T3480 0x3480
 #define T3590 0x3590
 #define T3172 0x3088
+#define T1500 0x1500 /* display, 3210 */
 
 #define MJ3990 60
 #define MJ3880 61
 #define MJFBLK 62
 #define MJ3274 63
-#define MJ3210 TTYAUX_MAJOR
+#define MJCONS TTYAUX_MAJOR  /* Map system console to /dev/console */
+#define MJ3210 TTY_MAJOR     /* Map other attached 3210 to /dev/ttyN */
 #define MJ3480 120
 #define MJ3590 121
 #define MJ3172 NBD_MAJOR
@@ -167,5 +169,6 @@ typedef struct {
 
 #define MOSAD 0xe0
 #define MCTCA 0x66
+
 #undef  _PACK
 #endif /* I370_UNITB_H_ */

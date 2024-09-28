@@ -1300,6 +1300,9 @@ __initfunc(void device_setup(void))
 #endif
 	chr_dev_init();
 	blk_dev_init();
+#ifdef CONFIG_I370
+	i370_setup_devices();
+#endif
 	sti();
 #ifdef CONFIG_FC4_SOC
 	/* This has to be done before scsi_dev_init */

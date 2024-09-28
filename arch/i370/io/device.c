@@ -587,6 +587,9 @@ i370_configure_device(long sid, schib_t *schib,
 	int i_map, i_dev, rc;
 	devchar_t rdc;
 
+	printk("Device %04x found CU ID %04x  Model %02x\n",
+		schib->devno, dev_id->idcuid, dev_id->idcumdl);
+
 	/*----------------------------------------------------------*/
 	/* Map the control unit ID to a major node entry            */
 	/*----------------------------------------------------------*/

@@ -277,11 +277,15 @@ i370_setup_devices(void)
 					     devices->unitname,
 					     devices->unitfops);
 		}
-		else
+		else if (devices->unittype == BLKDEV)
 		{
 			rc = register_blkdev(devices->unitmajor,
 					     devices->unitname,
 					     devices->unitfops);
+		}
+		else
+		{
+			printk("Bad device type for /dev/%s\n", devices->unitname);
 		}
 
 #if CANT_DO_THIS_HERE
@@ -605,7 +609,8 @@ i370_configure_device(long sid, schib_t *schib,
 		schib->isc = devices->unitisc = s390_devices[i_dev].isc;
 		devices->unitmajor = s390_devices[i_dev].major;
 		devices->unitminor = s390_devices[i_dev].curMinor;
-		devices->unitirqh  = (void *) s390_devices[i_dev].irqh;
+		devices->unitirqh  = s390_devices[i_dev].irqh;
+		devices->unittype  = s390_devices[i_dev].drvType;
 		sprintf(devices->unitname,"%s%d",
 			s390_devices[i_dev].devName,
 			s390_devices[i_dev].curMinor++);

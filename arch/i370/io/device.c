@@ -118,7 +118,7 @@ S390map_t s390_map[10] = {
 
 #define I_CONS 4 /* Index into s390_devices (below) for system console */
 
-S390dev_t s390_devices[10] = {
+S390dev_t s390_devices[11] = {
 	{MJ3990, 0, 255, BLKDEV, D3990, &i370_fop_eckd,  7, i370_eckd_flih},
 	{MJ3880, 0, 255, BLKDEV, D3880, &i370_fop_ckd,   6, i370_ckd_flih},
 	{MJFBLK, 0, 255, BLKDEV, DFBLK, &i370_fop_fba,   6, i370_fba_flih},
@@ -128,8 +128,8 @@ S390dev_t s390_devices[10] = {
 	{MJ3590, 0, 255, BLKDEV, D3590, &i370_fop_tss,   5, i370_tss_flih},
 	{MJ3172, 0, 255, BLKDEV, D3172, &i370_fop_osa,   4, i370_osa_flih},
 	{MJCTCA, 0, 255, BLKDEV, DCTCA, &i370_fop_ctca,  3, i370_ctca_flih},
-	{MJ3210, 1, 0, CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
-	{-1,    -1,  -1,     -1, {NULL}, NULL,       0, NULL}
+	{MJ3210, 1, 255, CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
+	{-1,    -1,  -1,     -1, {0},   NULL,            0, NULL}
 };
 
 /*============== End of Variable Declarations ==============*/
@@ -150,7 +150,6 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 	long    rc;
 	schib_t schib;
 	unitblk_t *devices;
-	idchar_t dev_id;
 	irb_t irb;
 
 	/*------------------------------------------------------*/
@@ -232,19 +231,33 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 				printk ("Device 0009 mapped to unix /dev/%s (%d, %d)\n",
 					devices->unitname, devices->unitmajor, devices->unitminor);
 			}
-			else {
-				rc = i370_getsid(sid, &schib, &dev_id);
-				if (!rc) i370_register_driver(sid, &schib, devices, &dev_id);
-			}
 			devices++;
 		}
-
-	sid++;
+		sid++;
 	}
 	devices += 1;
 	*memory_start = (unsigned long) devices; /* return new memory_start */
 
 	return;
+}
+
+/* Loop over the devices found early during arch_setup, and register
+ * drivers for each. */
+void
+i370_setup_devices(void)
+{
+	schib_t schib;
+	idchar_t dev_id;
+	int sid, i, rc;
+	unitblk_t *devices = unit_base;
+
+	for (i=0; i< sid_count; i++) {
+		sid = devices->unitsid;
+		rc = i370_getsid(sid, &schib, &dev_id);
+		if (!rc) i370_register_driver(sid, &schib, devices, &dev_id);
+
+		devices++;
+	}
 }
 
 /*===================== End of Mainline ====================*/
@@ -261,9 +274,9 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 static int
 i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 {
-	int     rc;
-	orb_t	orb;
-	irb_t	irb;
+	int   rc;
+	orb_t orb;
+	irb_t irb;
 
 	memset(&orb,0x00,sizeof(orb_t));	/* clear the ORB */
 	orb.intparm = schib->interrupt_parm;
@@ -339,7 +352,7 @@ i370_getsid(int sid, schib_t *schib, idchar_t *id)
 	ccw_t	*ioccw;
 
 	/* double-word align the ccw's */
-        ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
+	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
 
 	/*
 	 *	Build CCWS for Sense ID
@@ -589,6 +602,7 @@ printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitma
 			_msch(sid,schib);
 		}
 
+#if WE_DID_THIS_EARLIER_ALREADY
 		/*----------------------------------------------------*/
 		/* We flag the first 3270 device as our console. This */
 		/* can be overridden by specification in the IPL load */
@@ -598,6 +612,7 @@ printk ("register %s at major=%d i_dev=%d\n", devices->unitname, devices->unitma
 			dev_con3270 = devices;
 			if (dev_cons == NULL) dev_cons = devices;
 		}
+#endif
 
 		rc = i370_getrdc(sid, schib, &rdc);
 		if (!rc) {

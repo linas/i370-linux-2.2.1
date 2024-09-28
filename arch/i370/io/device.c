@@ -226,6 +226,9 @@ i370_setup_devices(void)
 			continue;
 		}
 
+		printk ("i370 register /dev/%s (%c %d %d)\n",
+			devices->unitname, devices->unittype == CHRDEV? 'c':'b',
+			devices->unitmajor, devices->unitminor);
 		if (devices->unittype == CHRDEV)
 		{
 			rc = register_chrdev(devices->unitmajor,
@@ -242,6 +245,7 @@ i370_setup_devices(void)
 		{
 			printk("Bad device type for /dev/%s\n", devices->unitname);
 		}
+		printk("i370 register rc=%d\n", rc);
 
 #if CANT_DO_THIS_HERE
 		// Too late for this; _msch is expecting real address, but we

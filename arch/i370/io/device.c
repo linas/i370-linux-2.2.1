@@ -123,12 +123,12 @@ S390dev_t s390_devices[11] = {
 	{MJ3880, 0, 255, BLKDEV, D3880, &i370_fop_ckd,   6, i370_ckd_flih},
 	{MJFBLK, 0, 255, BLKDEV, DFBLK, &i370_fop_fba,   6, i370_fba_flih},
 	{MJ3274, 0, 255, CHRDEV, D3274, &i370_fop_graf,  1, i370_graf_flih},
-	{MJCONS, 1, 2,   CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
+	{MJCONS, 1, 2,   CHRDEV, DCONS, &i370_fop_cons,  1, i370_cons_flih},
 	{MJ3480, 0, 255, CHRDEV, D3480, &i370_fop_tape,  2, i370_tape_flih},
 	{MJ3590, 0, 255, BLKDEV, D3590, &i370_fop_tss,   5, i370_tss_flih},
 	{MJ3172, 0, 255, BLKDEV, D3172, &i370_fop_osa,   4, i370_osa_flih},
 	{MJCTCA, 0, 255, BLKDEV, DCTCA, &i370_fop_ctca,  3, i370_ctca_flih},
-	{MJ3210, 1, 255, CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
+	{MJ3210, 0, 255, CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
 	{-1,    -1,  -1,     -1, {0},   NULL,            0, NULL}
 };
 
@@ -233,11 +233,17 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end)
 				devices->unitfops = s390_devices[I_CONS].fops;
 				devices->unitirqh = s390_devices[I_CONS].irqh;
 
+				rc = i370_getsid(sid, &schib, &dev_id);
+				printk ("Device 0009 CU ID %04x  Model %02x  %sready\n",
+					dev_id.idcuid, dev_id.idcumdl, rc ? "not ":"");
 				printk ("Device 0009 mapped to unix /dev/%s (%d, %d)\n",
 					devices->unitname, devices->unitmajor, devices->unitminor);
 			}
 			else {
 				rc = i370_getsid(sid, &schib, &dev_id);
+				printk("Device %04x found CU ID %04x  Model %02x  %sready\n",
+					schib.devno, dev_id.idcuid, dev_id.idcumdl, rc ? "not ":"");
+
 				if (!rc) i370_configure_device(sid, &schib, devices, &dev_id);
 			}
 			devices++;
@@ -318,9 +324,8 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 
 	rc = _ssch(sid,&orb);	/* issue Start Subchannel */
 
-	if (rc) {
-		return(rc); /* we lost the subchannel - tell caller */
-	}
+	if (rc)
+		return rc; /* we lost the subchannel - tell caller */
 
 	/*
 	 *	This really is bad form, but we can't handle an I/O
@@ -330,9 +335,8 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 	while(1) {
 		rc = _stsch(sid,schib);
 
-		if (rc) {
-			break; /* lost subchannel - tell caller */
-		}
+		if (rc)
+			return rc; /* lost subchannel - tell caller */
 
 		if (!(schib->scsw.status & 0x1)) {
 			udelay (100);	/* busy spin for 100 microsecs */
@@ -341,28 +345,21 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw)
 
 		rc = _tsch(sid,&irb);
 
-		if (rc) {
-			break; /* lost subchannel - tell caller */
-		}
+		if (rc)
+			return rc; /* lost subchannel - tell caller */
 
 		if (irb.scsw.status & 0x7) {
 
-			if ((irb.scsw.devstat == 0x0c) &&
-				 (irb.scsw.schstat == 0)) {
-				rc = 0;
-				break;
-			}
-			else {
-			 	rc = 1000;
-				break;
-			}
+			if (((irb.scsw.devstat & 0x0c) == 0x0c) &&
+				 (irb.scsw.schstat == 0))
+				return 0;
+			else
+				return 500;
 		}
-		else {
-			rc = 1000;
-			break;
-		}
+		else
+			return 1000;
 	}
-	return rc;
+	return 0; /* notreached */
 }
 
 /************************************************************/
@@ -586,9 +583,6 @@ i370_configure_device(long sid, schib_t *schib,
 {
 	int i_map, i_dev, rc;
 	devchar_t rdc;
-
-	printk("Device %04x found CU ID %04x  Model %02x\n",
-		schib->devno, dev_id->idcuid, dev_id->idcumdl);
 
 	/*----------------------------------------------------------*/
 	/* Map the control unit ID to a major node entry            */

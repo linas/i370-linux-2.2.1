@@ -7,12 +7,12 @@ Memory management:
 -- run kernel in real mode as much as possible
 -- run kernel in primary-space mode
 -- do not use secondary-space, home-space or access-register mode for now.
-   AR mode with Program Call may be useful in the future to implement 
+   AR mode with Program Call may be useful in the future to implement
    a really fast RPC; punt for now.
 -- punt on ASN's for now, leave CR3,4 alone
 -- place kernel code in storage key 0
--- place kernel data in storage key 3, run with PSW =3 
--- determine size of memory by touching addres until a fault occurs
+-- place kernel data in storage key 6, run with PSW =6
+-- determine size of memory by touching address until a fault occurs
    (the right way to get size of memory is to query the control processor,
    but we defer this until later.)
 

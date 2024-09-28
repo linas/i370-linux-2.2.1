@@ -80,13 +80,13 @@ typedef	struct _PACK _idchar
 
 typedef	struct _PACK _devchar {
 	unsigned short	devcutyp;	/* Control Unit Type */
-	unsigned char   devcumod;	/* Control Unit Model */
+	unsigned char	devcumod;	/* Control Unit Model */
 	unsigned short	devtype;	/* Device type */
 	unsigned char	devmodel;	/* Device Model */
 	unsigned char	devfeat[3];	/* Reserved */
-	unsigned char   devsubfe;	/* Subsystem Features */
-	unsigned char   devclcd;	/* Device Class code */
-	unsigned char   devtycod;	/* Device Type Code */
+	unsigned char	devsubfe;	/* Subsystem Features */
+	unsigned char	devclcd;	/* Device Class code */
+	unsigned char	devtycod;	/* Device Type Code */
 	short		devcyl;		/* number of primary cylinders */
 	short 		devtrk;		/* number of tracks/cylinder */
 	unsigned char	devsect;        /* number of sectors */
@@ -106,9 +106,9 @@ typedef	struct _PACK _devchar {
 	unsigned char	devobr;		/* OBR Record id */
 	unsigned char	devcuid;	/* Control Unit Id */
 	unsigned char	fill[21];	/* Rest of RDC block */
-	unsigned char   devvol[6];      /* add volume id */
-	unsigned char   devvtype[4];    /* Volume type */
-	unsigned char   fill1[2];       /* fill to boundary */
+	unsigned char	devvol[6];      /* add volume id */
+	unsigned char	devvtype[4];    /* Volume type */
+	unsigned char	fill1[2];       /* fill to boundary */
 } devchar_t;
 
 /*------------------------------------------------------------*/

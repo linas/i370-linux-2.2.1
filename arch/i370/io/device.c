@@ -41,7 +41,7 @@ extern struct file_operations i370_fop_eckd;
 extern struct file_operations i370_fop_ckd;
 extern struct file_operations i370_fop_fba;
 extern struct file_operations i370_fop_graf;
-extern struct file_operations i370_fop_cons;
+extern struct file_operations i370_fop_tty3210;
 extern struct file_operations i370_fop_tape;
 extern struct file_operations i370_fop_tss;
 extern struct file_operations i370_fop_osa;
@@ -51,7 +51,7 @@ extern void i370_eckd_flih (int, void *, struct pt_regs *regs);
 extern void i370_ckd_flih  (int, void *, struct pt_regs *regs);
 extern void i370_fba_flih  (int, void *, struct pt_regs *regs);
 extern void i370_graf_flih (int, void *, struct pt_regs *regs);
-extern void i370_cons_flih (int, void *, struct pt_regs *regs);
+extern void i370_tty3210_flih (int, void *, struct pt_regs *regs);
 extern void i370_tape_flih (int, void *, struct pt_regs *regs);
 extern void i370_tss_flih  (int, void *, struct pt_regs *regs);
 extern void i370_osa_flih  (int, void *, struct pt_regs *regs);
@@ -78,12 +78,12 @@ S390dev_t s390_devices[11] = {
 	{MJ3880, 0, 255, BLKDEV, D3880, &i370_fop_ckd,   6, i370_ckd_flih},
 	{MJFBLK, 0, 255, BLKDEV, DFBLK, &i370_fop_fba,   6, i370_fba_flih},
 	{MJ3274, 0, 255, CHRDEV, D3274, &i370_fop_graf,  1, i370_graf_flih},
-	{MJCONS, 1, 2,   CHRDEV, DCONS, &i370_fop_cons,  1, i370_cons_flih},
+	{MJCONS, 1, 2,   CHRDEV, DCONS, &i370_fop_tty3210, 1, i370_tty3210_flih},
 	{MJ3480, 0, 255, CHRDEV, D3480, &i370_fop_tape,  2, i370_tape_flih},
 	{MJ3590, 0, 255, BLKDEV, D3590, &i370_fop_tss,   5, i370_tss_flih},
 	{MJ3172, 0, 255, BLKDEV, D3172, &i370_fop_osa,   4, i370_osa_flih},
 	{MJCTCA, 0, 255, BLKDEV, DCTCA, &i370_fop_ctca,  3, i370_ctca_flih},
-	{MJ3210, 0, 255, CHRDEV, D3210, &i370_fop_cons,  1, i370_cons_flih},
+	{MJ3210, 0, 255, CHRDEV, D3210, &i370_fop_tty3210,  1, i370_tty3210_flih},
 	{-1,    -1,  -1,     -1, {0},   NULL,            0, NULL}
 };
 

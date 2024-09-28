@@ -11,15 +11,9 @@
 	$(CC) $(CFLAGS) -D__ASSEMBLY__ -c $< -o $*.o
 
 O_TARGET := io.o
-# OX_OBJS := i370_ksyms.o setup.o
 
-
-O_OBJS :=  device.o con3270.o scrn3270.o video3270.o eckd.o ckd.o \
-               graf.o console.o fba.o tape.o tss.o osa.o ctca.o
-
-
-# all: 
-
+O_OBJS :=  device.o con3270.o scrn3270.o video3270.o tty3210.o \
+	eckd.o ckd.o graf.o fba.o tape.o tss.o osa.o ctca.o
 
 
 include $(TOPDIR)/Rules.make

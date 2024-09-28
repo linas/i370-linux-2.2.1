@@ -1,12 +1,9 @@
 /*
- * Implements 3270 console
- * Currently output only, used to dump kernel printk's
- *
- * Public Domain 3270 driver code can be found here:
-> https://sourceforge.net/p/pdos/gitcode/ci/master/tree/pdpclib/sapstart.asm
-> https://sourceforge.net/p/pdos/gitcode/ci/master/tree/pdpclib/zpbsupa.asm
-> https://sourceforge.net/p/pdos/gitcode/ci/master/tree/pdpclib/sapsupa.asm
-
+ * Implements early-initialization 3270 console
+ * Output only, used to dump kernel printk's from the very earliest
+ * moments of booting. This is a polling driver, because interrupts
+ * are not available in early boot. This is NOT a general-purpose
+ * 3210/3215/3270 driver!
  */
 #include <linux/config.h>
 #include <linux/module.h>

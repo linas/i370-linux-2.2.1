@@ -44,25 +44,7 @@ struct PSA _PSA_  __attribute__ ((section(".psa"))) = {
 	0x80010000  /* Start of text section */ };
 
 extern void i370_find_devices (unsigned long *memory_start_p,
-				unsigned long *memory_end_p);
-struct scatter_block {
-	struct scatter_block * next;
-	long                 len;
-	long                 offset;
-	char                 data[0];
-};
-
-void scatter_move(void * area, struct scatter_block * first_block)
-{
-	struct scatter_block *	block;
-	for (block = first_block; block; block = block->next){
-		if (block->len > 0) {
-			memcpy((char *) area + block->offset, block->data, block->len);
-		} else {
-			memset((char *) area + block->offset, 0, -(block->len));
-		}
-	}
-}
+                               unsigned long *memory_end_p);
 
 void setup_psa(void)
 {
@@ -198,6 +180,7 @@ __initfunc(void setup_arch(char **cmdline_p,
 		*memory_end_p = 0x2000000;  // 32M
 	}
 
+	/* Just search the hardware for devices. */
 	i370_find_devices(memory_start_p,memory_end_p);
 
 	/* init_task ksp hasn't been set & its bogus; set it */

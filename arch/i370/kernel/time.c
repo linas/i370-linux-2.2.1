@@ -17,7 +17,6 @@ __initfunc(void time_init(void))
 
 	unsigned long skippy;
 	unsigned long long tod;
-	printk ("enter time init\n");
 
 	/*------------------------------------------------------------*/
 	/* Enable clock comparator interrupts to present themselves   */
@@ -46,8 +45,6 @@ __initfunc(void time_init(void))
 	skippy = jiffies;
 	if (! _i370_hercules_guest_p())
 		while (skippy == jiffies) {/* empty */};
-
-	printk ("exit time init\n");
 }
 
 /*

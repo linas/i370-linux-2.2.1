@@ -5,6 +5,8 @@
 #ifndef I370_IORB_H_
 #define I370_IORB_H_
 
+#define  _PACK __attribute__ ((packed))
+
 /*
  *	Channel Command Word Command Byte bits
  */
@@ -161,7 +163,7 @@ typedef struct _schib {	         	/* SCHIB structure                   */
  *       Define the (IORB) I/O Request Block
  */
 	
-typedef struct _iorb {
+typedef struct _PACK _iorb {
 	char            eye[8];         /* Eye catcher                      */
 	char            status;         /* device avail: OFFLINE/ONLINE=1   */
 	char            reason;         /*                                  */
@@ -310,4 +312,5 @@ _csch(long scid)
 #endif /* __ASSEMBLY__ */
 
 
+#undef _PACK
 #endif /* I370_IORB_H_ */

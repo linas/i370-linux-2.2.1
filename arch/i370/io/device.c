@@ -573,7 +573,7 @@ i370_configure_device(long sid, schib_t *schib,
 			devices->unitname, devices->unitmajor, devices->unitminor);
 
 		/* Lookup table to find devices by minor number */
-		if (dev_id->idcuid == T3210) {
+		if ((dev_id->idcuid == T3210) || (dev_id->idcuid == T3215)) {
 			unt_raw[devices->unitminor - RAWMINOR] = devices;
 		}
 

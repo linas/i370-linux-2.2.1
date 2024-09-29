@@ -476,7 +476,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	unsigned long delta;
 	i370_interrupt_state_t *srcregs, **dstregs;
 
-	printk("i370_copy_thread, usp=0x%lx\n", usp);
+	// printk("i370_copy_thread, usp=0x%lx\n", usp);
 
 	/* Copy the kernel stack, and thunk the stack pointers in it.
 	 * Don't copy the current frame: we want the new stack
@@ -580,8 +580,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		lastdst -> caller_sp = 0;
 	}
 
-	printk ("i370_copy_thread: finished %s pid=%d regs=%p\n",
-		p->comm, p->pid, p->tss.regs);
+	// printk ("i370_copy_thread: finished %s pid=%d regs=%p\n",
+	//         p->comm, p->pid, p->tss.regs);
 #ifdef __SMP__
 	if ( (p->pid != 0) || !(clone_flags & CLONE_PID) )
 		p->tss.smp_fork_ret = 1;
@@ -629,7 +629,7 @@ i370_sys_clone (unsigned long clone_flags)
 	struct pt_regs *regs;
 	int res = 0;
 
-	printk ("i370_sys_clone flags=0x%lx\n", clone_flags);
+	// printk ("i370_sys_clone flags=0x%lx\n", clone_flags);
 	lock_kernel();
 	regs = current->tss.regs;
 
@@ -645,7 +645,7 @@ i370_sys_clone (unsigned long clone_flags)
 #endif /* __SMP__ */
 	unlock_kernel();
 
-	printk ("i370_sys_clone(): after do_fork, res=%d\n", res);
+	// printk ("i370_sys_clone(): after do_fork, res=%d\n", res);
 
 	return res;
 }
@@ -671,9 +671,9 @@ long
 i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
-	printk ("i370_kernel_thread\n");
+	// printk ("i370_kernel_thread\n");
 	pid = clone (flags);
-	printk ("i370_kernel_thread(): return from clone, pid=%ld\n",pid);
+	// printk ("i370_kernel_thread(): return from clone, pid=%ld\n",pid);
 	if (pid) return pid;
 	fn (args);
 	while (1) {_exit (1); }

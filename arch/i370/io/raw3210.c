@@ -78,6 +78,35 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
+
+#if 1
+	/* XXX Do this at least once!? Huh? Note sure why; if not done,
+	 * the first byte written becomes blank. Seems buggy. I dunno.
+	 * fcntl=4 means 'start function'
+	 * activity=20 means 'start pending'
+	 * status=1 means 'status pending'
+	 */
+	irb_t irb;
+	rc = _tsch(unit->unitsid, &irb);
+	printk("raw3210_write irb FCN=%x activity=%x status=%x\n",
+		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
+#endif
+
+#if 0
+	int cnt = 0;
+	while (1) {
+		rc = _tsch(unit->unitsid, &irb);
+		if (!(irb.scsw.status & 0x1)) {
+			udelay (100);   /* spin 100 microseconds */
+			cnt++;
+			continue;
+		}
+		else {
+			break; /* assume it worked */
+		}
+	}
+	printk("write irb status=%x after %d loops\n", irb.scsw.status, cnt);
+#endif
 }
 
 static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
@@ -155,11 +184,10 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 	irb_t irb;
 	unitblk_t* unit = (unitblk_t*) dev_id;
 
-	printk("raw3210 got interrupt %d %x %x\n", irq, dev_id, regs);
-
 	rc = _tsch(unit->unitsid, &irb);
 
-	printk("duude irb status=%x\n", irb.scsw.status);
+	printk("raw3210_flihw irb FCN=%x activity=%x status=%x\n",
+		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
 
 	// if (!(irb.scsw.status & 0x1)) {
 }

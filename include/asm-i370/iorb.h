@@ -127,7 +127,9 @@ typedef struct _irb {			/* IRB structure                     */
 	unsigned 	scnd	:1;     /*     bit 27 Secondary Error        */
 	unsigned 	alert	:1;     /*     bit 28 I/O Error Alert        */
 	unsigned 	seqcode :3;     /*     bit 29-31 Sequence Code       */
-	unsigned int	esw[12];        /* Rest of ESW */
+	unsigned int	esw[4];        /* Rest of ESW */
+	unsigned int	ecw[8];        /* Extended Control Word */
+	unsigned int	emw[8];        /* Extended Measurement Word */
 } irb_t;     		/* End of IRB structure */
 	
 /*

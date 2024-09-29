@@ -251,16 +251,6 @@ i370_setup_devices(void)
 		}
 		printk("i370 register rc=%d\n", rc);
 
-#if CANT_DO_THIS_HERE
-		// Too late for this; _msch is expecting real address, but we
-		// are now running with page translation turned on.
-		if (rc < 0) {
-			schib->enabl = OFF;
-			printk("Unable to register device %08X. Rc: %dl\n",
-			       schib->devno, rc);
-			_msch(sid,schib);
-		}
-#endif
 		devices++;
 	}
 }

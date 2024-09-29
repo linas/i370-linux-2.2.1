@@ -28,7 +28,7 @@ int i370_raw3210_open (struct inode *inode, struct file *filp)
 		return -ENODEV;
 	}
 
-	int minor = inode->i_rdev & 0xffff;
+	int minor = inode->i_rdev & 0xff;
 	if ((minor < RAWMINOR) || (RAWMINOR+NRAWTERM <= minor)) {
 		return -ENODEV;
 	}
@@ -148,14 +148,16 @@ ssize_t i370_raw3210_write (struct file *filp, const char *str,
 	return rc;
 }
 
-void
-i370_raw3210_driver(void)
+ssize_t i370_raw3210_read (struct file *filp, char *str,
+                           size_t len, loff_t *ignore)
 {
+	return 0;
 }
 
 void
 i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
+	// printk("raw3210 got interrupt\n");
 }
 
 /*===================== End of Mainline ====================*/
@@ -163,7 +165,7 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 struct file_operations i370_fop_raw3210 =
 {
    NULL,		 /* lseek - default */
-   NULL,		 /* read - general block-dev read */
+   i370_raw3210_read,	 /* read - general block-dev read */
    i370_raw3210_write,	 /* write */
    NULL,		 /* readdir - bad */
    NULL,		 /* poll */

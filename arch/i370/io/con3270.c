@@ -4,6 +4,8 @@
  * moments of booting. This is a polling driver, because interrupts
  * are not available in early boot. This is NOT a general-purpose
  * 3210/3215/3270 driver!
+ *
+ * See raw3210.c for a generic driver.
  */
 #include <linux/config.h>
 #include <linux/module.h>
@@ -152,7 +154,7 @@ return;
 	lastline = dbgline;   /* copy for attribute reset */
 
 	for (i=0; i<count; i++) {
-		dbgline->scrnln[i] = ascii_to_ebcdic[(dbgline->scrnln[i])];
+		dbgline->scrnln[i] = ascii_to_ebcdic[(unsigned char)(dbgline->scrnln[i])];
 	}
 
 	dbgline++;
@@ -228,10 +230,14 @@ console_write_3210(struct console *c, const char *s,
 		return;
 	}
 
+	/* XXX FIXME! Major fail! The ioccw is being stored on stack, where
+	 * it is guaranteed to be clobbered. The only reason this works for
+	 * now is that we spin, polling the TSCH until the status is OK.
+	 * Once the status is OK, the IOCCW can be clobbered.
+	 */
 	/* double-word align the ccw array */
 	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
 
-//	flags = cli();	/* reset interrupts */
 	spin_lock_irqsave(NULL,flags);
 
 	/*
@@ -240,7 +246,7 @@ console_write_3210(struct console *c, const char *s,
 	 */
 
 	for (i=0; i<count; i++) {
-		conBuffer[pbufnext] = ascii_to_ebcdic[(s[i])];
+		conBuffer[pbufnext] = ascii_to_ebcdic[(unsigned char)(s[i])];
 		/* kill the EBCDIC line-feed */
 		if (conBuffer[pbufnext] == 0x25)  conBuffer[pbufnext] = 0x0;
 		if ((conBuffer[pbufnext] == 0x00) ||
@@ -284,7 +290,6 @@ console_write_3210(struct console *c, const char *s,
 	}
 
 	spin_unlock_irqrestore(NULL,flags);
-//	sti();
 }
 
 /* ===================================================== */

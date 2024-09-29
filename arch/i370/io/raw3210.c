@@ -19,32 +19,39 @@ extern unitblk_t *unt_raw[NRAWTERM];
 
 int i370_raw3210_open (struct inode *inode, struct file *filp)
 {
-	printk ("i370_raw3210_open of %s\n", filp->f_dentry->d_iname);
-	printk("duuude its %x\n", inode->i_rdev);
+	printk ("raw3210_open of %s %x\n", filp->f_dentry->d_iname, inode->i_rdev);
 
 	/* private_data should be unused, unless someone cut-n-pasted
 	 * this code into a tty implementation of terminals. Ooops! */
-	if (NULL != filp->private_data) {
+	if (NULL != filp->private_data)
 		return -ENODEV;
-	}
 
 	int minor = inode->i_rdev & 0xff;
-	if ((minor < RAWMINOR) || (RAWMINOR+NRAWTERM <= minor)) {
+	if ((minor < RAWMINOR) || (RAWMINOR+NRAWTERM <= minor))
 		return -ENODEV;
-	}
 
 	filp->private_data = unt_raw[minor - RAWMINOR];
-
 	return 0;
 }
+
+/* FIXME. The IOCCW needs to stay unclobbered until the I/O operation
+ * has completed, i.e. until after we get the secondary status interrupt.
+ * Until then, we should be careful not to clobber this!
+ * In other words, the current design is basically broken, until we solve this.
+ */
+static int lign_ccw[5];
 
 static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 {
 	long rc;
-	int   lign_ccw[5];
 	ccw_t *ioccw;
 	orb_t orb;
-	irb_t irb;
+
+	/* FIXME/TODO:
+	 * In principle, we should verify that we got a device-end signal,
+	 * (secondary status) and are ready to perform more writing.
+	 * For now, just assume everything is OK.
+	 */
 
 	/* double-word align the ccw array */
 	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
@@ -70,20 +77,7 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	orb.lpm    = 0xff;			/* Logical Path Mask */
 	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
 
-	rc = _tsch(unit->unitsid, &irb); /* hack for unsolicited DE */
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
-
-/* XXX FIXME hack alert. We're just going to poll, for now But this is wrong. */
-	while (1) {
-		rc = _tsch(unit->unitsid, &irb);
-		if (!(irb.scsw.status & 0x1)) {
-			udelay (100);	/* spin 100 microseconds */
-			continue;
-		}
-		else {
-			break; /* assume it worked */
-		}
-	}
 }
 
 static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
@@ -157,7 +151,17 @@ ssize_t i370_raw3210_read (struct file *filp, char *str,
 void
 i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
+	int rc;
+	irb_t irb;
+	unitblk_t* unit = (unitblk_t*) dev_id;
+
 	printk("raw3210 got interrupt %d %x %x\n", irq, dev_id, regs);
+
+	rc = _tsch(unit->unitsid, &irb);
+
+	printk("duude irb status=%x\n", irb.scsw.status);
+
+	// if (!(irb.scsw.status & 0x1)) {
 }
 
 /*===================== End of Mainline ====================*/

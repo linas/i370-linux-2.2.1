@@ -322,8 +322,8 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw))
 
 		if (irb.scsw.status & 0x7) {
 
-			/* Hmm what does irb.scsw.devstat == 0xe mean? */
-			if (((irb.scsw.devstat & 0x0c) == 0x0c) &&
+			/* See iorb.h for meaning of Device Status bits.  */
+			if (((irb.scsw.devstat & 0xfd) == 0x0c) &&
 				 (irb.scsw.schstat == 0))
 				return 0;
 			else

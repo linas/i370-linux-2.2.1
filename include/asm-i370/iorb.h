@@ -85,6 +85,16 @@ typedef struct _locr {            /* LOCR structure                   */
 
 /*
  * Define the SCSW SubChannel Status Word
+ *
+ * Word 2 Device Status bits:
+ *    0x01 -- attention
+ *    0x02 -- status modifier
+ *    0x04 -- control unit end
+ *    0x08 -- busy
+ *    0x10 -- channel end
+ *    0x20 -- device end
+ *    0x40 -- unit check
+ *    0x80 -- unit exception
  */
 
 typedef struct _scsw {		/* SUBCHANNEL Status Word Structure     */

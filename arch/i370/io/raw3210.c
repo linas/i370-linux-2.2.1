@@ -85,9 +85,13 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	 * fcntl=4 means 'start function'
 	 * activity=20 means 'start pending'
 	 * status=1 means 'status pending'
+	 * Bug: if we don't delay at least a bit, the first byte to
+	 * be printed is lost. Beats me why. Altnerately, the printk
+	 * provides enough delay.
 	 */
 	irb_t irb;
 	rc = _tsch(unit->unitsid, &irb);
+	udelay (100);   /* spin 100 microseconds */
 	// printk("raw3210_write irb FCN=%x activity=%x status=%x\n",
 	//       irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
 #endif

@@ -70,24 +70,13 @@ static void do_write_one_line(char *ebcstr, size_t len)
 	}
 }
 
-ssize_t i370_tty3210_write (struct file *filp, const char *str,
-                            size_t len, loff_t *ignore)
+static long do_write (char* kstr, const char *str, size_t len)
 {
 	long  flags;
 	long  rc;
 	long  i, j;
 #define EBCLEN 120
 	char  ebcstr[EBCLEN];
-	char * kstr;
-
-	if (NULL == dev_tty3210) {
-		printk("Error: missing unit block for tty3210\n");
-		return -ENODEV;
-	}
-
-	kstr = (char *) __get_free_page(GFP_KERNEL);
-	if (!kstr)
-		return -ENOMEM;
 
 	if (PAGE_SIZE <= len)
 	{
@@ -101,16 +90,17 @@ ssize_t i370_tty3210_write (struct file *filp, const char *str,
 	if (0 == rc)
 		return -ENOENT;
 
-printk("duude prrinty >>%s<< %d\n", kstr, len);
-	spin_lock_irqsave(NULL,flags);
+kstr[len-2]=0;
+printk("print to tty3270 >>%s<< %ld\n", kstr, len);
 
+	spin_lock_irqsave(NULL,flags);
 	j = 0;
 	for (i=0; i<len; i++) {
 		ebcstr[j] = ascii_to_ebcdic[(unsigned char)kstr[i]];
 
 		/* kill the EBCDIC line-feed */
 		if (ebcstr[j] == 0x25) ebcstr[j] = 0x0;
-		if ((ebcstr[j] == 0x0) || (j >= EBCLEN-1))
+		if ((ebcstr[j] == 0x0) || (j >= EBCLEN-2))
 		{
 			if (0 < j)
 				do_write_one_line(ebcstr, j);
@@ -119,11 +109,30 @@ printk("duude prrinty >>%s<< %d\n", kstr, len);
 		else
 			j++;
 	}
-
 	spin_unlock_irqrestore(NULL,flags);
 
-	free_page((unsigned long)(ebcstr));
 	return len;
+}
+
+ssize_t i370_tty3210_write (struct file *filp, const char *str,
+                            size_t len, loff_t *ignore)
+{
+	long rc;
+	char * kstr;
+
+	if (NULL == dev_tty3210) {
+		printk("Error: missing unit block for tty3210\n");
+		return -ENODEV;
+	}
+
+	kstr = (char *) __get_free_page(GFP_KERNEL);
+	if (!kstr)
+		return -ENOMEM;
+
+	rc = do_write(kstr, str, len);
+
+	free_page((unsigned long)kstr);
+	return rc;
 }
 
 void

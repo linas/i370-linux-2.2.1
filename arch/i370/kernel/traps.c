@@ -409,7 +409,7 @@ __initfunc(void i370_trap_init (int key))
 
 	key >>= 4;
 	key &= 0xf;
-	printk ("Trap init with storage key=%d\n", key);
+	// printk ("Trap init with storage key=%d\n", key);
 
 	/* Do part of the initialization just once. */
 	if (0 == key) {

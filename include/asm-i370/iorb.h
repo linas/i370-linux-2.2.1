@@ -202,9 +202,9 @@ _ssch (short sid, orb_t *orb)
 
         __asm__ __volatile__
         ("l     r1,%1;		\n"
-         "ssch %2;		\n"
+         "ssch  %2;		\n"
          "ipm   r1;		\n"
-	 "srl   r1,28;		\n"
+         "srl   r1,28;		\n"
          "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*orb)
@@ -223,9 +223,9 @@ _msch (short sid, schib_t *schib)
 
         __asm__ __volatile__
         ("l     r1,%1;		\n"
-         "msch %2;		\n"
+         "msch  %2;		\n"
          "ipm   r1;		\n"
-	 "srl   r1,28;		\n"
+         "srl   r1,28;		\n"
          "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*schib)
@@ -244,9 +244,9 @@ _tsch (short sid, irb_t *irb)
 
         __asm__ __volatile__
         ("l     r1,%1;		\n"
-         "tsch %2;		\n"
+         "tsch  %2;		\n"
          "ipm   r1;		\n"
-	 "srl   r1,28;		\n"
+         "srl   r1,28;		\n"
          "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*irb)
@@ -267,7 +267,7 @@ _stsch (short sid, schib_t *schib)
         ("l     r1,%1;		\n"
          "stsch %2;		\n"
          "ipm   r1;		\n"
-	 "srl   r1,28;		\n"
+         "srl   r1,28;		\n"
          "la    %0,0(0,r1);	\n"
         : "=r" (rc)
         : "m" (scid), "m"(*schib)
@@ -282,7 +282,7 @@ _tpi (long *scid)
 	int     rc;
 
 	__asm__ __volatile__
-		("	TPI   %1	\n"
+		("      TPI   %1	\n"
 		"       IPM   r1	\n"
 		"       SRL   r1,28     \n"
 		"       ST    r1,%0     \n"
@@ -299,7 +299,7 @@ _csch(long scid)
 	int     rc;
 
 	__asm__ __volatile__
-		("	L     r1,%1 	\n"
+		("      L     r1,%1 	\n"
 		"       CSCH		\n"
 		"       IPM   r1	\n"
 		"       SRL   r1,28     \n"
@@ -312,7 +312,6 @@ _csch(long scid)
 }
 
 #endif /* __ASSEMBLY__ */
-
 
 #undef _PACK
 #endif /* I370_IORB_H_ */

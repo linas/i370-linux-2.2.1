@@ -88,8 +88,8 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	 */
 	irb_t irb;
 	rc = _tsch(unit->unitsid, &irb);
-	printk("raw3210_write irb FCN=%x activity=%x status=%x\n",
-		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
+	// printk("raw3210_write irb FCN=%x activity=%x status=%x\n",
+	//       irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
 #endif
 
 #if 0
@@ -188,6 +188,9 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 
 	printk("raw3210_flihw irb FCN=%x activity=%x status=%x\n",
 		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
+
+	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
+		irb.scsw.schstat, irb.scsw.residual);
 
 	// if (!(irb.scsw.status & 0x1)) {
 }

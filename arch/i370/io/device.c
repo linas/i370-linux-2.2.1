@@ -80,7 +80,7 @@ S390dev_t s390_devices[11] = {
 	{MJ3880, 0, 255, BLKDEV, D3880, &i370_fop_ckd,   6, i370_ckd_flih},
 	{MJFBLK, 0, 255, BLKDEV, DFBLK, &i370_fop_fba,   6, i370_fba_flih},
 	{MJ3274, 0, 255, CHRDEV, D3274, &i370_fop_graf,  1, i370_graf_flih},
-	{MJCONS, 1, 2,   CHRDEV, DCONS, &i370_fop_raw3210, 1, i370_raw3210_flih},
+	{MJCONS, 1, 2,   CHRDEV, DCONS, &i370_fop_raw3210, 1, i370_raw3210_flih}, /* not used */
 	{MJ3480, 0, 255, CHRDEV, D3480, &i370_fop_tape,  2, i370_tape_flih},
 	{MJ3590, 0, 255, BLKDEV, D3590, &i370_fop_tss,   5, i370_tss_flih},
 	{MJ3172, 0, 255, BLKDEV, D3172, &i370_fop_osa,   4, i370_osa_flih},
@@ -88,6 +88,9 @@ S390dev_t s390_devices[11] = {
 	{MJ3210, RAWMINOR, RAWMINOR+NRAWTERM-1, CHRDEV, D3210, &i370_fop_raw3210,  1, i370_raw3210_flih},
 	{-1,    -1,  -1,     -1, {0},   NULL,            0, NULL}
 };
+
+/* For polling I/O - found the device but its not ready. */
+#define ERR_NOT_READY 1000
 
 /************************************************************/
 /*                                                          */
@@ -201,7 +204,11 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end))
 				printk("Device %04X found CU ID %04X  Model %02X  %sready\n",
 					schib.devno, dev_id.idcuid, dev_id.idcumdl, rc ? "not ":"");
 
-				if (!rc) i370_configure_device(sid, &schib, devices, &dev_id);
+				/* The 3210 devices might be "not ready" if there's no open
+				 * telnet connection. That's OK, user will telnet in later.
+				 * Configure the device anyway. */
+				if ((0 == rc) || (ERR_NOT_READY == rc))
+					i370_configure_device(sid, &schib, devices, &dev_id);
 			}
 			devices++;
 		}
@@ -221,14 +228,16 @@ i370_setup_devices(void)
 	int i, rc;
 	unitblk_t *devices = unit_base;
 
+	char done[256];
+	memset (done, 0, 256);
+
 	for (i=0; i< sid_count; i++) {
 
-		if (UNIT_READY != devices->unitstat) {
-			devices++;
+		if ((0 == devices->unitmajor) || (0 != done[devices->unitmajor])) {
+			devices ++;
 			continue;
 		}
-
-/* XXX FIXME only have to do this once per major */
+		done[devices->unitmajor] = 1;
 
 		printk ("i370 register /dev/%s (%c %d %d)\n",
 			devices->unitname, devices->unittype == CHRDEV? 'c':'b',
@@ -249,6 +258,10 @@ i370_setup_devices(void)
 		{
 			printk("Bad device type for /dev/%s\n", devices->unitname);
 		}
+
+		// XXX FIXME, registering the console (5,1) gives
+		// -EBUSY == -16 as the return code. Because I guess
+		// we should do something else?
 		printk("i370 register rc=%d\n", rc);
 
 		devices++;
@@ -312,10 +325,10 @@ i370_doio(int sid, schib_t *schib, ccw_t *ioccw))
 				 (irb.scsw.schstat == 0))
 				return 0;
 			else
-				return 500;
+				return ERR_NOT_READY;
 		}
 		else
-			return 1000;
+			return ERR_NOT_READY;
 	}
 	return 0; /* notreached */
 }

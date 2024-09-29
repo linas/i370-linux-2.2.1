@@ -27,11 +27,11 @@ extern unitblk_t *unt_raw[NRAWTERM];
  * when successful, return the address just past the end of the chain,
  * i.e. the below plus 0x10
  */
-static int lign_ccw[5];
-ccw_t *ioccw;
+static int align_ccw[5];
+ccw_t *wr_ioccw;
 
 static int blign_ccw[5];
-ccw_t *bioccw;
+ccw_t *rd_ioccw;
 
 int i370_raw3210_open (struct inode *inode, struct file *filp)
 {
@@ -49,11 +49,8 @@ int i370_raw3210_open (struct inode *inode, struct file *filp)
 	filp->private_data = unt_raw[minor - RAWMINOR];
 
 	/* double-word align the ccw array */
-	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
-printk("duuude ioccw at %x\n", ioccw);
-
-	bioccw = (ccw_t *) (((((unsigned long) &blign_ccw[0]) + 7) >>3) << 3);
-printk("duuude bioccw at %x\n", bioccw);
+	wr_ioccw = (ccw_t *) (((((unsigned long) &align_ccw[0]) + 7) >>3) << 3);
+	rd_ioccw = (ccw_t *) (((((unsigned long) &blign_ccw[0]) + 7) >>3) << 3);
 	return 0;
 }
 
@@ -72,14 +69,14 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	 *  Build the CCW for the 3210 Console I/O
 	 *  CCW = WRITE chained to NOP.
 	 */
-	ioccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
-	ioccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
-	ioccw[0].count   = len;
-	ioccw[0].dataptr = ebcstr;      /* address of 3210 buffer */
-	ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
-	ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
-	ioccw[1].dataptr = NULL;           /* buffer = 0 */
-	ioccw[1].count   = 1;              /* ?? */
+	wr_ioccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
+	wr_ioccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
+	wr_ioccw[0].count   = len;
+	wr_ioccw[0].dataptr = ebcstr;      /* address of 3210 buffer */
+	wr_ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
+	wr_ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
+	wr_ioccw[1].dataptr = NULL;           /* buffer = 0 */
+	wr_ioccw[1].count   = 1;              /* ?? */
 	/*
 	 *  Clear and format the ORB
 	 */
@@ -87,11 +84,11 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	orb.intparm = (int) unit;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;			/* Logical Path Mask */
-	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
+	orb.ptrccw = wr_ioccw;		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
 
-#if 1
+#if 0
 	/* XXX Do this at least once!? Huh? Note sure why; if not done,
 	 * the first byte written becomes blank. Seems buggy. I dunno.
 	 * fcntl=4 means 'start function'
@@ -190,6 +187,17 @@ ssize_t i370_raw3210_write (struct file *filp, const char *str,
 #define RDBUFSZ 120
 char rdbuf[RDBUFSZ];
 
+static void show_rdbuf(void)
+{
+	int i;
+	if (0 == rdbuf[0]) return;
+
+	for (i=0; i<16; i++) {
+		if (0 == rdbuf[i]) break;
+		printk("got %d %c\n", i, ebcdic_to_ascii[(unsigned char)rdbuf[i]]);
+	}
+}
+
 static void do_read(unitblk_t* unit)
 {
 	long rc;
@@ -201,14 +209,14 @@ static void do_read(unitblk_t* unit)
 	 *  Build the CCW for the 3210 Console I/O
 	 *  CCW = READ chained to NOP.
 	 */
-	bioccw[0].flags   = CCW_CC+CCW_SLI; /* Read chained to NOOP + SLI */
-	bioccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
-	bioccw[0].count   = RDBUFSZ;
-	bioccw[0].dataptr = rdbuf;          /* address of 3210 buffer */
-	bioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
-	bioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
-	bioccw[1].dataptr = NULL;           /* buffer = 0 */
-	bioccw[1].count   = 1;              /* ?? */
+	rd_ioccw[0].flags   = CCW_CC+CCW_SLI; /* Read chained to NOOP + SLI */
+	rd_ioccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
+	rd_ioccw[0].count   = RDBUFSZ;
+	rd_ioccw[0].dataptr = rdbuf;          /* address of 3210 buffer */
+	rd_ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
+	rd_ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
+	rd_ioccw[1].dataptr = NULL;           /* buffer = 0 */
+	rd_ioccw[1].count   = 1;              /* ?? */
 	/*
 	 *  Clear and format the ORB
 	 */
@@ -216,33 +224,9 @@ static void do_read(unitblk_t* unit)
 	orb.intparm = (int) unit;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;			/* Logical Path Mask */
-	orb.ptrccw = &bioccw[0];		/* ccw addr to orb */
+	orb.ptrccw = rd_ioccw;		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
-// printk("duude read ssch orb rc=%d\n", rc);
-
-#if 1
-irb_t irb;
-	udelay (100);   /* spin 100 microseconds */
-	rc = _tsch(unit->unitsid, &irb);
-// printk("duude read tsch irb rc=%d\n", rc);
-	if (0 != irb.scsw.status) {
-		printk("raw3210_read irb FCN=%x activity=%x status=%x\n",
-		       irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
-		printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
-		       irb.scsw.schstat, irb.scsw.residual);
-	}
-#endif
-
-// I don't get it. If I type real fast, then we get data. Otherwise not.
-if (0 != rdbuf[0]) {
-int i;
-printk("duuude rdbuf is at %x\n", rdbuf);
-for (i=0; i<16; i++) {
-if (0 == rdbuf[i]) break;
-printk("got %d %c\n", i, ebcdic_to_ascii[(unsigned char)rdbuf[i]]);
-}
-}
 }
 
 ssize_t i370_raw3210_read (struct file *filp, char *str,
@@ -268,17 +252,19 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 	rc = _tsch(unit->unitsid, &irb);
 
 	/* Quick hack to see what we are taking interrupt for */
-	unsigned long pioccw = ioccw;
-	pioccw += 0x10;
-	unsigned long pbioccw = bioccw;
-	pbioccw += 0x10;
+	unsigned long ewr_ioccw = wr_ioccw;
+	ewr_ioccw += 0x10;
+	unsigned long erd_ioccw = rd_ioccw;
+	erd_ioccw += 0x10;
 
-	if (pioccw == irb.scsw.ccw) {
+	/* Ignore interupts announcing end-of-write. For now. */
+	if (ewr_ioccw == irb.scsw.ccw) {
 		// printk("got writer done interupt\n");
 		return;
 	}
 
-	if (pbioccw == irb.scsw.ccw) {
+	/* Ah hah: read is done! */
+	if (erd_ioccw == irb.scsw.ccw) {
 		printk("got reader done interupt\n");
 	}
 
@@ -287,6 +273,7 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 
 	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
+	show_rdbuf();
 }
 
 /*===================== End of Mainline ====================*/

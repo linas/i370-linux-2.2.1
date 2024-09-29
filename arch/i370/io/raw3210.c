@@ -181,12 +181,21 @@ ssize_t i370_raw3210_read (struct file *filp, char *str,
 	return readlen;
 }
 
+/* XXX FIXME this is shared by all and gets clobbered.
+ * we want a per-unit read bufer.
+ */
+#define RDBUFSZ 120
+char rdbuf[RDBUFSZ];
+
 void
 i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 	int rc;
+	ccw_t *ioccw;
 	irb_t irb;
+	orb_t orb;
 	unitblk_t* unit = (unitblk_t*) dev_id;
+
 
 	rc = _tsch(unit->unitsid, &irb);
 
@@ -196,7 +205,42 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
 
-	// if (!(irb.scsw.status & 0x1)) {
+#ifdef JUNK
+	memset(rdbuf, 0, RDBUFSZ);
+
+	/* double-word align the ccw array */
+	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
+
+	/*
+	 *  Build the CCW for the 3210 Console I/O
+	 *  CCW = READ chained to NOP.
+	 */
+	ioccw[0].flags   = CCW_CC+CCW_SLI; /* Read chained to NOOP + SLI */
+	ioccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
+	ioccw[0].count   = RDBUFSZ;
+	ioccw[0].dataptr = rdbuf;          /* address of 3210 buffer */
+	ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
+	ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
+	ioccw[1].dataptr = NULL;           /* buffer = 0 */
+	ioccw[1].count   = 1;              /* ?? */
+	/*
+	 *  Clear and format the ORB
+	 */
+	memset(&orb, 0x00, sizeof(orb_t));
+	orb.intparm = (int) unit;
+	orb.fpiau  = 0x80;		/* format 1 ORB */
+	orb.lpm    = 0xff;			/* Logical Path Mask */
+	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
+
+	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
+
+	rc = _tsch(unit->unitsid, &irb);
+	udelay (100);   /* spin 100 microseconds */
+	printk("raw3210_flih irb FCN=%x activity=%x status=%x\n",
+	       irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
+
+printk("duuude got %x %x %x\n", rdbuf[0], rdbuf[1], rdbuf[2]);
+#endif
 }
 
 /*===================== End of Mainline ====================*/

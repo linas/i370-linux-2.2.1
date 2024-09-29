@@ -301,7 +301,7 @@ request_irq(unsigned int irq,
 				if ((old = *p) != NULL) {
 					/*-----------------------------------------*/
 					/* add new interrupt at end of irq queue   */
-					/*---------------------------------------- */ 
+					/*---------------------------------------- */
 					do {
 						p = &old->next;
 						old = *p;

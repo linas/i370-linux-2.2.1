@@ -76,7 +76,8 @@ typedef struct {
 	struct file_operations *fops;
 	unsigned int 	isc;    	/* Interrupt sub-class    */
 	void     	(*irqh)(int,    /* Interupt handler       */
-					void *, struct pt_regs *);
+				void *, struct pt_regs *);
+	unitblk_t **	unib;		/* Unit block             */
 } S390dev_t;
 
 /* See

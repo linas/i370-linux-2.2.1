@@ -1,26 +1,26 @@
- /*       asm/ebcdic .h -- Character set utilities 
-  
+ /*       asm/ebcdic .h -- Character set utilities
+
   This file is part of Linux/390.
 
   Written by Peter Schulte-Stracke <Peter.Schulte-Stracke@t-online.de>
-  
+
   Copyright 1999 by Peter Schulte-Stracke. This is free software. Use
   is permitted under the obligations of the GNU General Public Licence.
   See file COPYRIGHT for details. There is NO warranty.
 
   Usage: use i370_translate for generic operands, of fixed and
-  variable length, and with a table specified. For the default tables use 
-  i370_translate_to_ebcdic &c. NOTE that variable lengh operands with a 
-  length < 256 (! due to compiler/assembler bug for now) are much faster 
-  treated with __i370_translate[_to...], which modifies the translate 
+  variable length, and with a table specified. For the default tables use
+  i370_translate_to_ebcdic &c. NOTE that variable lengh operands with a
+  length < 256 (! due to compiler/assembler bug for now) are much faster
+  treated with __i370_translate[_to...], which modifies the translate
   instruction at run-time.
 
   Date: $Id: ebcdic.h,v 1.5 1999/11/11 04:26:29 linas Exp $
   Changes: Uses now test for constant lengh operand.
 
-  */ 
+  */
 
- 
+#include <linux/types.h>
 
 #ifndef _I370_asm_EBCDIC_H
 #define _I370_asm_EBCDIC_H
@@ -48,7 +48,7 @@ void  _i370_translate (char * area, size_t size, const char * table)
 {
        register int rest, amount;
        for (rest = size; rest > 0; rest -= 256)
-           { 
+           {
                amount = (rest>256) ? 256 : rest;
                __i370_translate(area, amount, table);
                area += 256;

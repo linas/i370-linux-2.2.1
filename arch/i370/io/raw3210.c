@@ -106,9 +106,6 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 	if (0 == rc)
 		return -ENOENT;
 
-kstr[len-2]=0;
-printk("print to raw3270 >>%s<< %ld\n", kstr, len);
-
 	spin_lock_irqsave(NULL,flags);
 	j = 0;
 	for (i=0; i<len; i++) {
@@ -151,13 +148,16 @@ ssize_t i370_raw3210_write (struct file *filp, const char *str,
 ssize_t i370_raw3210_read (struct file *filp, char *str,
                            size_t len, loff_t *ignore)
 {
-	return 0;
+	char* kstr = "yes";
+	size_t readlen = strlen(kstr)+1;
+	__copy_to_user(str, kstr, readlen);
+	return readlen;
 }
 
 void
 i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
-	// printk("raw3210 got interrupt\n");
+	printk("raw3210 got interrupt %d %x %x\n", irq, dev_id, regs);
 }
 
 /*===================== End of Mainline ====================*/

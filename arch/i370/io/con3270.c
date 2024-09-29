@@ -77,9 +77,9 @@ extern	char	scrln1[1];	/* define 3270 screen */
 extern	char	screnda[1];     /* define 3270 screen end */
 prt_lne_t	*dbgline = (prt_lne_t *)scrln1;
 prt_lne_t	*dbglend = (prt_lne_t *)screnda;
-extern  unitblk_t *dev_cons,
-                  *dev_con3210,
-                  *dev_con3270;
+extern  unitblk_t *unt_cons,
+                  *unt_con3210,
+                  *unt_con3270;
 long		cons_init =0;
 
 /* ===================================================== */
@@ -88,7 +88,7 @@ long
 console_3270_init(long mstart, long mend)
 {
 	cons_init = 1;
-	if (dev_cons == dev_con3270)
+	if (unt_cons == unt_con3270)
 		register_console(&cons3270);
 	else
 		register_console(&cons3210);
@@ -181,16 +181,16 @@ return;
 	 */
 
 	memset(&orb,0x00,sizeof(orb_t));
-	orb.intparm = (int) dev_con3270;
+	orb.intparm = (int) unt_con3270;
 	orb.fpiau = 0x80;		/* format 1 ORB */
 	orb.lpm = 0xff;			/* Logical Path Mask */
 	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
 
-	rc = _tsch(dev_con3270->unitsid, &irb);     /* hack for unsolicited DE */
-	rc = _ssch(dev_con3270->unitsid, &orb);     /* issue Start Subchannel */
+	rc = _tsch(unt_con3270->unitsid, &irb);     /* hack for unsolicited DE */
+	rc = _ssch(unt_con3270->unitsid, &orb);     /* issue Start Subchannel */
 
 	while (1) {
-		rc = _tsch(dev_con3270->unitsid,&irb);
+		rc = _tsch(unt_con3270->unitsid,&irb);
 		if (!(irb.scsw.status & 0x1)) {
 			udelay (100);	/* spin 100 microseconds */
 			continue;
@@ -260,16 +260,16 @@ console_write_3210(struct console *c, const char *s,
 			*/
 
 			memset(&orb,0x00,sizeof(orb_t));
-			orb.intparm = (int) dev_con3210;
+			orb.intparm = (int) unt_con3210;
 			orb.fpiau  = 0x80;		/* format 1 ORB */
 			orb.lpm    = 0xff;			/* Logical Path Mask */
 			orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
 
-			rc = _tsch(dev_con3210->unitsid,&irb); /* hack for unsolicited DE */
-			rc = _ssch(dev_con3210->unitsid,&orb); /* issue Start Subchannel */
+			rc = _tsch(unt_con3210->unitsid,&irb); /* hack for unsolicited DE */
+			rc = _ssch(unt_con3210->unitsid,&orb); /* issue Start Subchannel */
 
 			while (1) {
-				rc = _tsch(dev_con3210->unitsid, &irb);
+				rc = _tsch(unt_con3210->unitsid, &irb);
 				if (!(irb.scsw.status & 0x1)) {
 					udelay (100);	/* spin 100 microseconds */
 					continue;
@@ -305,10 +305,8 @@ console_device_3210(struct console *c)
 	// return MKDEV(TTYAUX_MAJOR, 64 + c->index);
 	/* When /dev/console (5,1) is opened it gets remapped to (4,1)
 	 * which is /dev/tty1 and so, we want to appear on /dev/tty1
-	 * when invoked.  I'm somewhat confused though ... don't we
-	 * want to return n++ each time we're called ???
-	 * Anyway, who's remapping this, anyway? Only one console is
-	 * allowed...
+	 * when invoked.  Wait? Who is remapping this? Is it
+	 * console_device_3270() up above? I'm confused .. why?
 	 */
 	return MKDEV(TTY_MAJOR, 1);
 }

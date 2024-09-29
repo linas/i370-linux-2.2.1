@@ -59,35 +59,8 @@
 #include <asm/unitblk.h>
 #include <asm/psa.h>
 
-/*================== End of Include Statements =============*/
-
-/************************************************************/
-/*							  */
-/*		TYPE DEFINITIONS			  */
-/*		----------------			  */
-/*							  */
-/************************************************************/
-
-/*================== End of Type Definitions ===============*/
-
-/************************************************************/
-/*							  */
-/*	       FUNCTION PROTOTYPES			*/
-/*	       -------------------			*/
-/*							  */
-/************************************************************/
-
-/*================== End of Prototypes =====================*/
-
-/************************************************************/
-/*							  */
-/*	     GLOBAL VARIABLE DECLARATIONS		 */
-/*	     ----------------------------		 */
-/*							  */
-/************************************************************/
-
 extern unitblk_t *unit_base;
-extern unitblk_t *dev_cons;
+extern unitblk_t *unt_cons;
 extern long      sid_count;
 
 unsigned int local_bh_count[NR_CPUS];
@@ -143,7 +116,7 @@ irq_init (void)
 	ucb = unit_base;
 	for (i_ucb = 0; i_ucb < sid_count; i_ucb++) {
 		if ((ucb[i_ucb].unitstat == UNIT_READY) &&
-		    (&ucb[i_ucb] != dev_cons)) {
+		    (&ucb[i_ucb] != unt_cons)) {
 			rc = request_irq(ucb[i_ucb].unitisc, ucb[i_ucb].unitirqh,
 					 SA_INTERRUPT, ucb[i_ucb].unitname,
 					 (void *) &ucb[i_ucb]);

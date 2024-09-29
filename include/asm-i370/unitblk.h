@@ -5,12 +5,16 @@
 #ifndef I370_UNITB_H_
 #define I370_UNITB_H_
 
+#include <asm/sense.h>
+
 #include <linux/fs.h>
 #include <linux/major.h>
 
 /*
  *	Unit Control Block. Contains a mixture of ESA/390 device fields
- * and Linux device driver fields.
+ * and Linux device driver fields. Very little in this structure
+ * is currently used; I think its a place-holder for "future development"
+ * that hasn't happened yet.
  */
 
 #define DEVNAMELEN 10
@@ -79,7 +83,6 @@ typedef struct {
 	unsigned int 	isc;    	/* Interrupt sub-class    */
 	void     	(*irqh)(int,    /* Interupt handler       */
 				void *, struct pt_regs *);
-	unitblk_t **	unib;		/* Unit block             */
 } S390dev_t;
 
 /* See
@@ -108,5 +111,9 @@ typedef struct {
 #define D3590 "tss"
 #define D3172 "nbd"
 #define DCTCA "ctca"
+
+/* Max number of raw terminals */
+#define NRAWTERM 32
+#define RAWMINOR 128
 
 #endif /* I370_UNITB_H_ */

@@ -14,16 +14,31 @@
 #include <linux/fs.h>
 #include <linux/mm.h>
 
-extern unitblk_t *dev_raw3210;
+/* Mapping of minor devnos to units. */
+extern unitblk_t *unt_raw[NRAWTERM];
 
 int i370_raw3210_open (struct inode *inode, struct file *filp)
 {
 	printk ("i370_raw3210_open of %s\n", filp->f_dentry->d_iname);
 	printk("duuude its %x\n", inode->i_rdev);
+
+	/* private_data should be unused, unless someone cut-n-pasted
+	 * this code into a tty implementation of terminals. Ooops! */
+	if (NULL != filp->private_data) {
+		return -ENODEV;
+	}
+
+	int minor = inode->i_rdev & 0xffff;
+	if ((minor < RAWMINOR) || (RAWMINOR+NRAWTERM <= minor)) {
+		return -ENODEV;
+	}
+
+	filp->private_data = unt_raw[minor - RAWMINOR];
+
 	return 0;
 }
 
-static void do_write_one_line(char *ebcstr, size_t len)
+static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 {
 	long rc;
 	int   lign_ccw[5];
@@ -50,17 +65,17 @@ static void do_write_one_line(char *ebcstr, size_t len)
 	 *  Clear and format the ORB
 	 */
 	memset(&orb, 0x00, sizeof(orb_t));
-	orb.intparm = (int) dev_raw3210;
+	orb.intparm = (int) unit;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;			/* Logical Path Mask */
 	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
 
-	rc = _tsch(dev_raw3210->unitsid, &irb); /* hack for unsolicited DE */
-	rc = _ssch(dev_raw3210->unitsid, &orb); /* issue Start Subchannel */
+	rc = _tsch(unit->unitsid, &irb); /* hack for unsolicited DE */
+	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
 
 /* XXX FIXME hack alert. We're just going to poll, for now But this is wrong. */
 	while (1) {
-		rc = _tsch(dev_raw3210->unitsid, &irb);
+		rc = _tsch(unit->unitsid, &irb);
 		if (!(irb.scsw.status & 0x1)) {
 			udelay (100);	/* spin 100 microseconds */
 			continue;
@@ -71,7 +86,7 @@ static void do_write_one_line(char *ebcstr, size_t len)
 	}
 }
 
-static long do_write (char* kstr, const char *str, size_t len)
+static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 {
 	long  flags;
 	long  rc;
@@ -104,7 +119,7 @@ printk("print to raw3270 >>%s<< %ld\n", kstr, len);
 		if ((ebcstr[j] == 0x0) || (j >= EBCLEN-2))
 		{
 			if (0 < j)
-				do_write_one_line(ebcstr, j);
+				do_write_one_line(ebcstr, j, unit);
 			j = 0;
 		}
 		else
@@ -121,16 +136,13 @@ ssize_t i370_raw3210_write (struct file *filp, const char *str,
 	long rc;
 	char * kstr;
 
-	if (NULL == dev_raw3210) {
-		printk("Error: missing unit block for raw3210\n");
-		return -ENODEV;
-	}
+	unitblk_t* unit = (unitblk_t*) filp->private_data;
 
 	kstr = (char *) __get_free_page(GFP_KERNEL);
 	if (!kstr)
 		return -ENOMEM;
 
-	rc = do_write(kstr, str, len);
+	rc = do_write(kstr, str, len, unit);
 
 	free_page((unsigned long)kstr);
 	return rc;

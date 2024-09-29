@@ -17,6 +17,22 @@
 /* Mapping of minor devnos to units. */
 extern unitblk_t *unt_raw[NRAWTERM];
 
+/* FIXME. The IOCCW needs to stay unclobbered until the I/O operation
+ * has completed, i.e. until after we get the secondary status interrupt.
+ * Until then, we should be careful not to clobber this!
+ * In other words, the current design is basically broken, until we solve this.
+ *
+ * Use two different ioccws, to distinguish reader and writer interupts.
+ * Each CCW is 8 bytes long; Each chain is two of them. The irq returns
+ * when successful, return the address just past the end of the chain,
+ * i.e. the below plus 0x10
+ */
+static int lign_ccw[5];
+ccw_t *ioccw;
+
+static int blign_ccw[5];
+ccw_t *bioccw;
+
 int i370_raw3210_open (struct inode *inode, struct file *filp)
 {
 	printk ("raw3210_open of %s %x\n", filp->f_dentry->d_iname, inode->i_rdev);
@@ -31,20 +47,19 @@ int i370_raw3210_open (struct inode *inode, struct file *filp)
 		return -ENODEV;
 
 	filp->private_data = unt_raw[minor - RAWMINOR];
+
+	/* double-word align the ccw array */
+	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
+printk("duuude ioccw at %x\n", ioccw);
+
+	bioccw = (ccw_t *) (((((unsigned long) &blign_ccw[0]) + 7) >>3) << 3);
+printk("duuude bioccw at %x\n", bioccw);
 	return 0;
 }
-
-/* FIXME. The IOCCW needs to stay unclobbered until the I/O operation
- * has completed, i.e. until after we get the secondary status interrupt.
- * Until then, we should be careful not to clobber this!
- * In other words, the current design is basically broken, until we solve this.
- */
-static int lign_ccw[5];
 
 static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 {
 	long rc;
-	ccw_t *ioccw;
 	orb_t orb;
 
 	/* FIXME/TODO:
@@ -52,9 +67,6 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	 * (secondary status) and are ready to perform more writing.
 	 * For now, just assume everything is OK.
 	 */
-
-	/* double-word align the ccw array */
-	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
 
 	/*
 	 *  Build the CCW for the 3210 Console I/O
@@ -172,57 +184,31 @@ ssize_t i370_raw3210_write (struct file *filp, const char *str,
 	return rc;
 }
 
-ssize_t i370_raw3210_read (struct file *filp, char *str,
-                           size_t len, loff_t *ignore)
-{
-	char* kstr = "yes";
-	size_t readlen = strlen(kstr)+1;
-	__copy_to_user(str, kstr, readlen);
-	return readlen;
-}
-
 /* XXX FIXME this is shared by all and gets clobbered.
  * we want a per-unit read bufer.
  */
 #define RDBUFSZ 120
 char rdbuf[RDBUFSZ];
 
-void
-i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
+static void do_read(unitblk_t* unit)
 {
-	int rc;
-	ccw_t *ioccw;
-	irb_t irb;
+	long rc;
 	orb_t orb;
-	unitblk_t* unit = (unitblk_t*) dev_id;
 
-
-	rc = _tsch(unit->unitsid, &irb);
-
-	printk("raw3210_flihw irb FCN=%x activity=%x status=%x\n",
-		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
-
-	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
-		irb.scsw.schstat, irb.scsw.residual);
-
-#ifdef JUNK
 	memset(rdbuf, 0, RDBUFSZ);
-
-	/* double-word align the ccw array */
-	ioccw = (ccw_t *) (((((unsigned long) &lign_ccw[0]) + 7) >>3) << 3);
 
 	/*
 	 *  Build the CCW for the 3210 Console I/O
 	 *  CCW = READ chained to NOP.
 	 */
-	ioccw[0].flags   = CCW_CC+CCW_SLI; /* Read chained to NOOP + SLI */
-	ioccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
-	ioccw[0].count   = RDBUFSZ;
-	ioccw[0].dataptr = rdbuf;          /* address of 3210 buffer */
-	ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
-	ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
-	ioccw[1].dataptr = NULL;           /* buffer = 0 */
-	ioccw[1].count   = 1;              /* ?? */
+	bioccw[0].flags   = CCW_CC+CCW_SLI; /* Read chained to NOOP + SLI */
+	bioccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
+	bioccw[0].count   = RDBUFSZ;
+	bioccw[0].dataptr = rdbuf;          /* address of 3210 buffer */
+	bioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
+	bioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
+	bioccw[1].dataptr = NULL;           /* buffer = 0 */
+	bioccw[1].count   = 1;              /* ?? */
 	/*
 	 *  Clear and format the ORB
 	 */
@@ -230,17 +216,77 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 	orb.intparm = (int) unit;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;			/* Logical Path Mask */
-	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
+	orb.ptrccw = &bioccw[0];		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
+// printk("duude read ssch orb rc=%d\n", rc);
 
-	rc = _tsch(unit->unitsid, &irb);
+#if 1
+irb_t irb;
 	udelay (100);   /* spin 100 microseconds */
-	printk("raw3210_flih irb FCN=%x activity=%x status=%x\n",
-	       irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
-
-printk("duuude got %x %x %x\n", rdbuf[0], rdbuf[1], rdbuf[2]);
+	rc = _tsch(unit->unitsid, &irb);
+// printk("duude read tsch irb rc=%d\n", rc);
+	if (0 != irb.scsw.status) {
+		printk("raw3210_read irb FCN=%x activity=%x status=%x\n",
+		       irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
+		printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
+		       irb.scsw.schstat, irb.scsw.residual);
+	}
 #endif
+
+// I don't get it. If I type real fast, then we get data. Otherwise not.
+if (0 != rdbuf[0]) {
+int i;
+printk("duuude rdbuf is at %x\n", rdbuf);
+for (i=0; i<16; i++) {
+if (0 == rdbuf[i]) break;
+printk("got %d %c\n", i, ebcdic_to_ascii[(unsigned char)rdbuf[i]]);
+}
+}
+}
+
+ssize_t i370_raw3210_read (struct file *filp, char *str,
+                           size_t len, loff_t *ignore)
+{
+	unitblk_t* unit = (unitblk_t*) filp->private_data;
+	do_read(unit);
+
+	char* kstr = "yes";
+	size_t readlen = strlen(kstr)+1;
+	__copy_to_user(str, kstr, readlen);
+	return readlen;
+}
+
+void
+i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
+{
+	int rc;
+	irb_t irb;
+	unitblk_t* unit = (unitblk_t*) dev_id;
+
+	memset(&irb, 0x00, sizeof(irb_t));
+	rc = _tsch(unit->unitsid, &irb);
+
+	/* Quick hack to see what we are taking interrupt for */
+	unsigned long pioccw = ioccw;
+	pioccw += 0x10;
+	unsigned long pbioccw = bioccw;
+	pbioccw += 0x10;
+
+	if (pioccw == irb.scsw.ccw) {
+		// printk("got writer done interupt\n");
+		return;
+	}
+
+	if (pbioccw == irb.scsw.ccw) {
+		printk("got reader done interupt\n");
+	}
+
+	printk("raw3210_flihw irb FCN=%x activity=%x status=%x\n",
+		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
+
+	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
+		irb.scsw.schstat, irb.scsw.residual);
 }
 
 /*===================== End of Mainline ====================*/

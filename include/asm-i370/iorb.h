@@ -74,7 +74,7 @@ typedef struct _de {              /* DE  structure                    */
 typedef struct _locr {            /* LOCR structure                   */
 	char            orop;     /* orientation and operation        */
 	char            rsv;      /* reserved byte                    */
-	char            aux;      /* auxilary byte                    */
+	char            aux;      /* auxiliary byte                   */
 	char            count;    /* record or track count            */
 	long            seek;     /* seek cylinder - CCHH             */
 	long            search;   /* search cylinder CCHH             */
@@ -123,7 +123,7 @@ typedef struct _scsw {		/* SUBCHANNEL Status Word Structure     */
 /*
  *       Define the (IRB) Interruption Response Block
  */
-	
+
 typedef struct _irb {			/* IRB structure                     */
 	scsw_t	 	scsw;     	/* Subchannel Status Word(s)         */
 	unsigned		:1;     /* ESW word 0                        */
@@ -141,11 +141,11 @@ typedef struct _irb {			/* IRB structure                     */
 	unsigned int	ecw[8];        /* Extended Control Word */
 	unsigned int	emw[8];        /* Extended Measurement Word */
 } irb_t;     		/* End of IRB structure */
-	
+
 /*
  *       Define the (SCHIB) Subchannel Information Block
  */
-	
+
 typedef struct _schib {	         	/* SCHIB structure                   */
 	unsigned int	interrupt_parm; /* Word 0: interruption parameter    */
 	unsigned 		:2;    	/* Word 1: bits 0-1 unused           */
@@ -170,11 +170,11 @@ typedef struct _schib {	         	/* SCHIB structure                   */
 	scsw_t      	scsw;     	/* Words 7-9 SCSW                    */
 	unsigned int	schfill2[3];    /* Word 10 Model Dependent           */
 } schib_t;     		/* End of SCHIB structure             */
-	
+
 /*
  *       Define the (IORB) I/O Request Block
  */
-	
+
 typedef struct _PACK _iorb {
 	char            eye[8];         /* Eye catcher                      */
 	char            status;         /* device avail: OFFLINE/ONLINE=1   */
@@ -198,7 +198,7 @@ typedef struct _PACK _iorb {
 	de_t            de;             /* Define extent struct -16 bytes   */
 	irb_t           irb;            /* Intrp Resp block                 */
 } iorb_t;
-	
+
 /* ---------------------------------------------------------------- */
 /* I/O utilities */
 
@@ -244,7 +244,13 @@ _msch (short sid, schib_t *schib)
         return(rc);
 }
 
-/* *	Issue TSCH 	*/
+/* Issue TSCH
+ * Return value is the CC cndition code.
+ * Return value of 1 means there were no pending interrupts,
+ * the tsch completed successfully, and the IRB was filled out.
+ * Return of 0 means there was a pending interrupt, and it was
+ * cleared. I think the tsch completes successfully in this case, too.
+ */
 
 extern inline int
 _tsch (short sid, irb_t *irb)

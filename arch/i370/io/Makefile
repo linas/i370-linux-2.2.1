@@ -12,7 +12,7 @@
 
 O_TARGET := io.o
 
-O_OBJS :=  device.o con3270.o scrn3270.o video3270.o tty3210.o \
+O_OBJS :=  device.o con3270.o scrn3270.o video3270.o raw3210.o \
 	eckd.o ckd.o graf.o fba.o tape.o tss.o osa.o ctca.o
 
 

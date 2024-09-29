@@ -1,6 +1,6 @@
-/************************************************************/
-/* Generic driver for 3210                                  */
-/************************************************************/
+/****************************************************************/
+/* "raw" driver for 3210; I/O does not go through the tty layer */
+/****************************************************************/
 
 #include <asm/3270.h>
 #include <asm/delay.h>
@@ -14,11 +14,12 @@
 #include <linux/fs.h>
 #include <linux/mm.h>
 
-extern unitblk_t *dev_tty3210;
+extern unitblk_t *dev_raw3210;
 
-int i370_tty3210_open (struct inode *tty, struct file *filp)
+int i370_raw3210_open (struct inode *inode, struct file *filp)
 {
-	printk ("i370_tty3210_open\n");
+	printk ("i370_raw3210_open of %s\n", filp->f_dentry->d_iname);
+	printk("duuude its %x\n", inode->i_rdev);
 	return 0;
 }
 
@@ -49,17 +50,17 @@ static void do_write_one_line(char *ebcstr, size_t len)
 	 *  Clear and format the ORB
 	 */
 	memset(&orb, 0x00, sizeof(orb_t));
-	orb.intparm = (int) dev_tty3210;
+	orb.intparm = (int) dev_raw3210;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;			/* Logical Path Mask */
 	orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
 
-	rc = _tsch(dev_tty3210->unitsid, &irb); /* hack for unsolicited DE */
-	rc = _ssch(dev_tty3210->unitsid, &orb); /* issue Start Subchannel */
+	rc = _tsch(dev_raw3210->unitsid, &irb); /* hack for unsolicited DE */
+	rc = _ssch(dev_raw3210->unitsid, &orb); /* issue Start Subchannel */
 
 /* XXX FIXME hack alert. We're just going to poll, for now But this is wrong. */
 	while (1) {
-		rc = _tsch(dev_tty3210->unitsid, &irb);
+		rc = _tsch(dev_raw3210->unitsid, &irb);
 		if (!(irb.scsw.status & 0x1)) {
 			udelay (100);	/* spin 100 microseconds */
 			continue;
@@ -80,7 +81,7 @@ static long do_write (char* kstr, const char *str, size_t len)
 
 	if (PAGE_SIZE <= len)
 	{
-		printk("Error: unexpected long tty3210 input; FIXME!\n");
+		printk("Error: unexpected long raw3210 input; FIXME!\n");
 		return -ENAMETOOLONG;
 	}
 
@@ -91,7 +92,7 @@ static long do_write (char* kstr, const char *str, size_t len)
 		return -ENOENT;
 
 kstr[len-2]=0;
-printk("print to tty3270 >>%s<< %ld\n", kstr, len);
+printk("print to raw3270 >>%s<< %ld\n", kstr, len);
 
 	spin_lock_irqsave(NULL,flags);
 	j = 0;
@@ -114,14 +115,14 @@ printk("print to tty3270 >>%s<< %ld\n", kstr, len);
 	return len;
 }
 
-ssize_t i370_tty3210_write (struct file *filp, const char *str,
+ssize_t i370_raw3210_write (struct file *filp, const char *str,
                             size_t len, loff_t *ignore)
 {
 	long rc;
 	char * kstr;
 
-	if (NULL == dev_tty3210) {
-		printk("Error: missing unit block for tty3210\n");
+	if (NULL == dev_raw3210) {
+		printk("Error: missing unit block for raw3210\n");
 		return -ENODEV;
 	}
 
@@ -136,27 +137,27 @@ ssize_t i370_tty3210_write (struct file *filp, const char *str,
 }
 
 void
-i370_tty3210_driver(void)
+i370_raw3210_driver(void)
 {
 }
 
 void
-i370_tty3210_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 }
 
 /*===================== End of Mainline ====================*/
 
-struct file_operations i370_fop_tty3210 =
+struct file_operations i370_fop_raw3210 =
 {
    NULL,		 /* lseek - default */
    NULL,		 /* read - general block-dev read */
-   i370_tty3210_write,	 /* write */
+   i370_raw3210_write,	 /* write */
    NULL,		 /* readdir - bad */
    NULL,		 /* poll */
    NULL,		 /* ioctl */
    NULL,		 /* mmap */
-   i370_tty3210_open,	 /* open */
+   i370_raw3210_open,	 /* open */
    NULL,		 /* flush */
    NULL,		 /* release */
    NULL,		 /* fsync */

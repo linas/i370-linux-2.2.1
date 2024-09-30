@@ -216,6 +216,16 @@ static void do_read(unitblk_t* unit)
 	orb.ptrccw = rd_ioccw;		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
+
+	irb_t irb;
+	int i;
+	for (i=0; i<1000; i++) {
+		udelay (25);   /* spin 25 microseconds */
+		rc = _tsch(unit->unitsid, &irb);
+		if (irb.scsw.status & 0x1) break;
+	}
+printk("duuude read spin %d\n", i);
+	show_rdbuf();
 }
 
 static int i370_pending=0;
@@ -262,6 +272,7 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 	erd_ioccw += 0x10;
 
 printk("duude wtf rd=%x wr=%x irb=%x\n", erd_ioccw, ewr_ioccw, irb.scsw.ccw);
+i370_pending = 1;
 	/* Ignore interupts announcing end-of-write. For now. */
 	if (ewr_ioccw == irb.scsw.ccw) {
 		// printk("got writer done interupt\n");
@@ -280,7 +291,7 @@ printk("duude wtf rd=%x wr=%x irb=%x\n", erd_ioccw, ewr_ioccw, irb.scsw.ccw);
 
 	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
-	show_rdbuf();
+	// show_rdbuf();
 }
 
 /*===================== End of Mainline ====================*/

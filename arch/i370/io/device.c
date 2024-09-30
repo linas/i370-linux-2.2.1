@@ -535,7 +535,6 @@ i370_getvol_eckd(int sid, schib_t *schib, devchar_t *rdc))
 			rc = ERR_NOT_READY;
 			break;
 		}
-
 	}
 	return rc;
 }
@@ -582,16 +581,22 @@ i370_configure_device(long sid, schib_t *schib,
 		devices->unitisc   = s390_devices[i_dev].isc;
 		sprintf(devices->unitname, "%s%d",  /* want snprintf here. */
 			s390_devices[i_dev].devName,
-			s390_devices[i_dev].curMinor++);
-
-		printk ("Device %04X mapped to unix /dev/%s (%d, %d)\n",
-			schib->devno,
-			devices->unitname, devices->unitmajor, devices->unitminor);
+			s390_devices[i_dev].curMinor);
 
 		/* Lookup table to find devices by minor number */
 		if ((dev_id->idcuid == T3210) || (dev_id->idcuid == T3215)) {
 			unt_raw[devices->unitminor - RAWMINOR] = devices;
+
+			/* /dev/3270/raw0 maps to minor=128 */
+			sprintf(devices->unitname, "%s%d",
+				s390_devices[i_dev].devName,
+				s390_devices[i_dev].curMinor - RAWMINOR);
 		}
+		s390_devices[i_dev].curMinor++;
+
+		printk ("Device %04X mapped to unix /dev/%s (%d, %d)\n",
+			schib->devno,
+			devices->unitname, devices->unitmajor, devices->unitminor);
 
 		/*----------------------------------------------------*/
 		/* We flag the first 3270 device as our console. This */

@@ -113,7 +113,7 @@ irq_init (void)
 	int rc, i_ucb;
 	unitblk_t *ucb;
 
-	/* XXX FIXME: A 3210 unit is ready, only if there is a runnig
+	/* XXX FIXME: A 3215 unit is ready, only if there is a runnig
 	 * telnet connection to it. There might not be one while we boot.
 	 * we want to give it an IRQ anyway, in case the user telnets in,
 	 * later. In general, thse units will be going up and down.
@@ -122,14 +122,13 @@ irq_init (void)
 	 */
 	ucb = unit_base;
 	for (i_ucb = 0; i_ucb < sid_count; i_ucb++) {
-		if ((ucb[i_ucb].unitstat == UNIT_READY) &&
-		    (&ucb[i_ucb] != unt_cons)) {
+		if (ucb[i_ucb].unitstat == UNIT_READY) {
 			rc = request_irq(ucb[i_ucb].unitisc, ucb[i_ucb].unitirqh,
 					 SA_INTERRUPT, ucb[i_ucb].unitname,
 					 (void *) &ucb[i_ucb]);
 
 			if (rc != 0)
-				printk("Unable to request IRQ %d for device %s. rc: %d\n",
+				printk("Unable to request IRQ %d for device /dev/%s. rc: %d\n",
 				       ucb[i_ucb].unitisc, ucb[i_ucb].unitname, rc);
 		}
  	}

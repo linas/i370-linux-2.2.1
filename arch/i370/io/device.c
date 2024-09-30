@@ -81,7 +81,7 @@ S390dev_t s390_devices[11] = {
 	{MJ3880, 0, 255, BLKDEV, D3880, &i370_fop_ckd,   6, i370_ckd_flih},
 	{MJFBLK, 0, 255, BLKDEV, DFBLK, &i370_fop_fba,   6, i370_fba_flih},
 	{MJ3274, 0, 255, CHRDEV, D3274, &i370_fop_graf,  1, i370_graf_flih},
-	{MJCONS, 1, 2,   CHRDEV, DCONS, &i370_fop_raw3215, 1, i370_raw3215_flih}, /* not used */
+	{MJCONS, 1, 2,   CHRDEV, DCONS, &i370_fop_raw3215, 1, i370_raw3215_flih},
 	{MJ3480, 0, 255, CHRDEV, D3480, &i370_fop_tape,  2, i370_tape_flih},
 	{MJ3590, 0, 255, BLKDEV, D3590, &i370_fop_tss,   5, i370_tss_flih},
 	{MJ3172, 0, 255, BLKDEV, D3172, &i370_fop_osa,   4, i370_osa_flih},
@@ -172,8 +172,8 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end))
 
 			/*----------------------------------------------------*/
 			/* If we can find a device '0009' under VM, then map  */
-			/* it to /dev/console, Major, minor (5, 1)            */
-			/* Other 3215's will map to /dev/ttyN (4, N+1)        */
+			/* it to /dev/console, Major, minor (227, 1)          */
+			/* Other 3215's map to /dev/3270/rawN (227, N+128)    */
 			/*                                                    */
 			/* VM has (CPUID[0] == 0xff)                          */
 			/* and Hercules has (CPUID[0] != 0xff) in general     */
@@ -185,7 +185,6 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end))
 				devices->unittype  = s390_devices[I_CONS].drvType;
 				devices->unitmajor = s390_devices[I_CONS].major;
 				devices->unitminor = s390_devices[I_CONS].curMinor;
-				devices->unitirqh  = s390_devices[I_CONS].irqh;
 				strncpy(devices->unitname,
 					s390_devices[I_CONS].devName, DEVNAMELEN-1);
 				devices->unitname[DEVNAMELEN] = 0x0;
@@ -193,6 +192,7 @@ i370_find_devices(unsigned long *memory_start, unsigned long memory_end))
 
 				devices->unitfops = s390_devices[I_CONS].fops;
 				devices->unitirqh = s390_devices[I_CONS].irqh;
+				devices->unitisc  = s390_devices[I_CONS].isc;
 
 				rc = i370_getsid(sid, &schib, &dev_id);
 				printk ("Device 0009 CU ID %04X  Model %02X  %sready\n",
@@ -606,7 +606,7 @@ i370_configure_device(long sid, schib_t *schib,
 		if ((dev_id->idcuid == T3274) && (unt_con3270 == NULL)) {
 			unt_con3270 = devices;
 			if (unt_cons == NULL) {
-				printk("This will be the system console\n");
+				printk("Found a 3270; it will be the system console\n");
 				unt_cons = devices;
 			}
 		}

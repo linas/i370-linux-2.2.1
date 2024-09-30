@@ -177,17 +177,6 @@ ssize_t i370_raw3210_write (struct file *filp, const char *str,
 char rdbuf[RDBUFSZ];
 char rascii[RDBUFSZ];
 
-static void show_rdbuf(void)
-{
-	int i;
-	if (0 == rdbuf[0]) return;
-
-	for (i=0; i<16; i++) {
-		if (0 == rdbuf[i]) break;
-		printk("got %d %c\n", i, ebcdic_to_ascii[(unsigned char)rdbuf[i]]);
-	}
-}
-
 static void do_read(unitblk_t* unit)
 {
 	long rc;
@@ -230,7 +219,6 @@ static void do_read(unitblk_t* unit)
 		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
 	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
-	show_rdbuf();
 }
 
 static int i370_pending=0;
@@ -252,11 +240,9 @@ ssize_t i370_raw3210_read (struct file *filp, char *str,
 		if (0 == rdbuf[i]) break;
 	}
 	if (0 == i) return -EAGAIN;
-printk("duuude read buffer is >>%s<< len=%d\n", rascii, i);
 
-char * kstr="whut";
-	// __copy_to_user(str, rascii, i);
-	__copy_to_user(str, kstr, 5);
+	i++;
+	__copy_to_user(str, rascii, i);
 	return i;
 }
 

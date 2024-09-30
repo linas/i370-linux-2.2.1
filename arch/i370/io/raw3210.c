@@ -47,14 +47,43 @@ int i370_raw3210_open (struct inode *inode, struct file *filp)
 
 static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 {
+	int i;
 	long rc;
 	orb_t orb;
+	irb_t irb;
 
-	/* FIXME/TODO:
-	 * In principle, we should verify that we got a device-end signal,
-	 * (secondary status) and are ready to perform more writing.
-	 * For now, just assume everything is OK.
+	/* We can't start a new write, until the previous one has finished.
+	 * Two ways to find out if its done: 1) wait for an interrupt,
+	 * (caught by flih, below; this works) or just test it here.
+	 * Its easier to test here.
+	 *
+	 * There's two ways to test here. One is to test before issuing
+	 * the SSCH. I can't get this to work. TSCH reports "channel end;
+	 * device end" which is what we want, but unless we also test
+	 * afterwards, output gets garbled. And if we test after, then
+	 * the test before is not needed. Go figure.
+	 *
+	 * There got to be a prettier way.
 	 */
+
+#ifdef INEFFECTIVE
+	/* Look for a Device Status of 'channel end; device end'. We ignore
+	 * unit check because that's how the device comes up after boot !?
+	 * This is to that we don't accidentally clobber the ioccw. I guess
+	 * that maybe if we had a different ioccw each time, this would not
+	 * be needed ??? I'm confused.
+	 */
+#define NLOOP 1000
+	for (i=0; i<NLOOP; i++) {
+		rc = _tsch(unit->unitsid, &irb);
+		if ((irb.scsw.devstat & 0xfd) == 0xc) break;
+		udelay (25);   /* spin 25 microseconds */
+	}
+	if (NLOOP == i) {
+		// return -EIO;
+		printk("Oooh no Mr. Bill!\n");
+	}
+#endif
 
 	/*
 	 *  Build the CCW for the 3210 Console I/O
@@ -77,24 +106,9 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	orb.lpm    = 0xff;			/* Logical Path Mask */
 	orb.ptrccw = ioccw;		/* ccw addr to orb */
 
-	/* We can't start a new write, until the previous one has finished.
-	 * Two ways to find out if its done: 1) wait for an interrupt,
-	 * (caught by flih, below; this works) or just test it here.
-	 * Its easier to test here.
-	 *
-	 * There's two ways to test here. One is to test before issueing
-	 * the SSCH. I can't get this to work. TSCH reports "channel end;
-	 * device end" which seems fine to me, but then writing gets
-	 * garbled. The other thing to do is to test after, wait for the
-	 * status pending bit to be set, which seems to leave things in
-	 * a good state for the next time around. Alas.
-	 *
-	 * There got to be a prettier way.
-	 */
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
 
-	irb_t irb;
-	int i;
+	/* See comments about the need for TSCH above */
 	for (i=0; i<1000; i++) {
 		udelay (25);   /* spin 25 microseconds */
 		rc = _tsch(unit->unitsid, &irb);
@@ -170,10 +184,31 @@ char rascii[RDBUFSZ];
 
 static void do_read(unitblk_t* unit)
 {
+	int i;
 	long rc;
 	orb_t orb;
+	irb_t irb;
 
 	memset(rdbuf, 0, RDBUFSZ);
+
+#ifdef INEFFECTIVE
+	/* Well, the idea here was to play it safe, and not clobber the ioccw
+	 * until the device is in a happy state. But even when the device is
+	 * happy, behavior is flakey. So I don't get it. The TSCH loop at
+	 * the bottom fixes things. See similar block of code above, in
+	 * do_write()
+	 */
+#define NLOOP 1000
+	for (i=0; i<NLOOP; i++) {
+		rc = _tsch(unit->unitsid, &irb);
+		if ((irb.scsw.devstat & 0xfd) == 0xc) break;
+		udelay (25);   /* spin 25 microseconds */
+	}
+	if (NLOOP == i) {
+		// return -EIO;
+		printk("No! Watch out! Mr. Bill!\n");
+	}
+#endif
 
 	/*
 	 *  Build the CCW for the 3210 Console I/O
@@ -198,8 +233,6 @@ static void do_read(unitblk_t* unit)
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
 
-	irb_t irb;
-	int i;
 	for (i=0; i<1000; i++) {
 		udelay (25);   /* spin 25 microseconds */
 		rc = _tsch(unit->unitsid, &irb);

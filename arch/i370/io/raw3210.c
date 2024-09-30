@@ -86,40 +86,29 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	orb.lpm    = 0xff;			/* Logical Path Mask */
 	orb.ptrccw = wr_ioccw;		/* ccw addr to orb */
 
+	/* We can't start a new write, until the previous one has finished.
+	 * Two ways to find out if its done: 1) wait for an interrupt,
+	 * (caught by flih, below; this works) or just test it here.
+	 * Its easier to test here.
+	 *
+	 * There's two ways to test here. One is to test before issueing
+	 * the SSCH. I can't get this to work. TSCH reports "channel end;
+	 * device end" which seems fine to me, but then writing gets
+	 * garbled. The other thing to do is to test after, wait for the
+	 * status pending bit to be set, which seems to leave things in
+	 * a good state for the next time around. Alas.
+	 *
+	 * There got to be a prettier way.
+	 */
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
 
-#if 0
-	/* XXX Do this at least once!? Huh? Note sure why; if not done,
-	 * the first byte written becomes blank. Seems buggy. I dunno.
-	 * fcntl=4 means 'start function'
-	 * activity=20 means 'start pending'
-	 * status=1 means 'status pending'
-	 * Bug: if we don't delay at least a bit, the first byte to
-	 * be printed is lost. Beats me why. Altnerately, the printk
-	 * provides enough delay.
-	 */
 	irb_t irb;
-	rc = _tsch(unit->unitsid, &irb);
-	udelay (100);   /* spin 100 microseconds */
-	// printk("raw3210_write irb FCN=%x activity=%x status=%x\n",
-	//       irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
-#endif
-
-#if 0
-	int cnt = 0;
-	while (1) {
+	int i;
+	for (i=0; i<1000; i++) {
+		udelay (25);   /* spin 25 microseconds */
 		rc = _tsch(unit->unitsid, &irb);
-		if (!(irb.scsw.status & 0x1)) {
-			udelay (100);   /* spin 100 microseconds */
-			cnt++;
-			continue;
-		}
-		else {
-			break; /* assume it worked */
-		}
+		if (irb.scsw.status & 0x1) break;
 	}
-	printk("write irb status=%x after %d loops\n", irb.scsw.status, cnt);
-#endif
 }
 
 static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
@@ -229,11 +218,20 @@ static void do_read(unitblk_t* unit)
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
 }
 
+static int i370_pending=0;
+
 ssize_t i370_raw3210_read (struct file *filp, char *str,
                            size_t len, loff_t *ignore)
 {
 	unitblk_t* unit = (unitblk_t*) filp->private_data;
-	do_read(unit);
+
+#if 1
+	if (i370_pending) {
+		i370_pending = 0;
+		printk("duude have pending reads\n");
+		do_read(unit);
+	}
+#endif
 
 	char* kstr = "yes";
 	size_t readlen = strlen(kstr)+1;
@@ -252,20 +250,29 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 	rc = _tsch(unit->unitsid, &irb);
 
 	/* Quick hack to see what we are taking interrupt for */
+	/* XXX this is totally broken and won't work. keyboard typing
+	 * generates interrupts, but they go to the writer ioccw,
+	 * I can't tell if I need to actually do a read, or not.
+	 * If I always do a read, then writing stops working.
+	 * I don't get it.
+	 */
 	unsigned long ewr_ioccw = wr_ioccw;
 	ewr_ioccw += 0x10;
 	unsigned long erd_ioccw = rd_ioccw;
 	erd_ioccw += 0x10;
 
+printk("duude wtf rd=%x wr=%x irb=%x\n", erd_ioccw, ewr_ioccw, irb.scsw.ccw);
 	/* Ignore interupts announcing end-of-write. For now. */
 	if (ewr_ioccw == irb.scsw.ccw) {
 		// printk("got writer done interupt\n");
-		return;
+		// return;
 	}
 
 	/* Ah hah: read is done! */
 	if (erd_ioccw == irb.scsw.ccw) {
 		printk("got reader done interupt\n");
+		printk("duude count=%d\n", rd_ioccw[0].count);
+		i370_pending = 1;
 	}
 
 	printk("raw3210_flihw irb FCN=%x activity=%x status=%x\n",

@@ -350,22 +350,32 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 	check_stack(next);
 #endif /* CHECK_STACK */
 
-// #define SHOW_TASK_SWITCHES
+#define SHOW_TASK_SWITCHES
 #ifdef SHOW_TASK_SWITCHES
 	printk("task switch ");
-	printk("%s/%d -> %s/%d PSW 0x%lx 0x%lx cpu %d \n",
-	       prev->comm,prev->pid,
-	       next->comm,next->pid,
-	       next->tss.regs->psw.flags,
-	       next->tss.regs->psw.addr,
-	       next->processor);
-	printk ("current sp=0x%lx next sp=0x%lx\n", _get_SP(), next->tss.ksp);
+	if (next->tss.regs)
+		printk("%s/%d -> %s/%d PSW 0x%lx 0x%lx cpu %d \n",
+		       prev->comm,prev->pid,
+		       next->comm,next->pid,
+		       next->tss.regs->psw.flags,
+		       next->tss.regs->psw.addr,
+		       next->processor);
+	else
+		printk("%s/%d -> %s/%d Error: NULL next regs!!\n",
+		       prev->comm,prev->pid,
+		       next->comm,next->pid);
+
+	printk("current regs=0x%lx prev=0x%lx next=0x%lx\n",
+	        current->tss.regs, prev->tss.regs, next->tss.regs);
+	// printk ("current sp=0x%lx next sp=0x%lx\n", _get_SP(), next->tss.ksp);
 #endif
-	if (!next->tss.regs) printk ("Warning: zero regs for next pid=%d\n", next->pid);
+	if (!next->tss.regs) printk ("Error: NULL regs for next pid=%d\n", next->pid);
+	if (!prev->tss.regs) printk ("Error: NULL regs for prev pid=%d\n", prev->pid);
+
 #ifdef __SMP__
 	prev->last_processor = prev->processor;
 	/* XXX copy  current=new to the pfx page of the correct processor. */
-	
+	xxxx
 #endif /* __SMP__ */
 
 	old_tss = &prev->tss;
@@ -458,7 +468,7 @@ i370_sys_exit (void)
  *
  * XXX we need to check to see if usp is indeed a user-space
  * stack pointer, and if so, set irregs.r13 to it.  We do not
- * need to actually coppy the user-land stack, that happens
+ * need to actually copy the user-land stack, that happens
  * "automagically".
  *
  * XXX no need to copy page tables ??? I think this happens automagically
@@ -476,7 +486,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	unsigned long delta;
 	i370_interrupt_state_t *srcregs, **dstregs;
 
-	// printk("i370_copy_thread, usp=0x%lx\n", usp);
+	printk("i370_copy_thread, %s/%d regs=0x%lx usp=0x%lx\n",
+	        current->comm, current->pid, current->tss.regs, usp);
 
 	/* Copy the kernel stack, and thunk the stack pointers in it.
 	 * Don't copy the current frame: we want the new stack
@@ -580,8 +591,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		lastdst -> caller_sp = 0;
 	}
 
-	// printk ("i370_copy_thread: finished %s pid=%d regs=%p\n",
-	//         p->comm, p->pid, p->tss.regs);
+	printk ("i370_copy_thread: finished %s/%d regs=%p\n",
+	        p->comm, p->pid, p->tss.regs);
 #ifdef __SMP__
 	if ( (p->pid != 0) || !(clone_flags & CLONE_PID) )
 		p->tss.smp_fork_ret = 1;
@@ -629,7 +640,8 @@ i370_sys_clone (unsigned long clone_flags)
 	struct pt_regs *regs;
 	int res = 0;
 
-	// printk ("i370_sys_clone flags=0x%lx\n", clone_flags);
+	printk ("i370_sys_clone of %s/%d regs=0x%lx flags=0x%lx\n",
+	        current->comm, current->pid, current->tss.regs, clone_flags);
 	lock_kernel();
 	regs = current->tss.regs;
 
@@ -645,7 +657,8 @@ i370_sys_clone (unsigned long clone_flags)
 #endif /* __SMP__ */
 	unlock_kernel();
 
-	// printk ("i370_sys_clone(): after do_fork, res=%d\n", res);
+	printk ("i370_sys_clone(): after do_fork, %s/%d regs=0x%lx res=%d\n",
+	        current->comm, current->pid, current->tss.regs, res);
 
 	return res;
 }
@@ -671,9 +684,10 @@ long
 i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
-	// printk ("i370_kernel_thread\n");
+	printk ("i370_kernel_thread %s/%d regs=0x%lx\n",
+	        current->comm, current->pid, current->tss.regs);
 	pid = clone (flags);
-	// printk ("i370_kernel_thread(): return from clone, pid=%ld\n",pid);
+	printk ("i370_kernel_thread(): return from clone, pid=%ld\n",pid);
 	if (pid) return pid;
 	fn (args);
 	while (1) {_exit (1); }

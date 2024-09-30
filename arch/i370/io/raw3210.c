@@ -175,6 +175,7 @@ ssize_t i370_raw3210_write (struct file *filp, const char *str,
  */
 #define RDBUFSZ 120
 char rdbuf[RDBUFSZ];
+char rascii[RDBUFSZ];
 
 static void show_rdbuf(void)
 {
@@ -224,7 +225,11 @@ static void do_read(unitblk_t* unit)
 		rc = _tsch(unit->unitsid, &irb);
 		if (irb.scsw.status & 0x1) break;
 	}
-printk("duuude read spin %d\n", i);
+	printk("read3210_read spin for %d\n", i);
+	printk("raw3210_read irb FCN=%x activity=%x status=%x\n",
+		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
+	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
+		irb.scsw.schstat, irb.scsw.residual);
 	show_rdbuf();
 }
 
@@ -233,20 +238,26 @@ static int i370_pending=0;
 ssize_t i370_raw3210_read (struct file *filp, char *str,
                            size_t len, loff_t *ignore)
 {
+	int i;
 	unitblk_t* unit = (unitblk_t*) filp->private_data;
 
-#if 1
-	if (i370_pending) {
-		i370_pending = 0;
-		printk("duude have pending reads\n");
-		do_read(unit);
-	}
-#endif
+	if (!i370_pending)
+		return -EAGAIN;
 
-	char* kstr = "yes";
-	size_t readlen = strlen(kstr)+1;
-	__copy_to_user(str, kstr, readlen);
-	return readlen;
+	i370_pending = 0;
+	do_read(unit);
+
+	for (i=0; i<RDBUFSZ; i++) {
+		rascii[i] = ebcdic_to_ascii[(unsigned char)rdbuf[i]];
+		if (0 == rdbuf[i]) break;
+	}
+	if (0 == i) return -EAGAIN;
+printk("duuude read buffer is >>%s<< len=%d\n", rascii, i);
+
+char * kstr="whut";
+	// __copy_to_user(str, rascii, i);
+	__copy_to_user(str, kstr, 5);
+	return i;
 }
 
 void
@@ -271,7 +282,6 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 	unsigned long erd_ioccw = rd_ioccw;
 	erd_ioccw += 0x10;
 
-printk("duude wtf rd=%x wr=%x irb=%x\n", erd_ioccw, ewr_ioccw, irb.scsw.ccw);
 i370_pending = 1;
 	/* Ignore interupts announcing end-of-write. For now. */
 	if (ewr_ioccw == irb.scsw.ccw) {
@@ -291,7 +301,6 @@ i370_pending = 1;
 
 	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
-	// show_rdbuf();
 }
 
 /*===================== End of Mainline ====================*/

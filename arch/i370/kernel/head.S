@@ -51,7 +51,7 @@ _start:
 
 	/* make sure AMODE is 31, interrupts disabled                     */
 	L	r1,=X'00080000'		/* everything disabled            */
-	ST	r1,INTERRUPT_BASE(,0)	/* store into prefex page         */
+	ST	r1,INTERRUPT_BASE(,0)	/* store into prefix page         */
 	L	r1,=A(_cinit)		/* jump to cinit next             */
 	O	r1,=X'80000000'		/* AMODE 31                       */
 	ST	r1,INTERRUPT_BASE+4(,0)	/* store into prefix page         */
@@ -108,9 +108,7 @@ _cinit:
  *
  * NB: Floating point regs get saved only during task switch, and not here ...
  *
- * sav-16  old interrupt mask
- * sav-8   offset from struct task_struct to sav area
- * sav-4   offset from struct task_struct to ksp
+ * sav-16  old interrupt mask ????
  * sav     psw flags
  * sav+4   psw addr
  * sav+8   saved r11
@@ -187,7 +185,8 @@ _cinit:
 	MVC	SAVED_R11(64,r13),sav+IR_R11(0);	/* 16 regs=64 bytes  */	\
 	/* chain the interrupt state pointer into thread_struct      */	\
 	LR	r1,r12;			/* addr of curr proc in r1   */	\
-	A       r1,OFFSET_KREGS(,0);    /* add offset to regs ptr    */ \
+	/*	OFFSET_KREGS should be =X'238' or similar */		\
+	A	r1,OFFSET_KREGS;	/* add offset to regs ptr    */ \
 	L	r2,0(,r1);		/* load regs ptr             */	\
 	ST	r2,SAVED_OLDREGS(,r13); /* save regs ptr to stack    */	\
 	LA	r2,SAVED_PSW(,r13);	/* put addr of newregs in r2 */	\
@@ -205,7 +204,8 @@ _cinit:
 #define EXCEPTION_UNCHAIN(sav)	 					\
 	/* chain the interrupt state pointer into thread_struct      */	\
 	L	r12,_psa_current(,0);	/* addr of current process   */	\
-        A       r12,OFFSET_KREGS(,0);   /* add offset to regs ptr    */ \
+	/*	OFFSET_KREGS should be =X'238' or similar */		\
+	A	r12,OFFSET_KREGS;	/* add offset to regs ptr    */ \
 	L	r2,SAVED_OLDREGS(,r13);	/* get old ptr from stack    */	\
 	ST	r2,0(,r12);		/* restore regs ptr in proc  */
 

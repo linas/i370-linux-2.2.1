@@ -50,15 +50,20 @@
 /* TASK_STRUCT_SIZE should really be sizeof(struct task_struct) except
  * that we need to use this in assembly code.  So we're going to pad it
  * a bit, and go from there. Last I measured, sizeof(struct task_struct)
- * was 768 (!)
+ * was 792.
  */
 #define TASK_STRUCT_SIZE	1024
 
-#define OFFSET_KREGS    0xef8   /* Offset to kernel register pointer */
-#define OFFSET_KSP      0xefc   /* Offset to kernel stack pointer */
 #define INTERRUPT_BASE	0xf00	  /* Interrupt scratch area */
 
 #define PC_INTERRUPT_BASE 0xf80 /* PC Interrupt scratch area */
+
+/* Location (offset) of struct thread_stred tss; inside struct task_struct.
+ * Note struct thread_struct {ulong ksp; struct pt_regs* regs; ... };
+ * XXX FIXME automate this so we don't stumble if stucts change!
+ */
+#define OFFSET_KSP      568     /* Offset to kernel stack pointer */
+#define OFFSET_KREGS    =F'572' /* Offset to pt_regs (_i370_interrupt_state_s) */
 
 /*------------------------------------------------------------*/
 /* External Interruption Codes */

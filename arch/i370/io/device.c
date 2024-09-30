@@ -262,7 +262,7 @@ i370_setup_devices(void)
 		// XXX FIXME, registering the console (5,1) gives
 		// -EBUSY == -16 as the return code. Because I guess
 		// we should do something else?
-		if (!rc)
+		if (rc)
 			printk("i370 register of /dev/%s failed, errno=%d\n",
 			       devices->unitname, rc);
 

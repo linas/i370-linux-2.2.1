@@ -41,9 +41,10 @@ git clone https://github.com/linas/i370-binutils
 git clone https://github.com/linas/i370-gcc
 ```
 Follow the instructions there, concluding with `make install`. This will
-create the `i370-ibm-linux-gcc` binary in `/usr/local/bin`; this will be
-used to complie this kernel.  Look for `CROSS_COMPILE` in the
-`Makefile`.  Then
+create the `i370-ibm-elf-gcc` binary in `/usr/local/bin`; this will be
+used to complie this kernel.  If you are using `i370-ibm-linux-gcc`, then
+change `CROSS_COMPILE` in the `Makefile`. (At this time, both compilers
+are identical; two names for historical reasons.) Then
 ```
 make oldconfig
 make

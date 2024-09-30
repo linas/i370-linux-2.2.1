@@ -20,18 +20,10 @@ extern unitblk_t *unt_raw[NRAWTERM];
 /* FIXME. The IOCCW needs to stay unclobbered until the I/O operation
  * has completed, i.e. until after we get the secondary status interrupt.
  * Until then, we should be careful not to clobber this!
- * In other words, the current design is basically broken, until we solve this.
- *
- * Use two different ioccws, to distinguish reader and writer interupts.
- * Each CCW is 8 bytes long; Each chain is two of them. The irq returns
- * when successful, return the address just past the end of the chain,
- * i.e. the below plus 0x10
+ * The current design is to just spin.
  */
 static int align_ccw[5];
-ccw_t *wr_ioccw;
-
-static int blign_ccw[5];
-ccw_t *rd_ioccw;
+ccw_t *ioccw;
 
 int i370_raw3210_open (struct inode *inode, struct file *filp)
 {
@@ -49,8 +41,7 @@ int i370_raw3210_open (struct inode *inode, struct file *filp)
 	filp->private_data = unt_raw[minor - RAWMINOR];
 
 	/* double-word align the ccw array */
-	wr_ioccw = (ccw_t *) (((((unsigned long) &align_ccw[0]) + 7) >>3) << 3);
-	rd_ioccw = (ccw_t *) (((((unsigned long) &blign_ccw[0]) + 7) >>3) << 3);
+	ioccw = (ccw_t *) (((((unsigned long) &align_ccw[0]) + 7) >>3) << 3);
 	return 0;
 }
 
@@ -69,14 +60,14 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	 *  Build the CCW for the 3210 Console I/O
 	 *  CCW = WRITE chained to NOP.
 	 */
-	wr_ioccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
-	wr_ioccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
-	wr_ioccw[0].count   = len;
-	wr_ioccw[0].dataptr = ebcstr;      /* address of 3210 buffer */
-	wr_ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
-	wr_ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
-	wr_ioccw[1].dataptr = NULL;           /* buffer = 0 */
-	wr_ioccw[1].count   = 1;              /* ?? */
+	ioccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
+	ioccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
+	ioccw[0].count   = len;
+	ioccw[0].dataptr = ebcstr;      /* address of 3210 buffer */
+	ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
+	ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
+	ioccw[1].dataptr = NULL;           /* buffer = 0 */
+	ioccw[1].count   = 1;              /* ?? */
 	/*
 	 *  Clear and format the ORB
 	 */
@@ -84,7 +75,7 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	orb.intparm = (int) unit;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;			/* Logical Path Mask */
-	orb.ptrccw = wr_ioccw;		/* ccw addr to orb */
+	orb.ptrccw = ioccw;		/* ccw addr to orb */
 
 	/* We can't start a new write, until the previous one has finished.
 	 * Two ways to find out if its done: 1) wait for an interrupt,
@@ -188,14 +179,14 @@ static void do_read(unitblk_t* unit)
 	 *  Build the CCW for the 3210 Console I/O
 	 *  CCW = READ chained to NOP.
 	 */
-	rd_ioccw[0].flags   = CCW_CC+CCW_SLI; /* Read chained to NOOP + SLI */
-	rd_ioccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
-	rd_ioccw[0].count   = RDBUFSZ;
-	rd_ioccw[0].dataptr = rdbuf;          /* address of 3210 buffer */
-	rd_ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
-	rd_ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
-	rd_ioccw[1].dataptr = NULL;           /* buffer = 0 */
-	rd_ioccw[1].count   = 1;              /* ?? */
+	ioccw[0].flags   = CCW_CC+CCW_SLI; /* Read chained to NOOP + SLI */
+	ioccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
+	ioccw[0].count   = RDBUFSZ;
+	ioccw[0].dataptr = rdbuf;          /* address of 3210 buffer */
+	ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
+	ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
+	ioccw[1].dataptr = NULL;           /* buffer = 0 */
+	ioccw[1].count   = 1;              /* ?? */
 	/*
 	 *  Clear and format the ORB
 	 */
@@ -203,7 +194,7 @@ static void do_read(unitblk_t* unit)
 	orb.intparm = (int) unit;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;			/* Logical Path Mask */
-	orb.ptrccw = rd_ioccw;		/* ccw addr to orb */
+	orb.ptrccw = ioccw;		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
 
@@ -253,34 +244,10 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 	irb_t irb;
 	unitblk_t* unit = (unitblk_t*) dev_id;
 
-	memset(&irb, 0x00, sizeof(irb_t));
+	// In the current implementation, we only get interrupts for reads.
+	i370_pending = 1;
+
 	rc = _tsch(unit->unitsid, &irb);
-
-	/* Quick hack to see what we are taking interrupt for */
-	/* XXX this is totally broken and won't work. keyboard typing
-	 * generates interrupts, but they go to the writer ioccw,
-	 * I can't tell if I need to actually do a read, or not.
-	 * If I always do a read, then writing stops working.
-	 * I don't get it.
-	 */
-	unsigned long ewr_ioccw = wr_ioccw;
-	ewr_ioccw += 0x10;
-	unsigned long erd_ioccw = rd_ioccw;
-	erd_ioccw += 0x10;
-
-i370_pending = 1;
-	/* Ignore interupts announcing end-of-write. For now. */
-	if (ewr_ioccw == irb.scsw.ccw) {
-		// printk("got writer done interupt\n");
-		// return;
-	}
-
-	/* Ah hah: read is done! */
-	if (erd_ioccw == irb.scsw.ccw) {
-		printk("got reader done interupt\n");
-		printk("duude count=%d\n", rd_ioccw[0].count);
-		i370_pending = 1;
-	}
 
 	printk("raw3210_flihw irb FCN=%x activity=%x status=%x\n",
 		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);

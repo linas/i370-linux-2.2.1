@@ -94,7 +94,7 @@ typedef struct {
 #define MJFBLK 62
 #define MJ3274 63
 #define MJCONS TTYAUX_MAJOR  /* Map system console to /dev/console */
-#define MJ3210 227  /* Map other attached 3210 to /dev/3270/ttyN */
+#define MJ3215 227  /* Map other attached 3215 to /dev/3270/rawN */
 #define MJ3480 120  /* Local/experimental */
 #define MJ3590 121
 #define MJ3172 NBD_MAJOR /* ??? Network block device? I doubt it. */
@@ -106,7 +106,7 @@ typedef struct {
 #define DFBLK "fba"
 #define D3274 "graf"
 #define DCONS "console"
-#define D3210 "3270/tty"
+#define D3215 "3270/raw"
 #define D3480 "tape"
 #define D3590 "tss"
 #define D3172 "nbd"

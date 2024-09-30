@@ -1,5 +1,5 @@
 /****************************************************************/
-/* "raw" driver for 3210; I/O does not go through the tty layer */
+/* "raw" driver for 3215; I/O does not go through the tty layer */
 /****************************************************************/
 
 #include <asm/3270.h>
@@ -25,9 +25,9 @@ extern unitblk_t *unt_raw[NRAWTERM];
 static int align_ccw[5];
 ccw_t *ioccw;
 
-int i370_raw3210_open (struct inode *inode, struct file *filp)
+int i370_raw3215_open (struct inode *inode, struct file *filp)
 {
-	printk ("raw3210_open of %s %x\n", filp->f_dentry->d_iname, inode->i_rdev);
+	printk ("raw3215_open of %s %x\n", filp->f_dentry->d_iname, inode->i_rdev);
 
 	/* private_data should be unused, unless someone cut-n-pasted
 	 * this code into a tty implementation of terminals. Ooops! */
@@ -86,13 +86,13 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 #endif
 
 	/*
-	 *  Build the CCW for the 3210 Console I/O
+	 *  Build the CCW for the 3215 Console I/O
 	 *  CCW = WRITE chained to NOP.
 	 */
 	ioccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
 	ioccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
 	ioccw[0].count   = len;
-	ioccw[0].dataptr = ebcstr;      /* address of 3210 buffer */
+	ioccw[0].dataptr = ebcstr;      /* address of 3215 buffer */
 	ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
 	ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
 	ioccw[1].dataptr = NULL;           /* buffer = 0 */
@@ -126,7 +126,7 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 
 	if (PAGE_SIZE <= len)
 	{
-		printk("Error: unexpected long raw3210 input; FIXME!\n");
+		printk("Error: unexpected long raw3215 input; FIXME!\n");
 		return -ENAMETOOLONG;
 	}
 
@@ -157,7 +157,7 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 	return len;
 }
 
-ssize_t i370_raw3210_write (struct file *filp, const char *str,
+ssize_t i370_raw3215_write (struct file *filp, const char *str,
                             size_t len, loff_t *ignore)
 {
 	long rc;
@@ -211,13 +211,13 @@ static void do_read(unitblk_t* unit)
 #endif
 
 	/*
-	 *  Build the CCW for the 3210 Console I/O
+	 *  Build the CCW for the 3215 Console I/O
 	 *  CCW = READ chained to NOP.
 	 */
 	ioccw[0].flags   = CCW_CC+CCW_SLI; /* Read chained to NOOP + SLI */
 	ioccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
 	ioccw[0].count   = RDBUFSZ;
-	ioccw[0].dataptr = rdbuf;          /* address of 3210 buffer */
+	ioccw[0].dataptr = rdbuf;          /* address of 3215 buffer */
 	ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
 	ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
 	ioccw[1].dataptr = NULL;           /* buffer = 0 */
@@ -238,8 +238,8 @@ static void do_read(unitblk_t* unit)
 		rc = _tsch(unit->unitsid, &irb);
 		if (irb.scsw.status & 0x1) break;
 	}
-	printk("read3210_read spin for %d\n", i);
-	printk("raw3210_read irb FCN=%x activity=%x status=%x\n",
+	printk("read3215_read spin for %d\n", i);
+	printk("raw3215_read irb FCN=%x activity=%x status=%x\n",
 		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
 	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
@@ -247,7 +247,7 @@ static void do_read(unitblk_t* unit)
 
 static int i370_pending=0;
 
-ssize_t i370_raw3210_read (struct file *filp, char *str,
+ssize_t i370_raw3215_read (struct file *filp, char *str,
                            size_t len, loff_t *ignore)
 {
 	int i;
@@ -271,7 +271,7 @@ ssize_t i370_raw3210_read (struct file *filp, char *str,
 }
 
 void
-i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
+i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 	int rc;
 	irb_t irb;
@@ -282,7 +282,7 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 
 	rc = _tsch(unit->unitsid, &irb);
 
-	printk("raw3210_flihw irb FCN=%x activity=%x status=%x\n",
+	printk("raw3215_flihw irb FCN=%x activity=%x status=%x\n",
 		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
 
 	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
@@ -291,16 +291,16 @@ i370_raw3210_flih(int irq, void *dev_id, struct pt_regs *regs)
 
 /*===================== End of Mainline ====================*/
 
-struct file_operations i370_fop_raw3210 =
+struct file_operations i370_fop_raw3215 =
 {
    NULL,		 /* lseek - default */
-   i370_raw3210_read,	 /* read - general block-dev read */
-   i370_raw3210_write,	 /* write */
+   i370_raw3215_read,	 /* read - general block-dev read */
+   i370_raw3215_write,	 /* write */
    NULL,		 /* readdir - bad */
    NULL,		 /* poll */
    NULL,		 /* ioctl */
    NULL,		 /* mmap */
-   i370_raw3210_open,	 /* open */
+   i370_raw3215_open,	 /* open */
    NULL,		 /* flush */
    NULL,		 /* release */
    NULL,		 /* fsync */

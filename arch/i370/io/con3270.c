@@ -5,7 +5,7 @@
  * are not available in early boot. This is NOT a general-purpose
  * 3210/3215/3270 driver!
  *
- * See raw3210.c for a generic driver.
+ * See raw3215.c for a generic driver.
  */
 #include <linux/config.h>
 #include <linux/module.h>
@@ -37,11 +37,11 @@
 /* ===================================================== */
 
 static void console_write_3270(struct console *, const char *, unsigned);
-static void console_write_3210(struct console *, const char *, unsigned);
+static void console_write_3215(struct console *, const char *, unsigned);
 static int console_setup_3270(struct console *, char *);
-static int console_setup_3210(struct console *, char *);
+static int console_setup_3215(struct console *, char *);
 static kdev_t console_device_3270(struct console *);
-static kdev_t console_device_3210(struct console *);
+static kdev_t console_device_3215(struct console *);
 
 static struct console cons3270 = {
         "3270",
@@ -57,14 +57,14 @@ static struct console cons3270 = {
         NULL
 };
 
-static struct console cons3210 = {
-        "3210",
-        console_write_3210,
+static struct console cons3215 = {
+        "3215",
+        console_write_3215,
         NULL,
-        console_device_3210,
+        console_device_3215,
         NULL,
         NULL,
-        console_setup_3210,
+        console_setup_3215,
         CON_PRINTBUFFER,
         1,
         0,
@@ -80,7 +80,7 @@ extern	char	screnda[1];     /* define 3270 screen end */
 prt_lne_t	*dbgline = (prt_lne_t *)scrln1;
 prt_lne_t	*dbglend = (prt_lne_t *)screnda;
 extern  unitblk_t *unt_cons,
-                  *unt_con3210,
+                  *unt_con3215,
                   *unt_con3270;
 long		cons_init =0;
 
@@ -93,7 +93,7 @@ console_3270_init(long mstart, long mend)
 	if (unt_cons == unt_con3270)
 		register_console(&cons3270);
 	else
-		register_console(&cons3210);
+		register_console(&cons3215);
 	return(mstart);
 }
 
@@ -117,13 +117,12 @@ console_write_3270(struct console *c, const char *s,
 	}
 
 /* XXXX - Until 3270 rewritten properly */
-console_write_3210(c, s, count);
+console_write_3215(c, s, count);
 return;
 
 	/* double-word align the ccw array */
 	ioccw = (ccw_t *) (((((unsigned long) lign_ccw) + 7) >>3) << 3);
 
-//	flags = cli();	/* reset interrupts */
 	spin_lock_irqsave(NULL,flags);
 
 	if (count > 79) {
@@ -209,13 +208,12 @@ return;
 
 	lastline->attribute = ATTRSKIP;
 	spin_unlock_irqrestore(NULL,flags);
-//	sti();
 }
 
 /* ===================================================== */
 
 static void
-console_write_3210(struct console *c, const char *s,
+console_write_3215(struct console *c, const char *s,
 				unsigned count)
 {
 	long  rc;
@@ -241,7 +239,7 @@ console_write_3210(struct console *c, const char *s,
 	spin_lock_irqsave(NULL,flags);
 
 	/*
-	 *  Build the CCW for the 3210 Console I/O
+	 *  Build the CCW for the 3215 Console I/O
 	 *  CCW = WRITE chained to NOP.
 	 */
 
@@ -255,7 +253,7 @@ console_write_3210(struct console *c, const char *s,
 			ioccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
 			ioccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
 			ioccw[0].count   = pbufnext;
-			ioccw[0].dataptr = conBuffer;      /* address of 3210 buffer */
+			ioccw[0].dataptr = conBuffer;      /* address of 3215 buffer */
 			ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
 			ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
 			ioccw[1].dataptr = NULL;           /* buffer = 0 */
@@ -266,16 +264,16 @@ console_write_3210(struct console *c, const char *s,
 			*/
 
 			memset(&orb,0x00,sizeof(orb_t));
-			orb.intparm = (int) unt_con3210;
+			orb.intparm = (int) unt_con3215;
 			orb.fpiau  = 0x80;		/* format 1 ORB */
 			orb.lpm    = 0xff;			/* Logical Path Mask */
 			orb.ptrccw = &ioccw[0];		/* ccw addr to orb */
 
-			rc = _tsch(unt_con3210->unitsid,&irb); /* hack for unsolicited DE */
-			rc = _ssch(unt_con3210->unitsid,&orb); /* issue Start Subchannel */
+			rc = _tsch(unt_con3215->unitsid,&irb); /* hack for unsolicited DE */
+			rc = _ssch(unt_con3215->unitsid,&orb); /* issue Start Subchannel */
 
 			while (1) {
-				rc = _tsch(unt_con3210->unitsid, &irb);
+				rc = _tsch(unt_con3215->unitsid, &irb);
 				if (!(irb.scsw.status & 0x1)) {
 					udelay (100);	/* spin 100 microseconds */
 					continue;
@@ -305,15 +303,9 @@ console_device_3270(struct console *c)
 /* ===================================================== */
 
 static kdev_t
-console_device_3210(struct console *c)
+console_device_3215(struct console *c)
 {
-	// return MKDEV(TTYAUX_MAJOR, 64 + c->index);
-	/* When /dev/console (5,1) is opened it gets remapped to (4,1)
-	 * which is /dev/tty1 and so, we want to appear on /dev/tty1
-	 * when invoked.  Wait? Who is remapping this? Is it
-	 * console_device_3270() up above? I'm confused .. why?
-	 */
-	return MKDEV(TTY_MAJOR, 1);
+	return MKDEV(TTYAUX_MAJOR, 1);
 }
 
 /* ===================================================== */
@@ -333,7 +325,7 @@ console_setup_3270(struct console *co, char *options))
 /* ===================================================== */
 
 __initfunc(static int
-console_setup_3210(struct console *co, char *options))
+console_setup_3215(struct console *co, char *options))
 {
 	pbufnext = 0x0;		/* next line = zero */
 	return(0);

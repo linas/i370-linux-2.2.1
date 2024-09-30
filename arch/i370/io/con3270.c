@@ -8,21 +8,8 @@
  * See raw3215.c for a generic driver.
  */
 #include <linux/config.h>
-#include <linux/module.h>
-#include <linux/errno.h>
-#include <linux/signal.h>
 #include <linux/sched.h>
-#include <linux/timer.h>
-#include <linux/interrupt.h>
-#include <linux/tty.h>
-#include <linux/tty_flip.h>
-#include <linux/serial.h>
-#include <linux/major.h>
 #include <linux/string.h>
-#include <linux/fcntl.h>
-#include <linux/ptrace.h>
-#include <linux/mm.h>
-#include <linux/malloc.h>
 #include <linux/init.h>
 #include <linux/delay.h>
 #include <linux/console.h>
@@ -117,6 +104,7 @@ console_write_3270(struct console *c, const char *s,
 	}
 
 /* XXXX - Until 3270 rewritten properly */
+printk("Hack alert: 3270 writes go to 3215 driver\n");
 console_write_3215(c, s, count);
 return;
 
@@ -213,8 +201,7 @@ return;
 /* ===================================================== */
 
 static void
-console_write_3215(struct console *c, const char *s,
-				unsigned count)
+console_write_3215(struct console *c, const char *s, unsigned count)
 {
 	long  rc;
 	long  i;

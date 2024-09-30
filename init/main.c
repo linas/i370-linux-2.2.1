@@ -574,8 +574,10 @@ static struct kernel_param cooked_params[] __initdata = {
 #ifdef CONFIG_MDA_CONSOLE
 	{ "mdacon=", mdacon_setup },
 #endif
+#ifndef CONFIG_I370
 #ifdef CONFIG_VT
 	{ "kbd-reset", kbd_reset_setup },
+#endif
 #endif
 #ifdef CONFIG_BUGi386
 	{ "no-hlt", no_halt },

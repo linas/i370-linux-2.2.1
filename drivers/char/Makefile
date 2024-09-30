@@ -40,6 +40,7 @@ else
   endif
 endif
 
+ifndef CONFIG_I370
 ifndef CONFIG_SUN_KEYBOARD
 ifdef CONFIG_VT
 L_OBJS += keyboard.o
@@ -49,6 +50,7 @@ L_OBJS += pc_keyb.o defkeymap.o
 endif
 ifdef CONFIG_MAGIC_SYSRQ
 L_OBJS += sysrq.o
+endif
 endif
 endif
 

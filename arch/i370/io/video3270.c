@@ -48,19 +48,6 @@ vid3270_init(struct vc_data *conp, int init)
 		conp->vc_cols = 80;
 		conp->vc_rows = 24;
 	}
-
-	/* Beats the heck out of me wht this code does, but
-	 * both the VGA and the promcon do this.  If we don't
-	 * do this, cuhhh-rash. */
-	p = *conp->vc_uni_pagedir_loc;
-	if (conp->vc_uni_pagedir_loc == &conp->vc_uni_pagedir ||
-	    !--conp->vc_uni_pagedir_loc[1])
-		con_free_unimap(conp->vc_num);
-	conp->vc_uni_pagedir_loc = vid3270_uni_pagedir;
-	vid3270_uni_pagedir[1]++;
-	if (!vid3270_uni_pagedir[0] && p) {
-		con_set_default_unimap(conp->vc_num);
-	}
 }
 
 /* ================================================================ */
@@ -68,11 +55,6 @@ vid3270_init(struct vc_data *conp, int init)
 static void
 vid3270_deinit(struct vc_data *conp)
 {
-	if (!--vid3270_uni_pagedir[1]) {
-		con_free_unimap(conp->vc_num);
-	}
-	conp->vc_uni_pagedir_loc = &conp->vc_uni_pagedir;
-	con_set_default_unimap(conp->vc_num);
 }
 
 /* ================================================================ */
@@ -140,7 +122,6 @@ static void
 vid3270_putc(struct vc_data *conp, int c, int y, int x)
 {
 	unsigned short s = c;
-	if (console_blanked) return;
 	vid3270_putcs(conp, &s, 1, y, x);
 }
 
@@ -241,7 +222,6 @@ struct consw video3270_con = {
 
 __initfunc(void video3270_init(void))
 {
-	take_over_console(&video3270_con, 0, MAX_NR_CONSOLES-1, 1);
 }
 
 /* ================================================================ */

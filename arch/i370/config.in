@@ -95,13 +95,8 @@ fi
 mainmenu_option next_comment
 comment 'Character devices'
 
-bool 'Virtual terminal' CONFIG_VT
-if [ "$CONFIG_VT" = "y" ]; then
-  bool 'Support for console on virtual terminal' CONFIG_VT_CONSOLE
-fi
-
-# support only the 3270, and that only as console
-bool 'Standard 3270 console support' CONFIG_3270_CONSOLE
+# Support the 3215/3270 as console
+bool 'Standard 3210/3215/3270 console support' CONFIG_3270_CONSOLE
 
 bool 'Unix98 PTY support' CONFIG_UNIX98_PTYS
 if [ "$CONFIG_UNIX98_PTYS" = "y" ]; then

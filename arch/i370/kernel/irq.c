@@ -113,6 +113,13 @@ irq_init (void)
 	int rc, i_ucb;
 	unitblk_t *ucb;
 
+	/* XXX FIXME: A 3210 unit is ready, only if there is a runnig
+	 * telnet connection to it. There might not be one while we boot.
+	 * we want to give it an IRQ anyway, in case the user telnets in,
+	 * later. In general, thse units will be going up and down.
+	 * Unless I should to request_IRQ when the unit becomes ready,
+	 * but how do I find that out?
+	 */
 	ucb = unit_base;
 	for (i_ucb = 0; i_ucb < sid_count; i_ucb++) {
 		if ((ucb[i_ucb].unitstat == UNIT_READY) &&

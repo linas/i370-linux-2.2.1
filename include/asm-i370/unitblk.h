@@ -85,6 +85,8 @@ typedef struct {
 				void *, struct pt_regs *);
 } S390dev_t;
 
+#define CON3270_MAJOR 227
+
 /* See
  * https://lxr.linux.no/#linux+v2.6.31/Documentation/devices.txt
  */
@@ -93,8 +95,8 @@ typedef struct {
 #define MJ3880 61
 #define MJFBLK 62
 #define MJ3274 63
-#define MJCONS TTYAUX_MAJOR  /* Map system console to /dev/console */
-#define MJ3215 227  /* Map other attached 3215 to /dev/3270/rawN */
+#define MJCONS CON3270_MAJOR  /* Map system console to /dev/console */
+#define MJ3215 CON3270_MAJOR  /* Map other attached 3215 to /dev/3270/rawN */
 #define MJ3480 120  /* Local/experimental */
 #define MJ3590 121
 #define MJ3172 NBD_MAJOR /* ??? Network block device? I doubt it. */

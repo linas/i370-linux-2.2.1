@@ -295,9 +295,7 @@ console_write_3215(struct console *c, const char *s,
 static kdev_t
 console_device_3270(struct console *c)
 {
-	// return MKDEV(TTYAUX_MAJOR, 64 + c->index);
-	// see notes below
-	return MKDEV(TTY_MAJOR, 1);
+	return MKDEV(CON3270_MAJOR, 1);
 }
 
 /* ===================================================== */
@@ -305,7 +303,7 @@ console_device_3270(struct console *c)
 static kdev_t
 console_device_3215(struct console *c)
 {
-	return MKDEV(TTYAUX_MAJOR, 1);
+	return MKDEV(CON3270_MAJOR, 1);
 }
 
 /* ===================================================== */

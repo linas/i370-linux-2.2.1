@@ -15,6 +15,7 @@
 #include <asm/asm.h>
 #include <asm/pgtable.h>
 #include <asm/processor.h>
+#include <asm/ptrace.h>
 #include <asm/trace.h>
 #include <asm/vmdiag.h>
 #include <asm/psa.h>
@@ -105,7 +106,6 @@ __initfunc(void setup_arch(char **cmdline_p,
 	extern int panic_timeout;
 	extern char _etext[], _edata[], _end[];
 	// extern char _bss[], _ebss[];
-	extern struct consw video3270_con;
 
 	/* XXX XXX XXX Serious bug alert.
 	 * gcc version egcs-2.91.66 19990314 (egcs-1.1.2 release)
@@ -185,6 +185,11 @@ __initfunc(void setup_arch(char **cmdline_p,
 
 	/* init_task ksp hasn't been set & its bogus; set it */
 	init_task.tss.ksp += TASK_STRUCT_SIZE;
+
+	/* Give ourselves a place to store the PSW, so that we
+	 * can pretened we got here aftr an exception. */
+	init_task.tss.regs = init_task.tss.ksp;
+	init_task.tss.ksp += sizeof (i370_interrupt_state_t);
 
 	setup_trace(memory_start_p);
 

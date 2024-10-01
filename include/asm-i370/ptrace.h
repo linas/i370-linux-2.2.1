@@ -8,7 +8,7 @@
  * this should only contain volatile regs
  *
  * Note that the offsets of the fields in this struct correspond with
- * the PT_* values below.  
+ * the PT_* values below.
  */
 
 #ifndef __ASSEMBLY__
@@ -95,12 +95,12 @@ typedef union _i370_cr6_u cr6_t;
 #endif /* __ASSEMBLY__ */
 
 /* ---------------------------------------------------------------- */
-/* The current i370-elf stack entry.  This corresponds to 
- * what the current gcc/egcs generates, but is subject to 
- * change (!?).  
+/* The current i370-elf stack entry.  This corresponds to
+ * what the current gcc/egcs generates, but is subject to
+ * change (!?).
  *
  * Function args immediately follow the stack; after that
- * come local variables.  Normally, r13 points at the base 
+ * come local variables.  Normally, r13 points at the base
  * of the stack, while r11 points just after the top.
  *
  * If the subroutine returns by value something larger
@@ -120,20 +120,21 @@ typedef union _i370_cr6_u cr6_t;
  * r15 is the value return register
  */
 
-/* The MIN_STACK_SIZE is the smallest possible stack size: 
+/* The MIN_FRAME_SIZE is the smallest possible frame size:
  * just the size of struct i370_elf_stack, and no args, no local vars.
- * The MAX_STACK_SIZE is the largest possible stack size: 
- * the size of struct i370_elf_stack, and 100 args (of 4 bytes each)
+ * The MAX_FRAME_SIZE is the largest possible frame size:
+ * the size of struct i370_elf_stack, and 50 args (of 4 bytes each)
  * This limit on the max number of arguments sounds reasonable, right !?!?
+ * Seems crazy-large to me.
  */
-#define MIN_STACK_SIZE 88
-#define MAX_STACK_SIZE 488
+#define MIN_FRAME_SIZE 88
+#define MAX_FRAME_SIZE 288
 
 
 #ifndef __ASSEMBLY__
 struct _i370_elf_stack_s {
 	unsigned long	page_table;		/* 0 */
-	unsigned long	unused1;		/* 4 */
+	unsigned long	unused1; 		/* 4 */
 	unsigned long	caller_sp;		/* 8 */
 	unsigned long	caller_r14;		/* 12 */
 	unsigned long	caller_r15;		/* 16 */
@@ -150,8 +151,8 @@ struct _i370_elf_stack_s {
 	unsigned long	caller_r10;		/* 60 */
 	unsigned long	callee_sp;		/* 64 */
 	unsigned long	caller_r12;		/* 68 */
-	unsigned long	unused2;	 	/* 72 */ 
-	unsigned long	unused3;		/* 76 */
+	unsigned long	unused2; 		/* 72 */
+	unsigned long	unused3; 		/* 76 */
 	unsigned long	scratch1;		/* 80 */
 	unsigned long	scratch2;		/* 84 */
 };
@@ -186,9 +187,9 @@ typedef struct _i370_irregs_s irregs_t;
  * on.  The rest of the interrupt state gets stored on the stack.
  * Per-thread state gets stored in the thread_struct and task_struct.
  *
- * This struct is created and manipulated with assembly code in 
+ * This struct is created and manipulated with assembly code in
  * head.S and therefore must not be changed without making corresponding
- * changes in head.S (such as SF_SIZE)
+ * changes in head.S (such as EXF_SIZE)
  */
 typedef struct _i370_interrupt_state_s i370_interrupt_state_t;
 
@@ -223,16 +224,16 @@ struct _i370_interrupt_state_s {
 #define IR_R0           0x1c
 #define IR_R1           0x20
 #define IR_R2           0x24
-#define IR_R3           0x28    
+#define IR_R3           0x28
 #define IR_R4           0x2c
- 
+
 #define IR_R5           0x30
 #define IR_R6           0x34
 #define IR_R7           0x38
 #define IR_R8           0x3c
 #define IR_R9           0x40
 #define IR_R10          0x44
- 
+
 #define IR_OLDREGS      0x48
 
 #ifndef __ASSEMBLY__

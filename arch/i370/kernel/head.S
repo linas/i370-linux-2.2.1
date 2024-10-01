@@ -61,7 +61,7 @@ _start:
 _cinit:
 	L	r13,=A(init_ksp)	/* load addr of stackptr into r13 */
 	L	r13,0(,r13)		/* load address of stack into r13 */
-	LA	r11,MIN_STACK_SIZE(,r13); /* load r11 with top of stack   */
+	LA	r11,MIN_FRAME_SIZE(,r13); /* load r11 with top of stack   */
 	SLR	r3,r3
 	ST	r3,8(,r13)		/* terminate stack backchain      */
 	ST	r3,8(,r11)		/* terminate stack backchain      */
@@ -122,17 +122,18 @@ _cinit:
  */
 
 /* -------------------------------------------------------- */
-/* Stack related offsets; have nothing to do with the above */
+/* Stack related offsets.                                   */
 /* -------------------------------------------------------- */
-#define STACK_SIZE  0x58        /* stack size */
+#define STACK_SIZE  0x58        /* sizeof (_i370_elf_stack_t) */
 #define ARGS_BASE   STACK_SIZE
 #define ARGS_SIZE   0x4         /* args size */
 #define FRAME_BASE  STACK_SIZE + ARGS_SIZE
-#define FRAME_SIZE  0x60        /* frame size */
-#define SF_SIZE     STACK_SIZE + ARGS_SIZE + FRAME_SIZE + 4
-#define SF_SIZ      192 /* Add above together by hand, double-word align */
+#define FRAME_SIZE  0x60        /* sizeof( _i370_interrupt_state_s) */
+#define EXF_SIZE    STACK_SIZE + ARGS_SIZE + FRAME_SIZE + 4
+#define EXF_SIZ      192 /* Add above together by hand, double-word align */
 
 /* -------------------------------------------------------- */
+/* Structure of our "exception frame"                       */
 /* Location of saved registers on stack                     */
 /* -------------------------------------------------------- */
 #define ARGP		ARGS_BASE
@@ -174,26 +175,26 @@ _cinit:
 	LA	r13,TASK_STRUCT_SIZE(,r12); /* framep is stack bot   */	\
 	B	2f;                     /*                           */	\
 1:					/* branch here if kernel     */	\
-	/* we have valid stack ptr; space safely past possible gorp  */	\
-	LA	r13,MAX_STACK_SIZE(,r11); /* space past gorp         */	\
+	/* we have valid top-of-stack ptr (r11) */			\
+	LR	r13,r11; /* bot of next frame is top of prev stack */	\
 2:					/*                           */	\
-	LA	r11,SF_SIZ(,r13);       /* add stackframe size       */	\
+	LA	r11,EXF_SIZ(,r13);	/* add stackframe size       */	\
 	SLR	r3,r3;			/* zero                      */	\
 	ST	r3,8(,r13);		/* terminate stack backchain */	\
 	/* move saved regs out of prefix page to stackframe          */	\
-	MVC	SAVED_PSW(8,r13),oldpsw(0); /* save old psw on stack  */	\
-	MVC	SAVED_R11(64,r13),sav+IR_R11(0);	/* 16 regs=64 bytes  */	\
+	MVC	SAVED_PSW(8,r13),oldpsw(0); /* save old psw on stack */	\
+	MVC	SAVED_R11(64,r13),sav+IR_R11(0); /* 16 regs=64 bytes */	\
 	/* chain the interrupt state pointer into thread_struct      */	\
 	LA	r1,OFFSET_KREGS(,r12);	/* add offset to regs ptr    */ \
 	L	r2,0(,r1);		/* load regs ptr             */	\
 	ST	r2,SAVED_OLDREGS(,r13); /* save regs ptr to stack    */	\
-	LA	r2,SAVED_PSW(,r13);	/* put addr of newregs in r2 */	\
+	LA	r2,FRAME_BASE(,r13);	/* put addr of newregs in r2 */	\
 	ST	r2,0(,r1);		/* update regs ptr in proc   */	\
 	
 
 #define EXCEPTION_CALL_C(handler)  					\
 	L	r15,=A(handler);	/* load address of C routine */	\
-	LA	r2,SAVED_PSW(,r13);	/* ptr to saved psw, regs    */	\
+	LA	r2,FRAME_BASE(,r13);	/* ptr to saved psw, regs    */	\
 	ST	r2,ARGP(,r11);		/* ptr to arguments on stack */	\
 	BASR	lr,r15;			/* jump to C routine         */	\
 	.using	.,lr;			/* use r14 to the end        */	\

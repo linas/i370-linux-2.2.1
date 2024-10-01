@@ -1,7 +1,15 @@
 /*
  * arch/i370/kernel/setup.c
  *
- * perform some very very early setup for initialization
+ * Perform early initialization setup.
+ *
+ * TODO:
+ *  -- Clear out real memory between 0x8 and 0x300. Re-IPL on
+ *     Hercules leaves garbage there, leading to mystery crashes.
+ *     (The boot command line is stashed at 0x300.)
+ *  -- Clear out TLB before calling mm_init(). Again, re-IPL seems
+ *     to pick up left-over dirt in those. Neither sysclear nor
+ *     sysreset clears the TLB.
  */
 #include <linux/config.h>
 #include <linux/string.h>

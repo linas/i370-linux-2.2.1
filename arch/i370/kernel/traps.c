@@ -78,21 +78,24 @@ MachineCheckException(i370_interrupt_state_t *saved_regs)
 
 static int pc_monitor(i370_interrupt_state_t *, unsigned long,
                       unsigned short);
-static int pc_unsupported(i370_interrupt_state_t *,  unsigned long,
+static int pc_unsupported(i370_interrupt_state_t *, unsigned long,
                           unsigned short);
-int do_page_fault(i370_interrupt_state_t *,  unsigned long,
+int do_page_fault(i370_interrupt_state_t *, unsigned long,
                   unsigned short);
 
-static int do_addr_except(i370_interrupt_state_t *,  unsigned long,
+static int pc_addressing(i370_interrupt_state_t *, unsigned long,
                           unsigned short);
+
+static int pc_operation(i370_interrupt_state_t *, unsigned long,
+                        unsigned short);
 
 static pc_handler pc_table[] = {
 	{-1,                   pc_unsupported}, /* 0 */
-	{PIC_OPERATION,        pc_unsupported},
+	{PIC_OPERATION,        pc_operation},
 	{PIC_PRIVLEDGED,       pc_unsupported},
 	{PIC_EXECUTE,          pc_unsupported},
 	{PIC_PROTECTION,       do_page_fault},
-	{PIC_ADDRESSING,       do_addr_except},
+	{PIC_ADDRESSING,       pc_addressing},
 	{PIC_SPECIFICATION,    pc_unsupported},
 	{PIC_DATA,             pc_unsupported},
 	{PIC_FIXED_OVERFLOW,   pc_unsupported}, /* 0x8 */
@@ -108,7 +111,7 @@ static pc_handler pc_table[] = {
 	{PIC_TRANSLATION,      pc_unsupported},
 	{PIC_SPECIAL_OP,       pc_unsupported},
 	{PIC_PAGEX,            pc_unsupported},
-	{PIC_OPERAND,          pc_unsupported},
+	{PIC_OPERAND,          pc_operation},
 	{PIC_TRACE_TABLE,      pc_unsupported}, /* Handled in head.S */
 	{PIC_ASN_TRANS,        pc_unsupported},
 	{-1,                   pc_unsupported}, /* 0x18 */
@@ -125,16 +128,16 @@ static pc_handler pc_table[] = {
 	{PIC_EX_TRANS,         pc_unsupported},
 	{PIC_PRIMARY_AUTH,     pc_unsupported},
 	{PIC_SECONDARY_AUTH,   pc_unsupported},
-	{-1,                   pc_unsupported},
-	{-1,                   pc_unsupported},
+	{PIC_LFX_TRANS,        pc_unsupported},
+	{PIC_LSX_TRANS,        pc_unsupported},
 	{PIC_ALET_SPEC,        pc_unsupported}, /* 0x28 */
 	{PIC_ALEN_TRANS,       pc_unsupported},
 	{PIC_ALE_SEQ,          pc_unsupported},
 	{PIC_ASTE_VALIDITY,    pc_unsupported},
 	{PIC_ASTE_SEQ,         pc_unsupported},
 	{PIC_EXTENDED_AUTH,    pc_unsupported},
-	{-1,                   pc_unsupported},
-	{-1,                   pc_unsupported},
+	{PIC_LSTE_SEQ,         pc_unsupported},
+	{PIC_ASTE_INST,        pc_unsupported},
 	{PIC_STACK_FULL,       pc_unsupported}, /* 0x30 */
 	{PIC_STACK_EMPTY,      pc_unsupported},
 	{PIC_STACK_SPEC,       pc_unsupported},
@@ -144,12 +147,12 @@ static pc_handler pc_table[] = {
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported}, /* 0x38 */
+	{PIC_RGN_1_TRANS,      pc_unsupported},
+	{PIC_RGN_2_TRANS,      pc_unsupported},
+	{PIC_RGN_3_TRANS,      pc_unsupported},
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
-	{-1,                   pc_unsupported},
-	{-1,                   pc_unsupported},
-	{-1,                   pc_unsupported},
-	{-1,                   pc_unsupported},
+	{PIC_ASCE_TYPE,        pc_unsupported},
 	{-1,                   pc_unsupported},
 	{PIC_MONITOR,          pc_monitor} /* 0x40 */
 };
@@ -209,11 +212,28 @@ pc_unsupported(i370_interrupt_state_t *saved_regs,
  * authority table, linkage stack, and trace table.
  * Phew!
  */
-static int do_addr_except(i370_interrupt_state_t *saved_regs,
+static int pc_addressing(i370_interrupt_state_t *saved_regs,
                           unsigned long  trans,
                           unsigned short code)
 {
 	printk ("Unexpected Addressing Exception trans=0x%lx\n", trans);
+	show_regs (saved_regs);
+	print_backtrace (saved_regs->irregs.r13);
+	i370_halt();
+	return(1);
+}
+
+/* Exception throw when instruction is not recognized or if operand
+ * is invalid. Fatal if in the kernel, should be converted to
+ * SIGBUS or something for userland. (User tries to exeute something
+ * that isn't code.
+ */
+static int pc_operation(i370_interrupt_state_t *saved_regs,
+                        unsigned long  trans,
+                        unsigned short code)
+{
+	printk ("Operation/Operand exception trans=0x%lx\n", trans);
+	printk("Not implemented\n");
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
 	i370_halt();
@@ -301,6 +321,7 @@ static void
 ei_unsupported(i370_interrupt_state_t *saved_regs,
                unsigned short code)
 {
+printk("\n\n\n\n\n\n");
 	printk ("unexpected external exception code=0x%x\n", code);
 	i370_halt();
 }

@@ -152,17 +152,25 @@
 #define PIC_EX_TRANS		0x23
 #define PIC_PRIMARY_AUTH	0x24
 #define PIC_SECONDARY_AUTH	0x25
+#define PIC_LFX_TRANS		0x26
+#define PIC_LSX_TRANS		0x27
 #define PIC_ALET_SPEC		0x28
 #define PIC_ALEN_TRANS		0x29
 #define PIC_ALE_SEQ		0x2a
 #define PIC_ASTE_VALIDITY	0x2b
 #define PIC_ASTE_SEQ		0x2c
 #define PIC_EXTENDED_AUTH	0x2d
+#define PIC_LSTE_SEQ			0x2e
+#define PIC_ASTE_INST		0x2f
 #define PIC_STACK_FULL		0x30
 #define PIC_STACK_EMPTY		0x31
 #define PIC_STACK_SPEC		0x32
 #define PIC_STACK_TYPE		0x33
 #define PIC_STACKOP		0x34
+#define PIC_ASCE_TYPE	0x38
+#define PIC_RGN_1_TRANS	0x39
+#define PIC_RGN_2_TRANS	0x3A
+#define PIC_RGN_3_TRANS	0x3B
 #define PIC_MONITOR		0x40
 #define PIC_PER			0x80
 

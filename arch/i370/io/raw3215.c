@@ -183,8 +183,6 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 	for (i=0; i<len; i++) {
 		ebcstr[j] = ascii_to_ebcdic[(unsigned char)kstr[i]];
 
-		/* kill the EBCDIC line-feed */
-		if (ebcstr[j] == 0x25) ebcstr[j] = 0x0;
 		if ((ebcstr[j] == 0x0) || (j >= EBCLEN-2))
 		{
 			if (0 < j)

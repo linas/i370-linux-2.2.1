@@ -232,13 +232,13 @@ console_write_3215(struct console *c, const char *s, unsigned count)
 
 	for (i=0; i<count; i++) {
 		conBuffer[pbufnext] = ascii_to_ebcdic[(unsigned char)(s[i])];
-		/* kill the EBCDIC line-feed */
+		/* Kill the EBCDIC line-feed. Auto-carrier-return puts it back. */
 		if (conBuffer[pbufnext] == 0x25)  conBuffer[pbufnext] = 0x0;
 		if ((conBuffer[pbufnext] == 0x00) ||
 		    (pbufnext >= sizeof(conBuffer)))
 		{
 			ioccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
-			ioccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
+			ioccw[0].cmd     = CMDCON_WRICR;   /* Write w/auto carrier return */
 			ioccw[0].count   = pbufnext;
 			ioccw[0].dataptr = conBuffer;      /* address of 3215 buffer */
 			ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */

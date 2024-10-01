@@ -5,8 +5,9 @@
 #ifndef I370_3270_H_
 #define I370_3270_H_
 
-#define CMDCON_WRI	0x09	/* 3210 Write */
-#define CMDCON_RD 	0x0a	/* 3210 Read (I guess) */
+#define CMDCON_WRI	0x01	/* 3210 Write (Inhibit Carrier Return) */
+#define CMDCON_WRICR	0x09	/* 3210 Write (Automatic Carrier Return) */
+#define CMDCON_RD 	0x0a	/* 3210 Read */
 
 #define CMDTRM_WRI	0x05	/* 3270 WRITE/ERASE */
 #define CMDTRM_RD 	0x06	/* 3270 READ */

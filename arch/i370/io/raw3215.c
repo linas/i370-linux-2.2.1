@@ -60,10 +60,13 @@ int i370_raw3215_open (struct inode *inode, struct file *filp)
 
 static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 {
+	long  flags;
 	int i;
 	long rc;
 	orb_t orb;
 	irb_t irb;
+
+	spin_lock_irqsave(NULL,flags);
 
 	/* We can't start a new write, until the previous one has finished.
 	 * Two ways to find out if its done: 1) wait for an interrupt,
@@ -127,11 +130,11 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 		rc = _tsch(unit->unitsid, &irb);
 		if (irb.scsw.status & 0x1) break;
 	}
+	spin_unlock_irqrestore(NULL,flags);
 }
 
 static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 {
-	long  flags;
 	long  rc;
 	long  i, j;
 #define EBCLEN 120
@@ -149,7 +152,6 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 	if (0 == rc)
 		return -ENOENT;
 
-	spin_lock_irqsave(NULL,flags);
 	j = 0;
 	for (i=0; i<len; i++) {
 		ebcstr[j] = ascii_to_ebcdic[(unsigned char)kstr[i]];
@@ -165,7 +167,6 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 		else
 			j++;
 	}
-	spin_unlock_irqrestore(NULL,flags);
 
 	return len;
 }
@@ -197,12 +198,14 @@ char rascii[RDBUFSZ];
 
 static void do_read(unitblk_t* unit)
 {
+	int flags;
 	int i;
 	long rc;
 	orb_t orb;
 	irb_t irb;
 
 	memset(rdbuf, 0, RDBUFSZ);
+	spin_lock_irqsave(NULL,flags);
 
 #ifdef INEFFECTIVE
 	/* Well, the idea here was to play it safe, and not clobber the ioccw
@@ -251,11 +254,14 @@ static void do_read(unitblk_t* unit)
 		rc = _tsch(unit->unitsid, &irb);
 		if (irb.scsw.status & 0x1) break;
 	}
+
 	DBGPRT("raw3215_read spin for %d\n", i);
 	DBGPRT("raw3215_read irb FCN=%x activity=%x status=%x\n",
 		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
 	DBGPRT("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
+
+	spin_unlock_irqrestore(NULL,flags);
 }
 
 static int i370_pending=0;

@@ -151,8 +151,7 @@ static pc_handler pc_table[] = {
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
-	{-1,                   pc_unsupported}, /* 0x40 */
-	{PIC_MONITOR,          pc_monitor}
+	{PIC_MONITOR,          pc_monitor} /* 0x40 */
 };
 
 void

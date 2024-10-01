@@ -244,11 +244,15 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	regs->irregs.r3 = sp + 4;
 
 	/* r4 gets envp */
+#if 0
 	/* I don't get it ... I have to manually skip over argv ?? */
 	/* Did I do something wrong here? */
 	unsigned long argc;
 	copy_from_user(&argc, (const void *) sp, 4);
 	regs->irregs.r4 = sp + 8 + 4*argc;
+#3ndif
+	/* whatever */
+	regs->irregs.r4 = sp + 12;
 
 	/* boffo ace rimer in other regs */
 	regs->irregs.r0 = 0xaceb0ff0;

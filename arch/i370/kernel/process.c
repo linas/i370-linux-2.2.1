@@ -364,12 +364,19 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 		printk("%s/%d -> %s/%d Error: NULL next regs!!\n",
 		       prev->comm,prev->pid,
 		       next->comm,next->pid);
-	printk("current regs=0x%lx prev=0x%lx next=0x%lx\n",
+	printk("current regs=%p prev=%p next=%p\n",
 	        current->tss.regs, prev->tss.regs, next->tss.regs);
 	// printk ("current sp=0x%lx next sp=0x%lx\n", _get_SP(), next->tss.ksp);
 #endif
-	if (!next->tss.regs) printk ("Error: NULL regs for next pid=%d\n", next->pid);
-	if (!prev->tss.regs) printk ("Error: NULL regs for prev pid=%d\n", prev->pid);
+	if (!next->tss.regs)
+		printk ("Error: NULL regs for next pid=%d\n", next->pid);
+	else if (!next->tss.regs->psw.addr)
+		printk ("Error: NULL PSW for next pid=%d\n", next->pid);
+
+	if (!prev->tss.regs)
+		printk ("Error: NULL regs for prev pid=%d\n", prev->pid);
+	else if (!prev->tss.regs->psw.addr)
+		printk ("Error: NULL PSW for prev pid=%d\n", prev->pid);
 
 #ifdef __SMP__
 	prev->last_processor = prev->processor;
@@ -481,7 +488,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	unsigned long delta;
 	i370_interrupt_state_t *srcregs, **dstregs;
 
-	printk("i370_copy_thread, %s/%d regs=0x%lx usp=0x%lx\n",
+	printk("i370_copy_thread, %s/%d regs=%p usp=0x%lx\n",
 	        current->comm, current->pid, current->tss.regs, usp);
 
 	/* Copy the kernel stack, and thunk the stack pointers in it.
@@ -637,7 +644,7 @@ i370_sys_clone (unsigned long clone_flags)
 	struct pt_regs *regs;
 	int res = 0;
 
-	printk ("i370_sys_clone of %s/%d regs=0x%lx flags=0x%lx\n",
+	printk ("i370_sys_clone of %s/%d regs=%p flags=0x%lx\n",
 	        current->comm, current->pid, current->tss.regs, clone_flags);
 	lock_kernel();
 	regs = current->tss.regs;
@@ -681,7 +688,7 @@ long
 i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
-	printk ("i370_kernel_thread %s/%d regs=0x%lx\n",
+	printk ("i370_kernel_thread %s/%d regs=%p\n",
 	        current->comm, current->pid, current->tss.regs);
 
 	pid = clone (flags); /* Goes through SVC */

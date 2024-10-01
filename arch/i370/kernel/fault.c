@@ -42,6 +42,7 @@
 #include <linux/mman.h>
 #include <linux/ptrace.h>
 #include <linux/sched.h>
+#include <linux/smp_lock.h>
 
 #include <asm/asm.h>
 #include <asm/current.h>
@@ -87,6 +88,8 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
   /*------------------------------------------------------------*/
   if (in_interrupt() || mm == &init_mm)
        goto no_context;
+
+  lock_kernel();
   down(&mm->mmap_sem);
   valid_addr = address & MASK_TRXVALID;
   address &= MASK_TRXADDR;
@@ -102,38 +105,39 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
        printk ("do_page_fault null pointer deref ptr=0x%lx\n", address);
        goto bad_area;
   }
-  /* If we are here, then the address was below the vma start.
-   * It might be a null-pointer deref ...
-   *
-   * Not clear on what's going on here. This can happen for the
-   * user process stack; however, that grows up, not down.
-   * Note also, it should start at 7fc00000 but sometimes starts at
-   * 7fbfff00 which I think is wrong, (someone subtracted STACK_SIZE)
-	* But ... anyway, this needs to work both here and in the elf loader.
-   */
-printk ("do_page_fault addr=0x%lx is below vma start=0x%lx\n", address, vma->vm_start);
-  /* if (!(vma->vm_flags & VM_GROWSUP)) goto bad_area; */
 
-  if (user_mode(regs)) {
-       /*-----------------------------------------------------*/
-       /*-----------------------------------------------------*/
-printk ("do_page_fault user stack fault addr=0x%lx, frame=%lx\n", address, regs->irregs.r13);
-       /* XXX FIXME see corresponding stack XXXX in i370_start_thread() */
-       /* XXX This is a really piss-poor attempt at stack verification */
-       if (address < ((TASK_SIZE-I370_STACK_SIZE)-0x1000))
-               goto bad_area;
+  /* If we are here, then the address was below the vma start.
+   * Three ways this happens; a wild point in the kernel, a
+   * null-pointer deref in userland, or a  user-space stack touch.
+   */
+  if (!user_mode(regs)) {
+       printk ("do_page_fault addr=0x%lx is below vma start=0x%lx\n",
+               address, vma->vm_start);
+       goto bad_area;
   }
 
-  /* XXX FIXME: TODO. Use find_vma_intersection instead of
-   * expand_stack(). The problem is expand_stack() assumes
-   * the stack grows downward, and so our very firsst fault will
-	* allow the full 4MB stack area. Instead, we want to grow
-   * up from the frame base, which is located at
-   * STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE. But, for now, this
-   * works. At least, for user mode. I'm not sure what happens
-   * if the kernel hits this ... */
-  if (expand_stack(vma, address))
-       goto bad_area;
+  /*-----------------------------------------------------*/
+  if (user_mode(regs)) {
+       /* The only valid access is if the user is touching the stack.
+        * The stack is (currently) between 7ffe0000 and 0x7ffff000.
+        * (A 4 MB stack). See i370_start_thread() for details. Must
+        * match what is there. Normal operation means
+        * regs->irregs.r13 is above this.
+        */
+       unsigned long frame_base = STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
+       if (address < frame_base) goto bad_area;
+
+       /* XXX FIXME: TODO. Use find_vma_intersection instead of
+        * expand_stack(). The problem is expand_stack() assumes
+        * the stack grows downward, and so our very firsst fault will
+	     * allow the full 4MB stack area. Instead, we want to grow
+        * up from the frame base, which is located at
+        * STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE. But, for now, this
+        * works. At least, for user mode. I'm not sure what happens
+        * if the kernel hits this ... */
+       if (expand_stack(vma, address))
+            goto bad_area;
+  }
 
   /*----------------------------------------------------------*/
   /* Ok, we have a good vm_area for this memory access, so    */
@@ -166,6 +170,8 @@ good_area:
   if (!handle_mm_fault(current, vma, address, write))
        goto do_sigbus;
   up(&mm->mmap_sem);
+  unlock_kernel();
+
   return 0;
 
 /*------------------------------------------------------------*/

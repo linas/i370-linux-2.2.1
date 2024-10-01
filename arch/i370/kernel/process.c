@@ -222,12 +222,14 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	set_fs(USER_DS);
 
 	/* Here it grows complicated. The i370 ELF ABI stack grows upwards.
-	 * The code in fs/exec.c assume the stack grows downwards. Thus,
+	 * The code in fs/exec.c assumes the stack grows downwards. Thus,
 	 * it starts at the highest possible address (0x80000000 for us)
 	 * subtracts sizeof(void *) and then copies argv, envp to
 	 * progressively lower addrs, ending up at (for example) at
 	 * 7fffffdf, which it then passes to us as sp. We now have to
 	 * undo this damage.
+	 * See: do_execve() in fs/exec.c
+	 * create_elf_tables() in fs/binfmt_elf.c
 	 *
 	 * Our stack base will be at STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
 	 * More correctly, this is the frame base: the first frame is here.

@@ -83,16 +83,19 @@ static int pc_unsupported(i370_interrupt_state_t *,  unsigned long,
 int do_page_fault(i370_interrupt_state_t *,  unsigned long,
                   unsigned short);
 
+static int do_addr_except(i370_interrupt_state_t *,  unsigned long,
+                          unsigned short);
+
 static pc_handler pc_table[] = {
-	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported}, /* 0 */
 	{PIC_OPERATION,        pc_unsupported},
 	{PIC_PRIVLEDGED,       pc_unsupported},
 	{PIC_EXECUTE,          pc_unsupported},
 	{PIC_PROTECTION,       do_page_fault},
-	{PIC_ADDRESSING,       pc_unsupported},
+	{PIC_ADDRESSING,       do_addr_except},
 	{PIC_SPECIFICATION,    pc_unsupported},
 	{PIC_DATA,             pc_unsupported},
-	{PIC_FIXED_OVERFLOW,   pc_unsupported},
+	{PIC_FIXED_OVERFLOW,   pc_unsupported}, /* 0x8 */
 	{PIC_FIXED_DIVIDE,     pc_unsupported},
 	{PIC_DECIMAL_OVERFLOW, pc_unsupported},
 	{PIC_DECIMAL_DIVIDE,   pc_unsupported},
@@ -100,7 +103,7 @@ static pc_handler pc_table[] = {
 	{PIC_EXP_UNDERFLOW,    pc_unsupported},
 	{PIC_SIGNIFICANCE,     pc_unsupported},
 	{PIC_FP_DIVIDE,        pc_unsupported},
-	{PIC_SEGEMENT_TRANS,   do_page_fault},
+	{PIC_SEGEMENT_TRANS,   do_page_fault},  /* 0x10 */
 	{PIC_PAGE_TRANS,       do_page_fault},
 	{PIC_TRANSLATION,      pc_unsupported},
 	{PIC_SPECIAL_OP,       pc_unsupported},
@@ -108,7 +111,7 @@ static pc_handler pc_table[] = {
 	{PIC_OPERAND,          pc_unsupported},
 	{PIC_TRACE_TABLE,      pc_unsupported}, /* Handled in head.S */
 	{PIC_ASN_TRANS,        pc_unsupported},
-	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported}, /* 0x18 */
 	{PIC_VECTOR_OP,        pc_unsupported},
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
@@ -116,7 +119,7 @@ static pc_handler pc_table[] = {
 	{PIC_SQROOT,           pc_unsupported},
 	{PIC_UNNORMALIZED,     pc_unsupported},
 	{PIC_PC_TRANS,         pc_unsupported},
-	{PIC_AFX_TRANS,        pc_unsupported},
+	{PIC_AFX_TRANS,        pc_unsupported}, /* 0x20 */
 	{PIC_ASX_TRANS,        pc_unsupported},
 	{PIC_LX_TRANS,         pc_unsupported},
 	{PIC_EX_TRANS,         pc_unsupported},
@@ -124,7 +127,7 @@ static pc_handler pc_table[] = {
 	{PIC_SECONDARY_AUTH,   pc_unsupported},
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
-	{PIC_ALET_SPEC,        pc_unsupported},
+	{PIC_ALET_SPEC,        pc_unsupported}, /* 0x28 */
 	{PIC_ALEN_TRANS,       pc_unsupported},
 	{PIC_ALE_SEQ,          pc_unsupported},
 	{PIC_ASTE_VALIDITY,    pc_unsupported},
@@ -132,7 +135,7 @@ static pc_handler pc_table[] = {
 	{PIC_EXTENDED_AUTH,    pc_unsupported},
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
-	{PIC_STACK_FULL,       pc_unsupported},
+	{PIC_STACK_FULL,       pc_unsupported}, /* 0x30 */
 	{PIC_STACK_EMPTY,      pc_unsupported},
 	{PIC_STACK_SPEC,       pc_unsupported},
 	{PIC_STACK_TYPE,       pc_unsupported},
@@ -140,6 +143,7 @@ static pc_handler pc_table[] = {
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported}, /* 0x38 */
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
@@ -147,8 +151,7 @@ static pc_handler pc_table[] = {
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
 	{-1,                   pc_unsupported},
-	{-1,                   pc_unsupported},
-	{-1,                   pc_unsupported},
+	{-1,                   pc_unsupported}, /* 0x40 */
 	{PIC_MONITOR,          pc_monitor}
 };
 
@@ -180,11 +183,38 @@ pc_monitor(i370_interrupt_state_t *saved_regs,
 
 static int
 pc_unsupported(i370_interrupt_state_t *saved_regs,
-           unsigned long  trans,
-           unsigned short code)
+               unsigned long  trans,
+               unsigned short code)
 {
 	printk ("Program Check Unsupported code=0x%x trans=0x%lx\n",
 	        code, trans);
+	show_regs (saved_regs);
+	print_backtrace (saved_regs->irregs.r13);
+	i370_halt();
+	return(1);
+}
+
+/* This is hit when touching real addresses outside of real RAM.
+ * Mostly like cause is corrupted registers/stack.
+ *
+ * Other reasons for hitting this are, I quote:
+ * The dispatchable-unit-control table,
+ * the primary ASN-second-table entry,
+ * entries in the access list, region first table,
+ * region second table, region third table,
+ * segment table,
+ * page table,
+ * linkage table,
+ * entry table,
+ * ASN first table, ASN second table,
+ * authority table, linkage stack, and trace table.
+ * Phew!
+ */
+static int do_addr_except(i370_interrupt_state_t *saved_regs,
+                          unsigned long  trans,
+                          unsigned short code)
+{
+	printk ("Unexpected Addressing Exception trans=0x%lx\n", trans);
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
 	i370_halt();

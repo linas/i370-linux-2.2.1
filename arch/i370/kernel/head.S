@@ -184,9 +184,7 @@ _cinit:
 	MVC	SAVED_PSW(8,r13),oldpsw(0); /* save old psw on stack  */	\
 	MVC	SAVED_R11(64,r13),sav+IR_R11(0);	/* 16 regs=64 bytes  */	\
 	/* chain the interrupt state pointer into thread_struct      */	\
-	LR	r1,r12;			/* addr of curr proc in r1   */	\
-	/*	OFFSET_KREGS should be =X'238' or similar */		\
-	A	r1,OFFSET_KREGS;	/* add offset to regs ptr    */ \
+	LA	r1,OFFSET_KREGS(,r12);	/* add offset to regs ptr    */ \
 	L	r2,0(,r1);		/* load regs ptr             */	\
 	ST	r2,SAVED_OLDREGS(,r13); /* save regs ptr to stack    */	\
 	LA	r2,SAVED_PSW(,r13);	/* put addr of newregs in r2 */	\
@@ -204,8 +202,7 @@ _cinit:
 #define EXCEPTION_UNCHAIN(sav)	 					\
 	/* chain the interrupt state pointer into thread_struct      */	\
 	L	r12,_psa_current(,0);	/* addr of current process   */	\
-	/*	OFFSET_KREGS should be =X'238' or similar */		\
-	A	r12,OFFSET_KREGS;	/* add offset to regs ptr    */ \
+	LA	r12,OFFSET_KREGS(,r12);	/* add offset to regs ptr    */ \
 	L	r2,SAVED_OLDREGS(,r13);	/* get old ptr from stack    */	\
 	ST	r2,0(,r12);		/* restore regs ptr in proc  */
 

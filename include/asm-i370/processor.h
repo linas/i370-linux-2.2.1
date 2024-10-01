@@ -63,7 +63,7 @@
  * XXX FIXME automate this so we don't stumble if stucts change!
  */
 #define OFFSET_KSP      568     /* Offset to kernel stack pointer */
-#define OFFSET_KREGS    =F'572' /* Offset to pt_regs (_i370_interrupt_state_s) */
+#define OFFSET_KREGS    572     /* Offset to pt_regs (_i370_interrupt_state_s) */
 
 /*------------------------------------------------------------*/
 /* External Interruption Codes */

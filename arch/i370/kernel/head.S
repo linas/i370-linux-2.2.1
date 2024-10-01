@@ -160,9 +160,16 @@ _cinit:
 
 /* We don't have to save all; only those clobbered by
  * EXCEPTION_PROLOG and friends. Currently, we clobber
- * r11 r12 r13 r14 r15 r1 r2 r3 */
+ * r11 r12 r13 r14 r15 r1 r2 r3
+ * If we don't STM r5,r10 here, then do it below, near the MVC.
+ *
+ * Like this, except this blows up. Why ???
+ *	MVC	SAVED_R11(40,r13),sav+IR_R11(0); /* 10 regs=40 bytes */
+ *	STM	r5,r10,SAVED_R5(r13);	/* those we didn't touch */
+ */
 #define SAVE_REGS(sav) 							\
-	STM	r11,r4,sav+IR_R11(0);	/* save gprs to PSA scratch area */
+	STM	r11,r4,sav+IR_R11(0);	/* save gprs to PSA scratch */	\
+	STM	r5,r10,sav+IR_R5(0);    /* for debugging only, remove later xxx */
 
 
 #define EXCEPTION_PROLOG(sav,oldpsw) 					\

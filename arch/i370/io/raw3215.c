@@ -1,5 +1,8 @@
 /****************************************************************/
 /* "raw" driver for 3215; I/O does not go through the tty layer */
+/* Of course, 3215 can't ever go throught a tty layer; that's   */
+/* not how ESA/390 I/O works. Clashes a bit with conventional   */
+/* unix, but so it goes.                                        */
 /****************************************************************/
 
 #include <asm/3270.h>
@@ -25,6 +28,13 @@ extern unitblk_t *unt_con3215;
  */
 static int align_ccw[5];
 ccw_t *ioccw;
+
+// #define SHOW_IRB_STATUS
+#ifdef SHOW_IRB_STATUS
+	#define DBGPRT(...) printk(__VA_ARGS__)
+#else
+	#define DBGPRT(...)
+#endif
 
 int i370_raw3215_open (struct inode *inode, struct file *filp)
 {
@@ -241,10 +251,10 @@ static void do_read(unitblk_t* unit)
 		rc = _tsch(unit->unitsid, &irb);
 		if (irb.scsw.status & 0x1) break;
 	}
-	printk("read3215_read spin for %d\n", i);
-	printk("raw3215_read irb FCN=%x activity=%x status=%x\n",
+	DBGPRT("raw3215_read spin for %d\n", i);
+	DBGPRT("raw3215_read irb FCN=%x activity=%x status=%x\n",
 		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
-	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
+	DBGPRT("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
 }
 
@@ -285,10 +295,10 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 
 	rc = _tsch(unit->unitsid, &irb);
 
-	printk("raw3215_flihw irb FCN=%x activity=%x status=%x\n",
+	DBGPRT("raw3215_flihw irb FCN=%x activity=%x status=%x\n",
 		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
 
-	printk("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
+	DBGPRT("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
 }
 

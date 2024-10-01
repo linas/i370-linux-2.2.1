@@ -138,7 +138,7 @@ int check_stack(struct task_struct *tsk)
 		printk ("check_stack(): bad task %p\n",tsk);
 		return 1;
 	}
-	
+
 	/* check if stored ksp is bad */
 	if ( (tsk->tss.ksp > stack_top) || (tsk->tss.ksp < stack_bot) )
 	{
@@ -148,7 +148,7 @@ int check_stack(struct task_struct *tsk)
 		       stack_bot, tsk->tss.ksp, stack_top);
 		ret |= 2;
 	}
-	
+
 	/* check if stack ptr RIGHT NOW is bad */
 	if ( (tsk == current) && ((_get_SP() > stack_top ) || (_get_SP() < stack_bot)) )
 	{
@@ -178,7 +178,7 @@ int check_stack(struct task_struct *tsk)
 		       stack_bot, tsk->tss.ksp, stack_top);
 		ret |= 0x10;
 	}
-	
+
 	if (ret)
 	{
 		printk("bad stack, halting\n");
@@ -197,21 +197,7 @@ int check_stack(struct task_struct *tsk)
  * This is where:
  * -- we enable DAT (address translation)
  * -- we set the problem state bit in the PSW
- * -- set the user's stack pointer
- * -- set the address at which to start executing the user process
- *
- * XXX TODO: this final bit, of setting the address at where to start,
- * and setting it in r15, won't actually work, because r15 holds the
- * return value from do_fork() (see switch_to() below) and that value
- * is zero. So, userland is entered with r15 being zero. Now, we could
- * demand an ABI where it is the responsibility of crt0.s to set up
- * r15 before calling main. And would could even help out, by maybe
- * passing the start address, i I dunno, r0 or r1 or something. For
- * just now, until the ABI solidifies, NIP never gets to userland.
- *
- * I'm totally confused about how userland is supposed to proceed.
- * Later. Bedtime, now. Oh wait. Userland can just do BASR r15,0 to
- * find out where they are. So these comments need updation.
+ * -- set the user's stack pointer and pass argc, argv, envp
  */
 void
 i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
@@ -221,60 +207,17 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	printk ("i370_start_thread(): setup for user-space thread\n");
 	set_fs(USER_DS);
 
-	/* Here it grows complicated. The i370 ELF ABI stack grows upwards.
-	 * The code in fs/exec.c assumes the stack grows downwards. Thus,
-	 * it starts at the highest possible address (0x80000000 for us)
-	 * subtracts sizeof(void *) and then copies argv, envp to
-	 * progressively lower addrs, ending up at (for example) at
-	 * 7fffffdf, which it then passes to us as sp. We now have to
-	 * undo this damage.
-	 * See: do_execve() in fs/exec.c
-	 * create_elf_tables() in fs/binfmt_elf.c
-	 *
-	 * Our stack base will be at STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
-	 * More correctly, this is the frame base: the first frame is here.
+	/* The i370 ELF ABI stack grows up. Thus, the first frame is at
+	 * the frame base, which is STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
 	 * Per ABI, r11 is the frame pointer. The stack top is just the
-	 * frame pointer, plus the size of the frame; about 100 bytes or so.
-	 * We'll pass this in r2; this eventually becomes main()'s r13.
-	 * To acheive this, _start has to `ST r2,0(,r11)` so main() can
-	 * find it. Why r2? No reason, other than to minimize confusion
-	 * about r13. The choice is arbitrary.
+	 * frame pointer, plus the size of the frame; which is
+	 * sizeof (i370_elf_stack_t) which is 88 bytes.
+	 * We'll pass this in r1; this eventually becomes main()'s r13.
+	 * To acheive this, _start has to `ST r1,0(,r11)` so main() can
+	 * find it.
+	 * Pass argc in r2, argv in r3 and envp in r4.
 	 */
 	unsigned long frame_base = STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
-
-	/* The code in ./fs/binfmt_elf.c tried to do the right thing,
-	 * putting the args and env on the stack... the wrong end of the
-	 * stack for us. So, copy them, from over there, to where we want
-	 * them. Kind of cheesy, but I can't think of a better soln.
-	 *
-	 * TODO: the pointers in the elf header are probably wrong.
-	 * so we ned to redo that.
-	 * TODO: I think argv[0] is wrong. We need to move it.
-	 */
-	struct mm_struct *mm = current->mm;
-	unsigned long arglen = mm->arg_end - mm->arg_start;
-	void *kargs = kmalloc(arglen, GFP_KERNEL);
-	copy_from_user(kargs, (const void *) mm->arg_start, arglen);
-
-	unsigned long envlen = mm->env_end - mm->env_start;
-	void *kenvs = kmalloc(envlen, GFP_KERNEL);
-	copy_from_user(kenvs, (const void *) mm->env_start, envlen);
-
-	unsigned long elflen = mm->arg_end - mm->start_stack;
-	void *kelfs = kmalloc(elflen, GFP_KERNEL);
-	copy_from_user(kelfs, (const void *) mm->start_stack, elflen);
-
-	/* Paste */
-	char * p = (char *) frame_base;
-	copy_to_user(p, kargs, arglen);
-	p += arglen;
-	copy_to_user(p, kenvs, envlen);
-	p += envlen;
-	copy_to_user(p, kelfs, elflen);
-
-	kfree(kargs);
-	kfree(kenvs);
-	kfree(kelfs);
 
 	/* Set up the registers we will hand over to the user. */
 	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
@@ -291,17 +234,24 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	/* r11 is the frame pointer. */
 	regs->irregs.r11 = frame_base;
 
-	/* r2 gets the stack top */
-	regs->irregs.r2 = frame_base + sizeof(i370_elf_stack_t);
+	/* r1 gets the stack top */
+	regs->irregs.r1 = frame_base + sizeof(i370_elf_stack_t);
 
-	/* XXX hack till we do the args */
-	regs->irregs.r2 += 32;
+	/* r2 gets argc */
+	regs->irregs.r2 = sp;
+
+	/* r3 gets argv */
+	regs->irregs.r3 = sp + 4;
+
+	/* r4 gets envp */
+	/* I don't get it ... I have to manually skip over argv ?? */
+	/* Did I do something wrong here? */
+	unsigned long argc;
+	copy_from_user(&argc, (const void *) sp, 4);
+	regs->irregs.r4 = sp + 8 + 4*argc;
 
 	/* boffo ace rimer in other regs */
 	regs->irregs.r0 = 0xaceb0ff0;
-	regs->irregs.r1 = 0xaceb0ff0;
-	regs->irregs.r3 = 0xaceb0ff0;
-	regs->irregs.r4 = 0xaceb0ff0;
 	regs->irregs.r5 = 0xaceb0ff0;
 	regs->irregs.r6 = 0xaceb0ff0;
 	regs->irregs.r7 = 0xaceb0ff0;

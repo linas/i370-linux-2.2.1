@@ -1,8 +1,27 @@
 /****************************************************************/
 /* "raw" driver for 3215; I/O does not go through the tty layer */
-/* Of course, 3215 can't ever go throught a tty layer; that's   */
+/* Of course, 3215 can't ever go through a tty layer; that's    */
 /* not how ESA/390 I/O works. Clashes a bit with conventional   */
 /* unix, but so it goes.                                        */
+/*
+ * Known but unfixed bugs:
+ *
+ * If you hit enter, with no chars beforehand, you get
+ * HHCTE006A Enter input for console device 0009
+ * If I wait long enough that the shell atttempts another read,
+ * I think the pending flag below remains set, these console
+ * input requests pile up, and the input is lost. The only way to
+ * clear this is to type, hit enter, fast, over and over, until
+ * everything pending gets thrown out. So this is some kind of
+ * 3215 behavior that the code below somehow trips over.
+ *
+ * Here's another: if I enter more than 80 chars, e.g. by cut and
+ * pasting multiple lines into the telnet session, Hercules closes
+ * the session. Reopening, its stuck in the
+ * HHCTE006A Enter input for console device 0009
+ * mode again.
+ *
+ * So overall this is delicate.
 /****************************************************************/
 
 #include <asm/3270.h>
@@ -190,7 +209,7 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
 }
 
 /* XXX FIXME this is shared by all and gets clobbered.
- * we want a per-unit read bufer.
+ * we want a per-unit read buffer.
  */
 #define RDBUFSZ 120
 char rdbuf[RDBUFSZ];

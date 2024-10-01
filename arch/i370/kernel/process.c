@@ -338,6 +338,13 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 //
 // A non-zero return value indicates an error.
 
+// #define SHOW_TASK_SWITCHES
+#ifdef SHOW_TASK_SWITCHES
+	#define DBGPRT(...) printk(__VA_ARGS__)
+#else
+	#define DBGPRT(...)
+#endif
+
 int
 switch_to(struct task_struct *prev, struct task_struct *next)
 {
@@ -350,7 +357,6 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 	check_stack(next);
 #endif /* CHECK_STACK */
 
-#define SHOW_TASK_SWITCHES
 #ifdef SHOW_TASK_SWITCHES
 	printk("task switch ");
 	if (next->tss.regs)
@@ -364,19 +370,25 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 		printk("%s/%d -> %s/%d Error: NULL next regs!!\n",
 		       prev->comm,prev->pid,
 		       next->comm,next->pid);
+
 	printk("current regs=%p prev=%p next=%p\n",
 	        current->tss.regs, prev->tss.regs, next->tss.regs);
+
 	// printk ("current sp=0x%lx next sp=0x%lx\n", _get_SP(), next->tss.ksp);
-#endif
+
+	/* Sometimes the PSW in the regs is NULL, and this is associated
+	 * with the swapper threads clone from pid 0. But it seems to be
+	 * totally harmless, so ... I'm gonna ignore it. */
 	if (!next->tss.regs)
-		printk ("Error: NULL regs for next pid=%d\n", next->pid);
+		printk ("Warning: NULL regs for next pid=%d\n", next->pid);
 	else if (!next->tss.regs->psw.addr)
-		printk ("Error: NULL PSW for next pid=%d\n", next->pid);
+		printk ("Warning: NULL PSW for next pid=%d\n", next->pid);
 
 	if (!prev->tss.regs)
-		printk ("Error: NULL regs for prev pid=%d\n", prev->pid);
+		printk ("Warning: NULL regs for prev pid=%d\n", prev->pid);
 	else if (!prev->tss.regs->psw.addr)
-		printk ("Error: NULL PSW for prev pid=%d\n", prev->pid);
+		printk ("Warning: NULL PSW for prev pid=%d\n", prev->pid);
+#endif
 
 #ifdef __SMP__
 	prev->last_processor = prev->processor;
@@ -488,7 +500,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	unsigned long delta;
 	i370_interrupt_state_t *srcregs, **dstregs;
 
-	printk("i370_copy_thread, %s/%d regs=%p usp=0x%lx\n",
+	DBGPRT("i370_copy_thread, %s/%d regs=%p usp=0x%lx\n",
 	        current->comm, current->pid, current->tss.regs, usp);
 
 	/* Copy the kernel stack, and thunk the stack pointers in it.
@@ -595,7 +607,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		lastdst -> caller_sp = 0;
 	}
 
-	printk ("i370_copy_thread: finished %s/%d regs=%p\n",
+	DBGPRT ("i370_copy_thread: finished %s/%d regs=%p\n",
 	        p->comm, p->pid, p->tss.regs);
 #ifdef __SMP__
 	if ( (p->pid != 0) || !(clone_flags & CLONE_PID) )
@@ -644,7 +656,7 @@ i370_sys_clone (unsigned long clone_flags)
 	struct pt_regs *regs;
 	int res = 0;
 
-	printk ("i370_sys_clone of %s/%d regs=%p flags=0x%lx\n",
+	DBGPRT ("i370_sys_clone of %s/%d regs=%p flags=0x%lx\n",
 	        current->comm, current->pid, current->tss.regs, clone_flags);
 	lock_kernel();
 	regs = current->tss.regs;
@@ -661,7 +673,7 @@ i370_sys_clone (unsigned long clone_flags)
 #endif /* __SMP__ */
 	unlock_kernel();
 
-	printk ("i370_sys_clone(): after do_fork, %s/%d regs=0x%lx res=%d\n",
+	DBGPRT ("i370_sys_clone(): after do_fork, %s/%d regs=0x%lx res=%d\n",
 	        current->comm, current->pid, current->tss.regs, res);
 
 	return res;
@@ -688,16 +700,16 @@ long
 i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
-	printk ("i370_kernel_thread %s/%d regs=%p\n",
+	DBGPRT ("i370_kernel_thread %s/%d regs=%p\n",
 	        current->comm, current->pid, current->tss.regs);
 
 	pid = clone (flags); /* Goes through SVC */
-	printk ("i370_kernel_thread(): return from clone, new pid=%ld\n",pid);
-	printk ("i370_kernel_thread(): I still am %s/%d regs=0x%lx\n",
+	DBGPRT ("i370_kernel_thread(): return from clone, new pid=%ld\n",pid);
+	DBGPRT ("i370_kernel_thread(): I still am %s/%d regs=0x%lx\n",
 	        current->comm, current->pid, current->tss.regs);
 	if (pid) return pid;
 	fn (args);
-	printk ("i370_kernel_thread(): return from fn\n");
+	printk ("i370_kernel_thread(): Unexpected return from fn\n");
 	while (1) {_exit (1); }
 	return 0;
 }

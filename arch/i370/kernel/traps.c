@@ -89,6 +89,9 @@ static int pc_addressing(i370_interrupt_state_t *, unsigned long,
 static int pc_operation(i370_interrupt_state_t *, unsigned long,
                         unsigned short);
 
+static int pc_math(i370_interrupt_state_t *, unsigned long,
+                   unsigned short);
+
 static pc_handler pc_table[] = {
 	{-1,                   pc_unsupported}, /* 0 */
 	{PIC_OPERATION,        pc_operation},
@@ -98,14 +101,14 @@ static pc_handler pc_table[] = {
 	{PIC_ADDRESSING,       pc_addressing},
 	{PIC_SPECIFICATION,    pc_unsupported},
 	{PIC_DATA,             pc_unsupported},
-	{PIC_FIXED_OVERFLOW,   pc_unsupported}, /* 0x8 */
-	{PIC_FIXED_DIVIDE,     pc_unsupported},
-	{PIC_DECIMAL_OVERFLOW, pc_unsupported},
-	{PIC_DECIMAL_DIVIDE,   pc_unsupported},
-	{PIC_EXP_OVERFLOW,     pc_unsupported},
-	{PIC_EXP_UNDERFLOW,    pc_unsupported},
-	{PIC_SIGNIFICANCE,     pc_unsupported},
-	{PIC_FP_DIVIDE,        pc_unsupported},
+	{PIC_FIXED_OVERFLOW,   pc_math}, /* 0x8 */
+	{PIC_FIXED_DIVIDE,     pc_math},
+	{PIC_DECIMAL_OVERFLOW, pc_math},
+	{PIC_DECIMAL_DIVIDE,   pc_math},
+	{PIC_EXP_OVERFLOW,     pc_math},
+	{PIC_EXP_UNDERFLOW,    pc_math},
+	{PIC_SIGNIFICANCE,     pc_math},
+	{PIC_FP_DIVIDE,        pc_math},
 	{PIC_SEGEMENT_TRANS,   do_page_fault},  /* 0x10 */
 	{PIC_PAGE_TRANS,       do_page_fault},
 	{PIC_TRANSLATION,      pc_unsupported},
@@ -233,6 +236,21 @@ static int pc_operation(i370_interrupt_state_t *saved_regs,
                         unsigned short code)
 {
 	printk ("Operation/Operand exception trans=0x%lx\n", trans);
+	printk("Not implemented\n");
+	show_regs (saved_regs);
+	print_backtrace (saved_regs->irregs.r13);
+	i370_halt();
+	return(1);
+}
+
+/* Math-related exception. Fatal if in kernel, convert to SIGFPE
+ * for userland.
+ */
+static int pc_math(i370_interrupt_state_t *saved_regs,
+                   unsigned long  trans,
+                   unsigned short code)
+{
+	printk ("Math (floating point) exception trans=0x%lx\n", trans);
 	printk("Not implemented\n");
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);

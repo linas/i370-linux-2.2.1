@@ -3,6 +3,14 @@
 /* Of course, 3215 can't ever go through a tty layer; that's    */
 /* not how ESA/390 I/O works. Clashes a bit with conventional   */
 /* unix, but so it goes.                                        */
+/*                                                              */
+/* Documentation in detail avaialable on page 30 of             */
+/* http://wwww.bitsavers.org/pdf/ibm/370/funcChar/GA22-6942-1_370-155_funcChar_Jan71.pdf */
+/* In particular, the subchannel status words & etc are         */
+/* explained in full detail. The explanation is for a 3210.     */
+/* Notable is that using 0x1 instead of 0x9 for writes will     */
+/* inhibit the automatic carriage return, and maybe we want     */
+/* that.                                                        */
 /*
  * Known but unfixed bugs:
  *

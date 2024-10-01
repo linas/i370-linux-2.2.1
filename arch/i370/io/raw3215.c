@@ -146,7 +146,7 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	memset(&orb, 0x00, sizeof(orb_t));
 	orb.intparm = (int) unit;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
-	orb.lpm    = 0xff;			/* Logical Path Mask */
+	orb.lpm    = 0xff;		/* Logical Path Mask */
 	orb.ptrccw = ioccw;		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
@@ -223,7 +223,10 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
 char rdbuf[RDBUFSZ];
 char rascii[RDBUFSZ];
 
-static void do_read(unitblk_t* unit)
+/* Return the number of characters read.
+ * Max possible is 120.
+ */
+static int do_read(unitblk_t* unit)
 {
 	int flags;
 	int i;
@@ -257,7 +260,7 @@ static void do_read(unitblk_t* unit)
 	 *  Build the CCW for the 3215 Console I/O
 	 *  CCW = READ chained to NOP.
 	 */
-	ioccw[0].flags   = CCW_CC+CCW_SLI; /* Read chained to NOOP + SLI */
+	ioccw[0].flags   = CCW_CC;         /* Read chained to NOOP */
 	ioccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
 	ioccw[0].count   = RDBUFSZ;
 	ioccw[0].dataptr = rdbuf;          /* address of 3215 buffer */
@@ -271,7 +274,7 @@ static void do_read(unitblk_t* unit)
 	memset(&orb, 0x00, sizeof(orb_t));
 	orb.intparm = (int) unit;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
-	orb.lpm    = 0xff;			/* Logical Path Mask */
+	orb.lpm    = 0xff;		/* Logical Path Mask */
 	orb.ptrccw = ioccw;		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
@@ -285,10 +288,14 @@ static void do_read(unitblk_t* unit)
 	DBGPRT("raw3215_read spin for %d\n", i);
 	DBGPRT("raw3215_read irb FCN=%x activity=%x status=%x\n",
 		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
-	DBGPRT("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
+	DBGPRT("devstat=0x%x schstat=0x%x residual=%d\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
 
 	spin_unlock_irqrestore(NULL,flags);
+
+	/* The "residual" is how much room is still left in a 120-character
+	 * line. So the number of characters read is 120 minus residual */
+	return 120 - irb.scsw.residual;
 }
 
 static int i370_pending=0;
@@ -296,6 +303,7 @@ static int i370_pending=0;
 ssize_t i370_raw3215_read (struct file *filp, char *str,
                            size_t len, loff_t *ignore)
 {
+	int nread;
 	int i;
 	unitblk_t* unit = (unitblk_t*) filp->private_data;
 
@@ -303,8 +311,9 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 		return -EAGAIN;
 
 	i370_pending = 0;
-	do_read(unit);
+	nread = do_read(unit);
 
+	/* Seems like nread == i always, on exit of loop. */
 	for (i=0; i<RDBUFSZ; i++) {
 		rascii[i] = ebcdic_to_ascii[(unsigned char)rdbuf[i]];
 		if (0 == rdbuf[i]) break;

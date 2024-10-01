@@ -364,7 +364,6 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 		printk("%s/%d -> %s/%d Error: NULL next regs!!\n",
 		       prev->comm,prev->pid,
 		       next->comm,next->pid);
-
 	printk("current regs=0x%lx prev=0x%lx next=0x%lx\n",
 	        current->tss.regs, prev->tss.regs, next->tss.regs);
 	// printk ("current sp=0x%lx next sp=0x%lx\n", _get_SP(), next->tss.ksp);
@@ -375,7 +374,6 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 #ifdef __SMP__
 	prev->last_processor = prev->processor;
 	/* XXX copy  current=new to the pfx page of the correct processor. */
-	xxxx
 #endif /* __SMP__ */
 
 	old_tss = &prev->tss;
@@ -383,7 +381,8 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 
 	/* Save and restore flt point regs.  We do this here because
 	 * it is NOT done at return from interrupt (in order to save
-	 * some overhead) */
+	 * some overhead). Kernel doesn't use fpt,s so we only need to
+	 * do this if coming rom, going to user-land. */
 	_store_fpregs (old_tss->fpr);
 	_load_fpregs (new_tss->fpr);
 
@@ -410,7 +409,6 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 	/* return as if from do_fork() */
 	return 0;
 }
-
 
 /* =================================================================== */
 
@@ -449,11 +447,10 @@ i370_sys_exit (void)
 
 /*
  * Copy a thread..
- * incomplete and buggy, sorta works ....  give it a shot
+ *
  * What this function does/needs to do:
  * -- Copy architecture-dependent parts of the task structure.
  * -- Set up the user stack pointer
- * -- Set up page tables ??? !!
  * -- Load CR1 with page table origin ??!!
  * -- Copy PSW flags (in particular, the DAT flag) ???
  *
@@ -470,8 +467,6 @@ i370_sys_exit (void)
  * stack pointer, and if so, set irregs.r13 to it.  We do not
  * need to actually copy the user-land stack, that happens
  * "automagically".
- *
- * XXX no need to copy page tables ??? I think this happens automagically
  */
 
 int
@@ -490,9 +485,9 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	        current->comm, current->pid, current->tss.regs, usp);
 
 	/* Copy the kernel stack, and thunk the stack pointers in it.
-	 * Don't copy the current frame: we want the new stack
-	 * to unwinds is if it were do_fork(), and not to do_fork().
-	 * The value of the thunk is 'delta'.
+	 * Don't copy the current frame: we want the new stack to
+	 * unwind as if it were returning from do_fork(), instead of
+	 * returning to do_fork(). The value of the thunk is 'delta'.
 	 */
 	srctop = kernel_stack_top (current);
 	dsttop = kernel_stack_top (p);
@@ -526,12 +521,14 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	} while (srcsp);
 	lastdst -> caller_sp = 0;
 
-	/* Interrupt regs are stored on stack as well.  Note that when
-	 * we used SVC to get to here, r13 and r11 were stored by the SVC
-	 * handler and well be restored when the SVC returns.  We have to find
-	 * these values and thunk them as well.  Note that the code below
-	 * will correctly handle nested interrupts, although in theory we
-	 * should never have more than two (?) interrupts on the kernel stack.
+	/* An exception frame (_i370_interrupt_state_t) is stored on stack.
+	 * That frame holds r13 and r11 there were put there by the SVC
+	 * EXCEPTION_PROLOG (in head.S) and the EPILOG will restore them
+	 * when the SVC returns.  We have to find these values and thunk
+	 * them.  The code below will correctly handle nested interrupts,
+	 * although in theory we should never have more than two (?)
+	 * interrupts on the kernel stack (one for fork, followed by one
+	 * for clone.)
 	 */
 	srcregs = current->tss.regs;
 	dstregs = &(p->tss.regs);
@@ -686,10 +683,14 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 	long pid;
 	printk ("i370_kernel_thread %s/%d regs=0x%lx\n",
 	        current->comm, current->pid, current->tss.regs);
-	pid = clone (flags);
-	printk ("i370_kernel_thread(): return from clone, pid=%ld\n",pid);
+
+	pid = clone (flags); /* Goes through SVC */
+	printk ("i370_kernel_thread(): return from clone, new pid=%ld\n",pid);
+	printk ("i370_kernel_thread(): I still am %s/%d regs=0x%lx\n",
+	        current->comm, current->pid, current->tss.regs);
 	if (pid) return pid;
 	fn (args);
+	printk ("i370_kernel_thread(): return from fn\n");
 	while (1) {_exit (1); }
 	return 0;
 }

@@ -48,9 +48,10 @@
 #define PRG_SAVE_CTX_C12        0xe50
 
 /* TASK_STRUCT_SIZE should really be sizeof(struct task_struct) except
- * that we need to use this in assembly code.  So we're going to pad it
- * a bit, and go from there. Last I measured, sizeof(struct task_struct)
- * was 792.
+ * that I can't use sizeof in assembly code.  So we'll set the size by
+ * hand, and pad it a bit, out of paranoia. Last I measured,
+ * sizeof(struct task_struct) was 792. The size changes if we change
+ * struct thread_struct for any reason.
  */
 #define TASK_STRUCT_SIZE	1024
 
@@ -278,15 +279,15 @@ struct thread_struct {
 	unsigned long	ksp;		/* Kernel stack pointer             */
 	struct pt_regs *regs;		/* Pointer to saved interrupt state */
 	unsigned long  *pg_tables;	/* Base of page-table tree          */
-	cr0_t		cr0;		/* control register 0               */
-	cr1_t		cr1;		/* control register 1               */
+	cr0_t 		cr0;		/* control register 0               */
+	cr1_t 		cr1;		/* control register 1               */
 	double		fpr[16];	/* Complete floating point set      */
-	int		in_slih;	/* set if we are in bottom half     */
+	int   		in_slih;	/* set if we are in bottom half     */
 
 	/* XXX what the stuff below???? why do we needed it ??? see PowerPC */
 	unsigned long	wchan;		/* Event task is sleeping on        */
 	mm_segment_t	fs;		/* for get_fs() validation          */
-	signed long     last_syscall;
+	signed long 	last_syscall;
 	unsigned long	smp_fork_ret;
 };
 

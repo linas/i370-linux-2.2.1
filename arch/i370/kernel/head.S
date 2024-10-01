@@ -158,9 +158,11 @@ _cinit:
 
 #define SAVED_OLDREGS	FRAME_BASE + IR_OLDREGS
 
+/* We don't have to save all; only those clobbered by
+ * EXCEPTION_PROLOG and friends. Currently, we clobber
+ * r11 r12 r13 r14 r15 r1 r2 r3 */
 #define SAVE_REGS(sav) 							\
-	STM	r11,r4,sav+IR_R11(0);	/* save gprs to low mem */	\
-	STM	r5,r10,sav+IR_R5(0);	/* for debugging only, remove later xxx */
+	STM	r11,r4,sav+IR_R11(0);	/* save gprs to PSA scratch area */
 
 
 #define EXCEPTION_PROLOG(sav,oldpsw) 					\
@@ -285,7 +287,7 @@ SupervisorCall:
 	L	r2,=A(sys_call_table)	/* load address of sys call table */
 	SLL	r1,2			/* 4 bytes per word ... */
 	L	r15,0(r2,r1)		/* load address of C routine */
-	STM     r5,r10,SAVED_R5(r13)	/* sys call args in regs */
+	STM	r5,r10,SAVED_R5(r13)	/* sys call args in regs */
 	STM	r5,r10,ARGP(r11)	/* args on stack */
 	LA	r1,ARGP(,r13)		/* pointer to returned value */
 	BASR	lr,r15			/* jump to C routine */

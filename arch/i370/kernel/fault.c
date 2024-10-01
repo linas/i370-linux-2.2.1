@@ -127,14 +127,13 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
        unsigned long frame_base = STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
        if (address < frame_base) goto bad_area;
 
-       /* XXX FIXME: TODO. Use find_vma_intersection instead of
-        * expand_stack(). The problem is expand_stack() assumes
-        * the stack grows downward, and so our very firsst fault will
-	     * allow the full 4MB stack area. Instead, we want to grow
-        * up from the frame base, which is located at
-        * STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE. But, for now, this
-        * works. At least, for user mode. I'm not sure what happens
-        * if the kernel hits this ... */
+       /* The first time the user touches the stack, the expand_stack
+        * will move vma->vm_start down by 4MBytes (to 7ffe0000) and
+        * that's that. I guess this is harmless, since only the vma
+        * grew, not actual memory consumption. In this kernel, the vma
+        * can only ever grow down, never up, so it seems like there's
+        * nothing to be done.
+        */
        if (expand_stack(vma, address))
             goto bad_area;
   }

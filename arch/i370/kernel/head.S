@@ -56,7 +56,7 @@ _start:
 	O	r1,=X'80000000'		/* AMODE 31                       */
 	ST	r1,INTERRUPT_BASE+4(,0)	/* store into prefix page         */
 	LPSW	INTERRUPT_BASE(0)	/* jump to label                  */
-	
+
 	/* perform initialization to call C routines                      */
 _cinit:
 	L	r13,=A(init_ksp)	/* load addr of stackptr into r13 */
@@ -161,8 +161,8 @@ _cinit:
 /* We don't have to save all; only those clobbered by
  * EXCEPTION_PROLOG and friends. Currently, we clobber
  * r11 r12 r13 r14 r15 r1 r2 r3
- * If we don't STM r5,r10 here, then do it below, near the MVC.
  *
+ * If we don't STM r5,r10 here, then do it below, near the MVC.
  * Like this, except this blows up. Why ???
  *	MVC	SAVED_R11(40,r13),sav+IR_R11(0); /* 10 regs=40 bytes */
  *	STM	r5,r10,SAVED_R5(r13);	/* those we didn't touch */
@@ -199,7 +199,7 @@ _cinit:
 	ST	r2,SAVED_OLDREGS(,r13); /* save regs ptr to stack    */	\
 	LA	r2,FRAME_BASE(,r13);	/* put addr of newregs in r2 */	\
 	ST	r2,0(,r1);		/* update regs ptr in proc   */	\
-	
+
 
 #define EXCEPTION_CALL_C(handler)  					\
 	L	r15,=A(handler);	/* load address of C routine */	\
@@ -303,10 +303,14 @@ SupervisorCall:
 	EXCEPTION_UNCHAIN (INTERRUPT_BASE)	/* unstack pointer chain */
 	/* get old PSW, restore registers, return from interrupt */
 	/* Note r15 is not restored, but is returned 'as-is' from syscall */
-	MVC	INTERRUPT_BASE(8,0),SAVED_PSW(sp) /* restore old psw frm stack */
-	LM	r11,r12,SAVED_R11(r13)	/* restore r11, r12 */	
-	LM	r0,r4,SAVED_R0(r13)	/* restore r0 thru r4 */	
-	L	r14,SAVED_R14(r13)	/* restore r14 */	
+	MVC	INTERRUPT_BASE(8,0),SAVED_PSW(sp) /* restore old psw from stack */
+	LM	r11,r12,SAVED_R11(r13)	/* restore r11, r12           */
+	LM	r0,r4,SAVED_R0(r13)	/* restore r0 thru r4         */
+	/* If returning to userland, then restore r5 thru r10, also.  */
+	/* We can't do this conditionally, because that would clobber */
+	/* the condition register, which we can't do here. Oh well.   */
+	LM	r5,r10,SAVED_R5(r13)    /* restore r5 thru r10        */
+	L	r14,SAVED_R14(r13)	/* restore r14 */
 	L	r13,SAVED_R13(r13)	/* restore r13 */
 	LPSW	INTERRUPT_BASE(0);	/* return from interrupt */
 
@@ -385,7 +389,7 @@ InputOutput:
 
 /* Literal Pool for this text page */
 	.balign	8;			/* align literal pool */
-	.ltorg;				/* dump literal pool */	
+	.ltorg;				/* dump literal pool */
 
 /* ===================================================================== */
 /* Miscellaneous stuff in the data segment */
@@ -407,14 +411,14 @@ empty_zero_page:
 	.p2align 12
 	.globl	swapper_pg_dir
 swapper_pg_dir:
-	.space	8192	
+	.space	8192
 
 /*
  * This space gets a copy of optional info passed to us by the bootstrap
  * Used to pass parameters into the kernel like root=/dev/sda1, etc.
  * Always the third page past start of .data, so bootloader can find it.
  * Default to /dev/ram; bootloader will clobber the value here.
- */	
+ */
 	.globl	cmd_line
 cmd_line:
 	.ascii "root=/dev/ram"
@@ -603,7 +607,7 @@ sys_call_table:
 	.long sys_prctl
 	.long i370_sys_rt_sigreturn
 	.long sys_rt_sigaction
-	.long sys_rt_sigprocmask	
+	.long sys_rt_sigprocmask
 	.long sys_rt_sigpending	/* 175 */
 	.long sys_rt_sigtimedwait
 	.long sys_rt_sigqueueinfo

@@ -250,7 +250,7 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	unsigned long argc;
 	copy_from_user(&argc, (const void *) sp, 4);
 	regs->irregs.r4 = sp + 8 + 4*argc;
-#3ndif
+#endif
 	/* whatever */
 	regs->irregs.r4 = sp + 12;
 

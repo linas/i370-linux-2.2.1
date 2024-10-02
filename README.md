@@ -9,7 +9,8 @@ Let's call this the __Bigfoot 25th Anniversary Edition__
 
 ### History
 Bigfoot was a port of the Linux kernel to the IBM mainframe, created by
-Linas Vepstas, over the course of February to December 1999. The port
+Linas Vepstas, with considerable help from Dan, Neale Ferguson and Peter
+Schulte-Stracke, over the course of February to December 1999. The port
 was done in public, with support from mailing lists. It reached the
 point of being able to boot into user space;  a port of glibc and zsh
 gave a user-space shell prompt.
@@ -49,6 +50,13 @@ are identical; two names for historical reasons.) Then
 make oldconfig
 make
 ```
+Demos of a basic userland (without any C library) can be found in the
+[Bigfoot docker container](https://github.com/linas/i370-bigfoot) set up
+for this project. This includes a demo of the userland
+[_start](https://github.com/linas/i370-bigfoot/blob/master/docker/i370-bigfoot/scripts/init-demo/crtspin.S)
+function, needed to get a stack, `argc`, `argv` and `envp` so that `main()`
+can be called. The demo works.
+
 
 The original README
 -------------------

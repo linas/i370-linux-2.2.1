@@ -304,12 +304,11 @@ SupervisorCall:
 	/* get old PSW, restore registers, return from interrupt */
 	/* Note r15 is not restored, but is returned 'as-is' from syscall */
 	MVC	INTERRUPT_BASE(8,0),SAVED_PSW(sp) /* restore old psw from stack */
-	LM	r11,r12,SAVED_R11(r13)	/* restore r11, r12           */
 	LM	r0,r4,SAVED_R0(r13)	/* restore r0 thru r4         */
 	/* If returning to userland, then restore r5 thru r10, also.  */
-	/* We can't do this conditionally, because that would clobber */
-	/* the condition register, which we can't do here. Oh well.   */
+	/* We could do this conditionally, but it's hardly worth the effort. */
 	LM	r5,r10,SAVED_R5(r13)    /* restore r5 thru r10        */
+	LM	r11,r12,SAVED_R11(r13)	/* restore r11, r12           */
 	L	r14,SAVED_R14(r13)	/* restore r14 */
 	L	r13,SAVED_R13(r13)	/* restore r13 */
 	LPSW	INTERRUPT_BASE(0);	/* return from interrupt */

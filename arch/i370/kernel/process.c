@@ -389,24 +389,25 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 
 void exit_thread(void)
 {
-	printk ("exit_thread(): not implemented \n");
-	show_regs (current->tss.regs);
-	print_backtrace (current->tss.regs->irregs.r13);
-	i370_halt();
+	/* The only thing we have to do here is to check if a userland
+	 * thread has used the float pt regs, and maybe amke sure we
+	 * want to clobber/save or restore these. But right now, we
+	 * unconditionally save/restore float pt regs in swtich_to()
+	 * so this doesn't matter. */
 }
 
 void flush_thread(void)
 {
-	printk ("flush_thread(): not implemented \n");
+	/* The only thing we have to do here is to check if a userland
+	 * thread has used the float pt regs, and maybe amke sure we
+	 * want to clobber/save or restore these. But right now, we
+	 * unconditionally save/restore float pt regs in swtich_to()
+	 * so this doesn't matter. */
 }
 
 void
 release_thread(struct task_struct *t)
 {
-	printk ("release_thread(): not implemented \n");
-	show_regs (current->tss.regs);
-	print_backtrace (current->tss.regs->irregs.r13);
-	i370_halt();
 }
 
 void

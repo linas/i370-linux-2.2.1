@@ -1,5 +1,6 @@
 
-# empty
+all:
+	make -C elf-stripper
 
 clean:
 

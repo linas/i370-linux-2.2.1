@@ -17,34 +17,7 @@
 extern unsigned int csum_partial(const unsigned char * buff, int len,
 				 unsigned int sum);
 
-/*
- * Computes the checksum of a memory block at src, length len,
- * and adds in "sum" (32-bit), while copying the block to dst.
- * If an access exception occurs on src or dst, it stores -EFAULT
- * to *src_err or *dst_err respectively (if that pointer is not
- * NULL), and, for an error on src, zeroes the rest of dst.
- *
- * Like csum_partial, this must be called with even lengths,
- * except for the last fragment.
- */
-extern unsigned int csum_partial_copy_generic(const char *src, char *dst,
-					      int len, unsigned int sum,
-					      int *src_err, int *dst_err);
-
-#define csum_partial_copy_from_user(src, dst, len, sum, errp)	\
-	csum_partial_copy_generic((src), (dst), (len), (sum), (errp), 0)
-
-/* FIXME: this needs to be written to really do no check -- Cort */
-#define csum_partial_copy_nocheck(src, dst, len, sum)	\
-	csum_partial_copy_generic((src), (dst), (len), (sum), 0, 0)     
-/*
- * Old versions which ignore errors.
- */
-#define csum_partial_copy(src, dst, len, sum)	\
-	csum_partial_copy_generic((src), (dst), (len), (sum), 0, 0)
-#define csum_partial_copy_fromuser(src, dst, len, sum)	\
-	csum_partial_copy_generic((src), (dst), (len), (sum), 0, 0)
-
+#define csum_partial_copy_fromuser csum_partial_copy
 
 /*
  * turns a 32-bit partial checksum (e.g. from csum_partial) into a
@@ -61,6 +34,11 @@ static inline unsigned int csum_fold(unsigned int sum)
 	   giving us the correct sum in the upper half. */
 	sum = ~(sum + tmp) >> 16;
 	return sum;
+
+	// Alternate implementation
+	// sum = (sum & 0xffff) + (sum >> 16);
+	// sum = (sum & 0xffff) + (sum >> 16);
+	// return sum;
 }
 
 /*

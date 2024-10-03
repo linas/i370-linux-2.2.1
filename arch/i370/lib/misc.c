@@ -61,24 +61,3 @@ csum_partial(const unsigned char * buff, int len,
 	return (cksum);
 }
 #endif /* CONFIG_CKSM */
-
-/* XXX not implemented complete garbage ... */
-/*
- * Computes the checksum of a memory block at src, length len,
- * and adds in "sum" (32-bit), while copying the block to dst.
- * If an access exception occurs on src or dst, it stores -EFAULT
- * to *src_err or *dst_err respectively (if that pointer is not
- * NULL), and, for an error on src, zeroes the rest of dst.
- *
- * Like csum_partial, this must be called with even lengths,
- * except for the last fragment.
- */
-unsigned int csum_partial_copy_generic(const char *src, char *dst,
-                                              int len, unsigned int sum,
-                                              int *src_err, int *dst_err)
-{
-	printk ("Error: csum_partial_copy_generic not implemented \n");
-	i370_halt();
-	return 0;
-}
-

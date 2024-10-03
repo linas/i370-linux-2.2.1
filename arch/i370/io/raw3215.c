@@ -65,7 +65,9 @@ ccw_t *ioccw;
 
 int i370_raw3215_open (struct inode *inode, struct file *filp)
 {
-	printk ("raw3215_open of %s %x\n", filp->f_dentry->d_iname, inode->i_rdev);
+	printk ("raw3215_open of /dev/%s (c %d %d)\n",
+	        filp->f_dentry->d_iname,
+	        inode->i_rdev >> 8, inode->i_rdev & 0xff);
 
 	/* private_data should be unused, unless someone cut-n-pasted
 	 * this code into a tty implementation of terminals. Ooops! */

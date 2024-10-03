@@ -38,13 +38,13 @@ abs (int j)
  * it's best to have buff aligned on a 32-bit boundary
  */
 
+#ifdef CONFIG_CKSM
 unsigned int
 csum_partial(const unsigned char * buff, int len,
              unsigned int sum)
 {
 	unsigned int cksum = 0;
 
-#ifdef CONFIG_CKSM
 	/* The CKSM instruction exists only if the checksum
 	 * facility is installed. */
 	__asm__ __volatile__ (
@@ -57,13 +57,10 @@ csum_partial(const unsigned char * buff, int len,
 	: "=m" (cksum)
 	: "m" (buff), "m" (len), "m" (sum)
 	: "r1", "r8", "r9");
-#else
-	printk ("Error: csum_partial not implemented \n");
-	i370_halt();
-#endif /* CONFIG_CKSM */
 
 	return (cksum);
 }
+#endif /* CONFIG_CKSM */
 
 /* XXX not implemented complete garbage ... */
 /*

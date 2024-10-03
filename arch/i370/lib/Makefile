@@ -5,8 +5,8 @@
 	$(CC) -D__ASSEMBLY__ -c $< -o $*.o
 
 O_TARGET = lib.o
-# O_OBJS  = checksum.o string.o strcase.o
-O_OBJS  = tables.o string.o misc.o
+# O_OBJS  = strcase.o
+O_OBJS  = tables.o checksum.o string.o misc.o
 
 ifdef CONFIG_SMP
 O_OBJS += locks.o

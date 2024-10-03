@@ -18,7 +18,11 @@
  * SLAB caches for signal bits.
  */
 
-#define DEBUG_SIG 1
+/* Enabling debuging just makes the slab print
+ * kmem_create: Illgl flg 500 - signal_queue
+ * because debugging isn't supported. So... whatever.
+ */
+#define DEBUG_SIG 0
 
 #if DEBUG_SIG
 #define SIG_SLAB_DEBUG	(SLAB_DEBUG_FREE | SLAB_RED_ZONE /* | SLAB_POISON */)

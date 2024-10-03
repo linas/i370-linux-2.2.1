@@ -208,7 +208,7 @@ unsigned short udp_good_socknum(void)
 		} while((sk = sk->next) != NULL);
 		best_size_so_far = size;
 		best = result;
-        next:
+        next: {}
 	}
 
 	result = best;

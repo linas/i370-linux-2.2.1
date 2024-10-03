@@ -18,7 +18,7 @@ CONFIG_HERCULES_GUEST=y
 #
 CONFIG_EXPERIMENTAL=y
 # CONFIG_MODULES is not set
-# CONFIG_NET is not set
+CONFIG_NET=y
 CONFIG_SYSCTL=y
 CONFIG_SYSVIPC=y
 # CONFIG_BSD_PROCESS_ACCT is not set
@@ -35,10 +35,58 @@ CONFIG_BINFMT_MISC=y
 # Block devices
 #
 CONFIG_BLK_DEV_LOOP=y
+CONFIG_BLK_DEV_NBD=y
 # CONFIG_BLK_DEV_MD is not set
 CONFIG_BLK_DEV_RAM=y
 CONFIG_BLK_DEV_INITRD=y
 # CONFIG_BLK_DEV_XD is not set
+
+#
+# Networking options
+#
+# CONFIG_PACKET is not set
+# CONFIG_NETLINK is not set
+# CONFIG_FIREWALL is not set
+# CONFIG_NET_ALIAS is not set
+# CONFIG_FILTER is not set
+CONFIG_UNIX=y
+CONFIG_INET=y
+# CONFIG_IP_MULTICAST is not set
+# CONFIG_IP_ADVANCED_ROUTER is not set
+# CONFIG_IP_PNP is not set
+# CONFIG_IP_ROUTER is not set
+# CONFIG_NET_IPIP is not set
+# CONFIG_NET_IPGRE is not set
+# CONFIG_IP_ALIAS is not set
+# CONFIG_SYN_COOKIES is not set
+
+#
+# (it is safe to leave these untouched)
+#
+# CONFIG_INET_RARP is not set
+# CONFIG_IP_NOSR is not set
+# CONFIG_SKB_LARGE is not set
+# CONFIG_IPV6 is not set
+
+#
+#  
+#
+# CONFIG_IPX is not set
+# CONFIG_ATALK is not set
+# CONFIG_X25 is not set
+# CONFIG_LAPB is not set
+# CONFIG_BRIDGE is not set
+# CONFIG_LLC is not set
+# CONFIG_ECONET is not set
+# CONFIG_WAN_ROUTER is not set
+# CONFIG_NET_FASTROUTE is not set
+# CONFIG_NET_HW_FLOWCONTROL is not set
+# CONFIG_CPU_IS_SLOW is not set
+
+#
+# QoS and/or fair queueing
+#
+# CONFIG_NET_SCHED is not set
 
 #
 # Character devices
@@ -71,6 +119,17 @@ CONFIG_DEVPTS_FS=y
 CONFIG_EXT2_FS=y
 # CONFIG_SYSV_FS is not set
 # CONFIG_UFS_FS is not set
+
+#
+# Network File Systems
+#
+# CONFIG_CODA_FS is not set
+# CONFIG_NFS_FS is not set
+# CONFIG_NFSD is not set
+# CONFIG_SUNRPC is not set
+# CONFIG_LOCKD is not set
+# CONFIG_SMB_FS is not set
+# CONFIG_NCP_FS is not set
 
 #
 # Partition Types

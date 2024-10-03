@@ -562,6 +562,7 @@ reject_redirect:
 		       ntohl(old_gw), dev->name, ntohl(new_gw),
 		       ntohl(saddr), ntohl(daddr), tos);
 #endif
+	{}
 }
 
 static struct dst_entry *ipv4_negative_advice(struct dst_entry *dst)

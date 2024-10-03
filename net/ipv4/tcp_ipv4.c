@@ -280,7 +280,7 @@ unsigned short tcp_good_socknum(void)
 				goto next;
 		}
 		break;
-	next:
+	next: {}
 	} while(--remaining > 0);
 	tcp_port_rover = rover;
 	tb = NULL;
@@ -583,7 +583,7 @@ int tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
 		if (usin->sin_family)
 			return(-EAFNOSUPPORT);
 		if (!complained++)
-			printk(KERN_DEBUG "%s forgot to set AF_INET in " __FUNCTION__ "\n", current->comm);
+			printk(KERN_DEBUG "%s forgot to set AF_INET in %s\n", current->comm, __FUNCTION__);
 	}
 
 	nexthop = daddr = usin->sin_addr.s_addr;
@@ -1655,7 +1655,7 @@ int tcp_v4_rcv(struct sk_buff *skb, unsigned short len)
 			tcp_statistics.TcpInErrs++;
 			goto discard_it;
 		}
-	default:
+	default: {}
 		/* CHECKSUM_UNNECESSARY */
 	}
 

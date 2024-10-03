@@ -227,4 +227,4 @@ extern u32 fib_rules_policy(u32 saddr, struct fib_result *res, unsigned *flags);
 extern void fib_rules_init(void);
 #endif
 
-#endif  _NET_FIB_H
+#endif  // _NET_FIB_H

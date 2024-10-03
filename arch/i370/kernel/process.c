@@ -410,15 +410,6 @@ release_thread(struct task_struct *t)
 {
 }
 
-void
-i370_sys_exit (void)
-{
-	printk ("i370_sys_exit(): not implemented \n");
-	show_regs (current->tss.regs);
-	print_backtrace (current->tss.regs->irregs.r13);
-	i370_halt();
-}
-
 /* =================================================================== */
 
 /*

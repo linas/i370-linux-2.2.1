@@ -82,10 +82,20 @@ printk("XXX handle_signa for signals not implemented yet\n");
 }
 
 /*
+ * Signals are delivered on stack. For ease of use, the stack
+ * layout is defined by struct sigframe below.
+ */
+struct sigframe {
+	i370_elf_stack_t elf_abi_frame;
+	i370_interrupt_state_t pstate; /* same as struct pt_regs */
+	unsigned long  tramp[2];
+};
+
+/*
  * Set up a signal frame.
  */
 static void
-setup_frame(struct pt_regs *regs, unsigned long frame,
+setup_frame(struct pt_regs *regs, struct sigframe* frame,
             unsigned long newsp)
 {
 	struct sigcontext_struct *sc = (struct sigcontext_struct *) newsp;
@@ -94,19 +104,20 @@ setup_frame(struct pt_regs *regs, unsigned long frame,
 
 	printk("Trying to setup signal context frame. Probably did it wrong\n");
 
-#if 0
-	if (__copy_to_user(&frame->gp_regs, regs, sizeof(struct pt_regs)))
+	if (__copy_to_user(&frame->pstate, regs, sizeof(struct pt_regs)))
 		goto badframe;
 	/* XXX TODO copy fpregs, too */
 
+#if 0
 	/* XXX FIXME. I have no idea. We have to jump to somewhere,
 	 * not sure where. */
 	if (__put_user(0x0def0000UL, &frame->tramp[0])) /* basr 14,15 */
 		goto badframe;
+#endif
 
-	newsp -= __SIGNAL_FRAMESIZE;
+	newsp += sizeof(struct sigframe);
 
-	if (put_user(regs->r13, newsp))
+	if (put_user(regs->irregs.r13, (unsigned long*) newsp))
 		goto badframe;
 	if (get_user(regs->irregs.r15, &sc->handler))
 		goto badframe;
@@ -118,7 +129,6 @@ setup_frame(struct pt_regs *regs, unsigned long frame,
 	regs->irregs.r11 = (unsigned long) sc;
 	regs->irregs.r15 = (unsigned long) frame->tramp;
 
-#endif
 	return;
 
 badframe:
@@ -144,10 +154,12 @@ i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 	if (!oldset)
 		oldset = &current->blocked;
 
-	newsp = regs->irregs.r13;
-	frame = regs->irregs.r11;
+	frame = regs->irregs.r13;
+	newsp = regs->irregs.r11;
 
-printk("Debug: enter i370_do_signal oldset=%x sp=%x fr=%s\n", oldset, newsp, frame);
+printk("Debug: enter i370_do_signal oldset=%p sp=%lx fr=%lx\n",
+       oldset, newsp, frame);
+
 	while (1) {
 		unsigned long signr;
 
@@ -249,6 +261,6 @@ printk("Debug: enter i370_do_signal oldset=%x sp=%x fr=%s\n", oldset, newsp, fra
 	if (newsp == frame)
 		return 0;      /* no signals delivered */
 
-	setup_frame(regs, frame, newsp);
+	setup_frame(regs, (struct sigframe*) frame, newsp);
 	return 1;
 }

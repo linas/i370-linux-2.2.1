@@ -197,10 +197,6 @@ struct _i370_interrupt_state_s {
 	psw_t   	psw;	/* process status word */
 	irregs_t	irregs;	/* some but not all of the GPR's */
 	i370_interrupt_state_t *oldregs;	/* backchain */
-
-/* XXX all wrong for 370 but we need something like this? */
-//	unsigned long orig_gpr3; /* Used for restarting system calls */
-//	unsigned long result;   /* Result of a system call */
 };
 
 #define pt_regs _i370_interrupt_state_s

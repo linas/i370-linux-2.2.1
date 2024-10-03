@@ -4,9 +4,6 @@
  * Perform early initialization setup.
  *
  * TODO:
- *  -- Clear out real memory between 0x8 and 0x300. Re-IPL on
- *     Hercules leaves garbage there, leading to mystery crashes.
- *     (The boot command line is stashed at 0x300.)
  *  -- Clear out TLB before calling mem_init(). Again, re-IPL seems
  *     to pick up left-over dirt in those. Neither sysclear nor
  *     sysreset clears the TLB.
@@ -57,14 +54,20 @@ extern void i370_find_devices (unsigned long *memory_start_p,
 
 void setup_psa(void)
 {
-	_PSA_.Current = &init_task;		/* static, is in fact in the constant data */
-	
+	/* Crazy crashes result when low memory has not been cleared
+	 * from prior contents (from a hot reboot). sizeof(struct PSA)
+	 * is exactly 4KBytes. So we'll just hard-code this. */
+	unsigned long *p;
+	for (p=0x10; p < 0x400; p++)
+		*p = 0x0;
+
+	_PSA_.Current = &init_task; /* Current process. */
 	_PSA_.cpuadp = _stap();
 	_PSA_.cpuadl = _stap();
 	_PSA_.cpuno = 1;
 	_PSA_.cpumask = 0x0001;
 	
-	/* that is, really, very minimal, in an smp env. it will fail blatantly */
+	/* Very minimal, in an smp env. it will fail blatantly */
 }
 
 /* ========================================================== */
@@ -115,18 +118,9 @@ __initfunc(void setup_arch(char **cmdline_p,
 	extern char _etext[], _edata[], _end[];
 	// extern char _bss[], _ebss[];
 
-	/* XXX XXX XXX Serious bug alert.
-	 * gcc version egcs-2.91.66 19990314 (egcs-1.1.2 release)
-	 * seems to have a bad optimizer bug that
-	 * transforms
-	 * init_task.tss.ksp = (unsigned long) &init_task +1024;
-	 * into garbage. The work-around is to set the value
-	 * here, and to increment it later, after a subr call,
-	 * so to trick the compiler into thinking its volatile
-	 */
-	init_task.tss.ksp = (unsigned long) &init_task;
-
 	setup_psa();		/*  */
+
+	init_task.tss.ksp = (unsigned long) &init_task;
 
 	/* reboot on panic */	
 	panic_timeout = 180;
@@ -195,8 +189,8 @@ __initfunc(void setup_arch(char **cmdline_p,
 	init_task.tss.ksp += TASK_STRUCT_SIZE;
 
 	/* Give ourselves a place to store the PSW, so that we
-	 * can pretened we got here aftr an exception. */
-	init_task.tss.regs = init_task.tss.ksp;
+	 * can pretened we got here after an exception. */
+	init_task.tss.regs = (void *) init_task.tss.ksp;
 	init_task.tss.ksp += sizeof (i370_interrupt_state_t);
 
 	setup_trace(memory_start_p);

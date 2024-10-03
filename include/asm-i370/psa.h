@@ -34,9 +34,9 @@ struct PSA {		/* PSA: Prefixed Storage Area */
   psw_t		 ipl_psw_new;
   psw_t		 ipl_psw_old;
 
-  /* Interrupt vectors are at low addresses. This struct is not used
-	* to set those up; the defines in processor.h are used instead.
-	* Why? No reason. Maybe we should "fix" this? */
+  /* Exception vectors are at low addresses. These are configured
+   * with the offsets defined in processor.h.
+   */
   char           reserved_0 [512-2*8];
 
   char           eyecatcher [4];/* "PSA " in ascii                    */

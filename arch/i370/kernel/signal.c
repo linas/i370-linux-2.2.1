@@ -30,7 +30,43 @@ static void
 setup_frame(struct pt_regs *regs, struct sigregs *frame,
             unsigned long newsp)
 {
-printk("XXX setup_frame for signals not implemented yet\n");
+	struct sigcontext_struct *sc = (struct sigcontext_struct *) newsp;
+	if (verify_area(VERIFY_WRITE, frame, sizeof(*frame)))
+		goto badframe;
+
+	printk("Trying to setup signal context frame. Probably did it wrong\n");
+
+	if (__copy_to_user(&frame->gp_regs, regs, sizeof(struct pt_regs)))
+		goto badframe;
+	/* XXX TODO copy fpregs, too */
+
+	/* XXX FIXME. I have no idea. We have to jump to somewhere,
+	 * not sure where. */
+	if (__put_user(0x0def0000UL, &frame->tramp[0])) /* basr 14,15 */
+		goto badframe;
+
+	newsp -= __SIGNAL_FRAMESIZE;
+
+	if (put_user(regs->r13, newsp))
+		goto badframe;
+	if (get_user(regs->irregs.r15, &sc->handler))
+		goto badframe;
+	/* XXX also get_user of &sc->signal to somewhere on stack. */
+
+	/* XXX FIXME. Wild guess. This is approximately correct but probably
+	 * wrong. */
+	regs->irregs.r13 = newsp;
+	regs->irregs.r11 = (unsigned long) sc;
+	regs->irregs.r15 = (unsigned long) frame->tramp;
+
+	return;
+
+badframe:
+	printk("badframe in setup_frame, regs=%p frame=%p newsp=%lx\n",
+	       regs, frame, newsp);
+
+	lock_kernel();
+	do_exit(SIGSEGV);
 }
 
 /*
@@ -150,7 +186,6 @@ printk("Debug: enter i370_do_signal oldset=%x sp=%x fr=%s\n", oldset, newsp, fra
 		handle_signal(signr, ka, &info, oldset, regs, &newsp, frame);
 	}
 
-// XXXX this is wrong!!!
 	if (newsp == frame)
 		return 0;      /* no signals delivered */
 

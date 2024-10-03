@@ -1,5 +1,5 @@
 
-/* XXX signal.c not implemented. Take a look at ppc/signal.h for ideas. */
+/* Signal handling. Stubbed in. Details are probably wrong. */
 
 #include <linux/kernel.h>
 #include <linux/sched.h>
@@ -9,8 +9,66 @@
 #include <asm/signal.h>
 #include <asm/spinlock.h>
 #include <asm/system.h>
+#include <asm/uaccess.h>
 
 extern int sys_wait4(int, int *, int, struct rusage *);
+
+int i370_sys_sigaction (int sig,
+                        const struct old_sigaction *act,
+                        const struct old_sigaction *oact)
+{
+	printk("i370_sys_sigaction: not yet implemented\n");
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
+	i370_halt();
+	return 1;
+}
+
+int i370_sys_sigsuspend (old_sigset_t mask, struct pt_regs *regs)
+{
+	printk("i370_sys_sigsuspend: not yet implemented\n");
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
+	i370_halt();
+	return 1;
+}
+
+int i370_sys_rt_sigsuspend (sigset_t *unewset, size_t sigsetsize,
+                            struct pt_regs *regs)
+{
+	printk("i370_sys_rt_sigsuspend: not yet implemented\n");
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
+	i370_halt();
+	return 1;
+}
+
+int i370_sys_sigreturn (struct pt_regs *regs)
+{
+	printk("i370_sys_sigreturn: not yet implemented\n");
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
+	i370_halt();
+	return 1;
+}
+
+int i370_sys_rt_sigreturn (void)
+{
+	printk("i370_sys_rt_sigreturn: not yet implemented\n");
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
+	i370_halt();
+	return 1;
+}
+
+int i370_sys_sigaltstack (const stack_t *uss, stack_t *uoss)
+{
+	printk("i370_sys_sigalstack: not yet implemented\n");
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
+	i370_halt();
+	return 1;
+}
 
 /*
  * OK, we're invoking a handler
@@ -27,7 +85,7 @@ printk("XXX handle_signa for signals not implemented yet\n");
  * Set up a signal frame.
  */
 static void
-setup_frame(struct pt_regs *regs, struct sigregs *frame,
+setup_frame(struct pt_regs *regs, unsigned long frame,
             unsigned long newsp)
 {
 	struct sigcontext_struct *sc = (struct sigcontext_struct *) newsp;
@@ -36,6 +94,7 @@ setup_frame(struct pt_regs *regs, struct sigregs *frame,
 
 	printk("Trying to setup signal context frame. Probably did it wrong\n");
 
+#if 0
 	if (__copy_to_user(&frame->gp_regs, regs, sizeof(struct pt_regs)))
 		goto badframe;
 	/* XXX TODO copy fpregs, too */
@@ -59,6 +118,7 @@ setup_frame(struct pt_regs *regs, struct sigregs *frame,
 	regs->irregs.r11 = (unsigned long) sc;
 	regs->irregs.r15 = (unsigned long) frame->tramp;
 
+#endif
 	return;
 
 badframe:
@@ -189,6 +249,6 @@ printk("Debug: enter i370_do_signal oldset=%x sp=%x fr=%s\n", oldset, newsp, fra
 	if (newsp == frame)
 		return 0;      /* no signals delivered */
 
-	setup_frame(regs, (struct sigregs *) frame, newsp);
+	setup_frame(regs, frame, newsp);
 	return 1;
 }

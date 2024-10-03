@@ -1,5 +1,5 @@
 /*
- * linux/arch/i370/kernel/i370calls.c
+ * linux/arch/i370/kernel/syscalls.c
  *
  * i370 version was blatently stolen from PowerPC code
  * Derived from "arch/i386/kernel/i370_sys_i386.c"
@@ -8,13 +8,9 @@
  * and Paul Mackerras (paulus@cs.anu.edu.au).
  * PowerPC version  Copyright (C) 1995-1996 Gary Thomas (gdt@linuxppc.org)
  *
- *
  * This file contains various random system calls that
  * have a non-standard calling sequence on the Linux/390
  * platform.
- *
- * XXX most stuff in here needs to be validated for correctness
- * much of it is bogus for the i370 port ...
  *
  *  This program is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU General Public License
@@ -71,36 +67,6 @@ asmlinkage int i370_sys_execve(unsigned long fname, unsigned long argv,
 asmlinkage int i370_sys_ptrace (void)
 {
 	printk("i370_sys_ptrace: unsupported\n");
-	i370_halt();
-	return 1;
-}
-asmlinkage int i370_sys_sigaction (void) {
-	printk("i370_sys_sigaction: unsupported\n");
-	i370_halt();
-	return 1;
-}
-asmlinkage int i370_sys_sigsuspend (void) {
-	printk("i370_sys_sigsuspend: unsupported\n");
-	i370_halt();
-	return 1;
-}
-asmlinkage int i370_sys_rt_sigsuspend (void) {
-	printk("i370_sys_rt_sigsuspend: unsupported\n");
-	i370_halt();
-	return 1;
-}
-asmlinkage int i370_sys_sigreturn (void) {
-	printk("i370_sys_sigreturn: unsupported\n");
-	i370_halt();
-	return 1;
-}
-asmlinkage int i370_sys_rt_sigreturn (void) {
-	printk("i370_sys_rt_sigreturn: unsupported\n");
-	i370_halt();
-	return 1;
-}
-asmlinkage int i370_sys_sigaltstack (void) {
-	printk("i370_sys_sigalstack: unsupported\n");
 	i370_halt();
 	return 1;
 }

@@ -100,6 +100,10 @@ Devices TODO, see directory `io`:
 * Adding filesystem drivers for traditional MVS filesystems would be ...
   weird and interesting.
 
+SMP:
+* This kernel runs only in uniprocessor mode. SMP support is absent.
+  Adding it should be easy. Debugging it should be fun.
+
 
 The original README
 -------------------

@@ -72,17 +72,6 @@ int i370_sys_sigaltstack (const stack_t *uss, stack_t *uoss)
 }
 
 /*
- * OK, we're invoking a handler
- */
-static void
-handle_signal(unsigned long sig, struct k_sigaction *ka,
-              siginfo_t *info, sigset_t *oldset, struct pt_regs * regs,
-              unsigned long *newspp, unsigned long frame)
-{
-printk("XXX handle_signa for signals not implemented yet\n");
-}
-
-/*
  * Signals are delivered on stack. For ease of use, the stack
  * layout is defined by struct sigframe below.
  */
@@ -90,7 +79,7 @@ struct sigframe {
 	i370_elf_stack_t elf_abi_frame;
 	i370_interrupt_state_t pstate; /* same as struct pt_regs */
 	unsigned char  tramp[8];
-	// struct sigcontext scc;
+	// struct sigcontext scc; /* todo */
 };
 
 /*
@@ -149,6 +138,44 @@ badframe:
 
 	lock_kernel();
 	do_exit(SIGSEGV);
+}
+
+static void
+setup_rt_frame(struct pt_regs *regs, struct sigframe* frame,
+               unsigned long newsp, siginfo_t *info)
+{
+	printk("setup_rt_frame: not yet implemented\n");
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
+	i370_halt();
+}
+
+/*
+ * OK, we're invoking a handler
+ */
+static void
+handle_signal(unsigned long sig, struct k_sigaction *ka,
+              siginfo_t *info, sigset_t *oldset, struct pt_regs * regs,
+              unsigned long newsp, unsigned long frame)
+{
+	/* XXX TODO if system call, and not ka->sa.sa_flags & SA_RESTART
+	 * then irregs->r15 = -EINTR;
+	 */
+
+	if (ka->sa.sa_flags & SA_SIGINFO)
+		setup_rt_frame(regs, (struct sigregs *) frame, newsp, info);
+	else
+		setup_frame(regs, (struct sigregs *) frame, newsp);
+
+	if (ka->sa.sa_flags & SA_ONESHOT)
+		ka->sa.sa_handler = SIG_DFL;
+	if (!(ka->sa.sa_flags & SA_NODEFER)) {
+		spin_lock_irq(&current->sigmask_lock);
+		sigorsets(&current->blocked,&current->blocked,&ka->sa.sa_mask);
+		sigaddset(&current->blocked,sig);
+		recalc_sigpending(current);
+		spin_unlock_irq(&current->sigmask_lock);
+	}
 }
 
 /*
@@ -266,13 +293,23 @@ printk("Debug: enter i370_do_signal oldset=%p sp=%lx fr=%lx\n",
 			}
 		}
 
+#if 0
+		/* Something something. If ERESTARTNOHAND ERESTARTSYS
+		 * ERESTARTNOINTR change it to EINTR and do it again.
+		 * See arch/alpha/kernel/signal.c for example. */
+		if (regs->r15)
+			syscall_restart(regs, ka);
+#endif
+
 		/* Whee!  Actually deliver the signal.  */
-		handle_signal(signr, ka, &info, oldset, regs, &newsp, frame);
+		handle_signal(signr, ka, &info, oldset, regs, newsp, frame);
+		return 1;
 	}
 
-	if (newsp == frame)
-		return 0;      /* no signals delivered */
+	/* TODO check for ERESTARTNOHAND ERESTARTSYS ERESTARTNOINTR
+	 * back up to last insn which should be SVC and restart.
+	 * See arch/alpha/kernel/signal.c for example.
+	 */
 
-	setup_frame(regs, (struct sigframe*) frame, newsp);
-	return 1;
+	return 0;      /* no signals delivered */
 }

@@ -10,6 +10,7 @@
 #include <asm/spinlock.h>
 #include <asm/system.h>
 #include <asm/uaccess.h>
+#include <asm/unistd.h>
 
 extern int sys_wait4(int, int *, int, struct rusage *);
 
@@ -88,8 +89,21 @@ printk("XXX handle_signa for signals not implemented yet\n");
 struct sigframe {
 	i370_elf_stack_t elf_abi_frame;
 	i370_interrupt_state_t pstate; /* same as struct pt_regs */
-	unsigned long  tramp[2];
+	unsigned char  tramp[8];
+	// struct sigcontext scc;
 };
+
+/*
+ * Set up the return.
+ *    LA   r1,__NR_sigreturn(0,0)
+ *    SVC  0
+ */
+static void inline
+setup_trampoline(unsigned char *code)
+{
+	put_user_data(0x41100000 + __NR_sigreturn, code    , 4); /* LA */
+	put_user_data(0x0a00,                      code + 4, 2); /* SVC */
+}
 
 /*
  * Set up a signal frame.
@@ -108,23 +122,21 @@ setup_frame(struct pt_regs *regs, struct sigframe* frame,
 		goto badframe;
 	/* XXX TODO copy fpregs, too */
 
-#if 0
-	/* XXX FIXME. I have no idea. We have to jump to somewhere,
-	 * not sure where. */
-	if (__put_user(0x0def0000UL, &frame->tramp[0])) /* basr 14,15 */
-		goto badframe;
-#endif
+	setup_trampoline(&frame->tramp[0]);
 
 	newsp += sizeof(struct sigframe);
 
-	if (put_user(regs->irregs.r13, (unsigned long*) newsp))
+	/* XXX FIXME this is proably insane */
+	if (put_user(regs->irregs.r11, (unsigned long*) newsp))
 		goto badframe;
 	if (get_user(regs->irregs.r15, &sc->handler))
 		goto badframe;
 	/* XXX also get_user of &sc->signal to somewhere on stack. */
 
-	/* XXX FIXME. Wild guess. This is approximately correct but probably
-	 * wrong. */
+	printk("Setting up signal context frame. frame=%p sp=0xlx\n",
+	       frame, newsp);
+
+	/* XXX FIXME. Wild guess. I probably did this wrong. */
 	regs->irregs.r13 = newsp;
 	regs->irregs.r11 = (unsigned long) sc;
 	regs->irregs.r15 = (unsigned long) frame->tramp;

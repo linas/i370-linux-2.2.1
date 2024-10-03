@@ -50,12 +50,55 @@ are identical; two names for historical reasons.) Then
 make oldconfig
 make
 ```
+
+To boot the resulting kernel, take a look at `elf-stripper` and
+`ins-maker` in the `boot` directory. They explain how to boot and
+how to create a ramdisk holding the initial file system.
+
 Demos of a basic userland (without any C library) can be found in the
 [Bigfoot docker container](https://github.com/linas/i370-bigfoot) set up
 for this project. This includes a demo of the userland
 [_start](https://github.com/linas/i370-bigfoot/blob/master/docker/i370-bigfoot/scripts/init-demo/crtspin.S)
 function, needed to get a stack, `argc`, `argv` and `envp` so that `main()`
 can be called. The demo works.
+
+### TODO
+This kernel boots and it runs, and it context switches into userland.
+Many parts remain undone. In rough order from most important to least
+important:
+
+Network driver:
+* The mainframe 3215/3270 are line oriented; all unix tools, such
+  as editors and shell prompts, are character-oriented tty devices.
+  There is no way (never say never??) to layer a tty device onto
+  a 3215/3270. So, to get a usable Linux command line, one MUST
+  be able to telnet in, ssh in and use a regular pseudo-terminal.
+  But this is impossible without a network driver. This means the
+  system is barely usable, until a network driver is available.
+  Or until someone very clever figures out how to layer a tty device
+  onto a 3215/3270 or something weird like that. Beats me.
+
+Signals TODO, see `kernel/signal.c`:
+* A handful of signal handling system calls are not implemented.
+* Delivery of signals is untested, and si almost surely buggy.
+* Handling of `-EINTR` for restartable system calls not handled.
+
+3217 and 3270 TODO:
+* 3215 handling is minimal and barely acceptable, needs to be
+  cleaned up. See `io/raw3215.c`
+* Boot console to 3270 not implemented, see `io/con3270.c`
+* Generic 3270 support for non-console use needs to be implemented,
+  similar to what's in `io/raw3215.c`.
+
+Devices TODO, see directory `io`:
+* All devices are stubs and not implemented. This includes
+  CKD, CTCA, ECKD, FBA, TAPE.
+* Out of these, a usable storage device that could be formatted
+  with an ext2 file system would be the most important. Otherwise,
+  you are stuck without a hard drive. Unless you use NFS over
+  a network...
+* Adding filesystem drivers for traditional MVS filesystems would be ...
+  weird and interesting.
 
 
 The original README

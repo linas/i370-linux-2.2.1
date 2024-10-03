@@ -112,8 +112,7 @@ struct file_operations i370_fop_ctca =
 void
 i370_ctca_driver(void)
 {
-
-
+	printk("Hello CTCA\n");
 }
 
 /*===================== End of Mainline ====================*/

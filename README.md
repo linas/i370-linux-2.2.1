@@ -77,6 +77,10 @@ Network driver:
   system is barely usable, until a network driver is available.
   Or until someone very clever figures out how to layer a tty device
   onto a 3215/3270 or something weird like that. Beats me.
+* The solutino to this, on Hercules, is to implement CTCA (Device 3088)
+  Channel To Channel Adapter. Hercules can then route this to an
+  actual tcp/ip network, via the tun/tap device. See the Hercules
+  documentation.
 
 Signals TODO, see `kernel/signal.c`:
 * A handful of signal handling system calls are not implemented.

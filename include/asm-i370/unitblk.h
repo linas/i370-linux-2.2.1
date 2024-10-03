@@ -99,7 +99,7 @@ typedef struct {
 #define MJ3215 CON3270_MAJOR  /* Map other attached 3215 to /dev/3270/rawN */
 #define MJ3480 120  /* Local/experimental */
 #define MJ3590 121
-#define MJ3172 NBD_MAJOR /* ??? Network block device? I doubt it. */
+#define MJ3172 122 /* CTCA for Hercules network */
 #define MJCTCA 122
 
 /* Linux device names in /dev/ */

@@ -80,7 +80,7 @@ typedef	struct _PACK _devchar {
 #define T3215 0x3215
 #define T3480 0x3480
 #define T3590 0x3590
-#define T3172 0x3088
+#define T3172 0x3088   /* CTCA for hercules to network but why lie? */
 
 /* System/390 CU Model */
 #define MOSAD 0xe0

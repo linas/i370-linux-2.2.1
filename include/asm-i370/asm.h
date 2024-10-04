@@ -10,6 +10,15 @@
 #ifndef __ASSEMBLY__
 
 /* -------------------------------------------------------- */
+/* Compute absolute value */
+static inline int abs (int j)
+{
+   int absj;
+   asm volatile ("LPR %0,%1" : "=r" (absj) : "r" (j));
+   return(absj);
+}
+
+/* -------------------------------------------------------- */
 /* Get and set the current value of the stack pointer SP and the stack
  * top pointer STP.  Note that SP points at the base, and that saved
  * regs, args, frame, * etc. are a positive offset from SP.  The STP

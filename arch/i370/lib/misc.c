@@ -8,23 +8,6 @@
 #include <asm/asm.h>
 #include <linux/kernel.h>
 
-/* XXX might be useful to move abs to some header file and inline? */
-
-int
-abs (int j)
-{
-	int absj;
-
-	__asm__ __volatile__ (
-		"LPR     %0,%1"
-		: "=r" (absj)
-		: "r" (j)
-		);
-
-	return(absj);
-}
-
-
 /*
  * computes the checksum of a memory block at buff, length len,
  * and adds in "sum" (32-bit)

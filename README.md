@@ -81,22 +81,26 @@ Network driver:
   Channel To Channel Adapter. Hercules can then route this to an
   actual tcp/ip network, via the tun/tap device. See the Hercules
   documentation.
+* Implement `csum_partial_copy()` in `archi370/lib/csum_partial_copy.c`
+  This does a combined checksuming while also copying between real
+  and virtual memory. All the other arches do this in assembly.
+  This is needed for ipv4 packet checksumming.
 
-Signals TODO, see `kernel/signal.c`:
+Signals TODO, see `arch/i370/kernel/signal.c`:
 * A handful of signal handling system calls are not implemented.
 * Delivery of signals is untested, and si almost surely buggy.
 * Handling of `-EINTR` for restartable system calls not handled.
 
 3217 and 3270 TODO:
 * 3215 handling is minimal and barely acceptable, needs to be
-  cleaned up. See `io/raw3215.c`
+  cleaned up. See `arch/i370/io/raw3215.c`
 * Boot console to 3270 not implemented, see `io/con3270.c`
 * Generic 3270 support for non-console use needs to be implemented,
-  similar to what's in `io/raw3215.c`.
+  similar to what's in `arch/i370/io/raw3215.c`.
 
-Devices TODO, see directory `io`:
+Devices TODO, see directory `arch/i370/io`:
 * All devices are stubs and not implemented. This includes
-  CKD, CTCA, ECKD, FBA, TAPE.
+  CKD, ECKD, FBA, TAPE.
 * Out of these, a usable storage device that could be formatted
   with an ext2 file system would be the most important. Otherwise,
   you are stuck without a hard drive. Unless you use NFS over

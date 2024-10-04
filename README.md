@@ -9,7 +9,7 @@ Let's call this the __Bigfoot 25th Anniversary Edition__
 
 ### History
 Bigfoot was a port of the Linux kernel to the IBM mainframe, created by
-Linas Vepstas, with considerable help from Dan Freidan, Neale Ferguson
+Linas Vepstas, with considerable help from Dan, Neale Ferguson
 and Peter Schulte-Stracke, over the course of February to December 1999.
 The port was done in public, with support from mailing lists. It reached
 the point of being able to boot into user space;  a port of glibc and zsh

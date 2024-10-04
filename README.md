@@ -27,9 +27,9 @@ to revenue.
 The original i370 port can be found on
 [Linas' i370 website](https://linas.org/linux/i370/i370.html). Work on
 the port halted in December 1999, as it seemed futile to continue in the
-face of competition from IBM. The competition wasn't freindly; IBM plays
+face of competition from IBM. The competition wasn't friendly; IBM plays
 for keeps. Linas was spurned and excluded. The thrill was gone, the
-excitment evaporated, replaced by anger at being snubbed and disinvited.
+excitement evaporated, replaced by anger at being snubbed and disinvited.
 
 Due to popular demand (pressure from Paul Edwards), the original CVS
 sources are being published here, together with some cleanup to see if
@@ -77,14 +77,16 @@ Network driver:
   system is barely usable, until a network driver is available.
   Or until someone very clever figures out how to layer a tty device
   onto a 3215/3270 or something weird like that. Beats me.
-* The solutino to this, on Hercules, is to implement CTCA (Device 3088)
+* The solution to this, on Hercules, is to implement CTCA (Device 3088)
   Channel To Channel Adapter. Hercules can then route this to an
   actual tcp/ip network, via the tun/tap device. See the Hercules
   documentation.
 * Implement `csum_partial_copy()` in `archi370/lib/csum_partial_copy.c`
-  This does a combined checksuming while also copying between real
+  This does a combined checksumming while also copying between real
   and virtual memory. All the other arches do this in assembly.
   This is needed for ipv4 packet checksumming.
+* This solves the root filesystem issue: the root file system can
+  live on an NBD network block device.
 
 Signals TODO, see `arch/i370/kernel/signal.c`:
 * A handful of signal handling system calls are not implemented.
@@ -103,8 +105,8 @@ Devices TODO, see directory `arch/i370/io`:
   CKD, ECKD, FBA, TAPE.
 * Out of these, a usable storage device that could be formatted
   with an ext2 file system would be the most important. Otherwise,
-  you are stuck without a hard drive. Unless you use NFS over
-  a network...
+  you are stuck without a hard drive. Unless you use either NBD
+  or NFS over a network...
 * Adding filesystem drivers for traditional MVS filesystems would be ...
   weird and interesting.
 

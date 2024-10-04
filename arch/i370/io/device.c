@@ -68,7 +68,8 @@ S390map_t s390_map[11] = {
 	{T3480, 0,     0,  5},
 	{T3590, 0,     0,  6},
 	{T3172, MOSAD, 0,  7},
-	{T3172, MCTCA, 0,  8}, /* Hercules CTC to actual network */
+	{T3172, MCTCA, 0,  8},
+	{T3172, MHERC, 0,  8}, /* Hercules CTC to actual network */
 	{T3210, 0,     0,  9}, /* non-system console 3210's */
 	{T3215, 0,     0,  9}, /* non-system console 3215's */
 	{0,     0,     0, -1}
@@ -240,7 +241,7 @@ i370_setup_devices(void)
 		}
 		done[devices->unitmajor] = 1;
 
-		printk ("i370 register /dev/%s (%c %d %d)\n",
+		printk ("i370_setup_devices /dev/%s (%c %d %d)\n",
 			devices->unitname, devices->unittype == CHRDEV? 'c':'b',
 			devices->unitmajor, devices->unitminor);
 		if (devices->unittype == CHRDEV)

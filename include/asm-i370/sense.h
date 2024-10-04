@@ -85,6 +85,7 @@ typedef	struct _PACK _devchar {
 /* System/390 CU Model */
 #define MOSAD 0xe0
 #define MCTCA 0x66
+#define MHERC 0x08 /* Hercules report model 08 for networking CTCA */
 
 #undef  _PACK
 #endif /* I370_SENSE_H_ */

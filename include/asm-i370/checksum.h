@@ -20,6 +20,17 @@ extern unsigned int csum_partial(const unsigned char * buff, int len,
 #define csum_partial_copy_fromuser csum_partial_copy
 
 /*
+ * the same as csum_partial, but copies from src while it
+ * checksums
+ *
+ * here even more important to align src and dst on a 32-bit (or even
+ * better 64-bit) boundary
+ */
+unsigned int csum_partial_copy(const char *src, char *dst, int len, unsigned int sum);
+
+unsigned int csum_partial_copy_nocheck(const char *src, char *dst, int len, unsigned int sum);
+
+/*
  * turns a 32-bit partial checksum (e.g. from csum_partial) into a
  * 1's complement 16-bit checksum.
  */
@@ -58,7 +69,7 @@ static inline unsigned long csum_tcpudp_nofold(unsigned long saddr,
 						   unsigned long daddr,
 						   unsigned short len,
 						   unsigned short proto,
-						   unsigned int sum) 
+						   unsigned int sum)
 {
   // __asm__("
   //	addc %0,%0,%1

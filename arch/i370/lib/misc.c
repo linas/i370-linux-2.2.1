@@ -5,8 +5,8 @@
  * Copyright (c) 1999 Neale Fergusen
  */
 
-#include <linux/kernel.h>
 #include <asm/asm.h>
+#include <linux/kernel.h>
 
 /* XXX might be useful to move abs to some header file and inline? */
 

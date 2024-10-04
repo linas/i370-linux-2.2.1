@@ -60,13 +60,16 @@ struct nbd_device {
 #define NBD_REPLY_MAGIC 0x67446698
 /* Do *not* use magics: 0x12560953 0x96744668. */
 
-struct nbd_request {
+/* Must be 28 bytes long and it won't be unless packed. */
+#define _PACK __attribute__ ((packed))
+struct _PACK nbd_request {
 	u32 magic;
 	u32 type;	/* == READ || == WRITE 	*/
 	char handle[8];
 	u64 from;
 	u32 len;
 };
+#undef _PACK
 
 struct nbd_reply {
 	u32 magic;

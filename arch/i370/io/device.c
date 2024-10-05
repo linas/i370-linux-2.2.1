@@ -59,7 +59,7 @@ extern void i370_tss_flih  (int, void *, struct pt_regs *regs);
 extern void i370_osa_flih  (int, void *, struct pt_regs *regs);
 extern void i370_ctca_flih (int, void *, struct pt_regs *regs);
 
-S390map_t s390_map[11] = {
+S390map_t s390_map[12] = {
 	{T3990, 0,     0,  0},
 	{T3880, 0,     0,  1},
 	{TFBLK, 0,     0,  2},

@@ -458,13 +458,12 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	 */
 	srctop = kernel_stack_top (current);
 	dsttop = kernel_stack_top (p);
+	delta = srctop - dsttop;
 
 	this_frame = (i370_elf_stack_t *) _get_SP();
 	this_frame_top = this_frame;
 	this_frame = (i370_elf_stack_t *) (this_frame->caller_sp);
 	srcsp = this_frame;
-
-	delta = srctop - dsttop;
 
 	/* switch_to() grabs the current ksp out of tss.ksp */
 	p->tss.ksp = ((unsigned long) this_frame) - delta;
@@ -512,9 +511,12 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		print_backtrace ((unsigned long) this_frame);
 		i370_halt();
 	}
+
+	/* Note: oldregs and psw are set in head.S by the exception prolog. */
 	do {
 		*dstregs = (i370_interrupt_state_t *)
 			(((unsigned long) srcregs) - delta);
+		(*dstregs)->psw = srcregs->psw;
 		(*dstregs)->irregs.r13 = srcregs->irregs.r13 - delta;
 		(*dstregs)->irregs.r11 = srcregs->irregs.r11 - delta;
 		(*dstregs)->oldregs =  (i370_interrupt_state_t *)

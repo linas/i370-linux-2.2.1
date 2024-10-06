@@ -46,8 +46,8 @@ char saved_command_line[512];
 // must already be set before boot can start.
 struct PSA _PSA_  __attribute__ ((section(".psa"))) = {
 	/* ipl_psw_new */
-	0x00080000, /* Disabled wait */
-	0x80010000  /* Start of text section */ };
+	{0x00080000, /* Disabled wait */
+	0x80010000}  /* Start of text section */ };
 
 extern void i370_find_devices (unsigned long *memory_start_p,
                                unsigned long *memory_end_p);
@@ -58,7 +58,7 @@ void setup_psa(void)
 	 * from prior contents (from a hot reboot). sizeof(struct PSA)
 	 * is exactly 4KBytes. So we'll just hard-code this. */
 	unsigned long *p;
-	for (p=0x10; p < 0x400; p++)
+	for (p = (unsigned long*) 0x10; p < (unsigned long*) 0x400; p++)
 		*p = 0x0;
 
 	_PSA_.Current = &init_task; /* Current process. */
@@ -189,9 +189,10 @@ __initfunc(void setup_arch(char **cmdline_p,
 	init_task.tss.ksp += TASK_STRUCT_SIZE;
 
 	/* Give ourselves a place to store the PSW, so that we
-	 * can pretened we got here after an exception. */
+	 * can pretend we got here after an exception. */
 	init_task.tss.regs = (void *) init_task.tss.ksp;
 	init_task.tss.ksp += sizeof (i370_interrupt_state_t);
+	init_task.tss.regs->psw = _PSA_.ipl_psw_new;
 
 	setup_trace(memory_start_p);
 

@@ -40,7 +40,7 @@ static struct signal_struct init_signals = INIT_SIGNALS;
 struct mm_struct init_mm = INIT_MM;
 union task_union init_task_union = { INIT_TASK };
 
-/* init_ksp is used only in head.S during startup to set up the inital stack */
+/* init_ksp is used only in head.S during startup to set up the initial stack */
 const unsigned long init_ksp __initdata = (unsigned long) init_stack;
 
 /* =================================================================== */
@@ -213,7 +213,7 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	 * frame pointer, plus the size of the frame; which is
 	 * sizeof (i370_elf_stack_t) which is 88 bytes.
 	 * We'll pass this in r1; this eventually becomes main()'s r13.
-	 * To acheive this, _start has to `ST r1,0(,r11)` so main() can
+	 * To achieve this, _start has to `ST r1,0(,r11)` so main() can
 	 * find it.
 	 * Pass argc in r2, argv in r3 and envp in r4.
 	 */
@@ -282,7 +282,7 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 //     to primary or v.v.  ... then again, we can defer changing addressing
 //     until we return to the user-level process. Ditto for the next two
 //     steps ...
-// ... modify the segment table CR1 and mabye CR3 key  ...
+// ... modify the segment table CR1 and maybe CR3 key  ...
 // ... Purge TLB ...
 //
 // NB the first time through, switch_to() actually returns as if
@@ -390,7 +390,7 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 void exit_thread(void)
 {
 	/* The only thing we have to do here is to check if a userland
-	 * thread has used the float pt regs, and maybe amke sure we
+	 * thread has used the float pt regs, and maybe make sure we
 	 * want to clobber/save or restore these. But right now, we
 	 * unconditionally save/restore float pt regs in swtich_to()
 	 * so this doesn't matter. */
@@ -399,7 +399,7 @@ void exit_thread(void)
 void flush_thread(void)
 {
 	/* The only thing we have to do here is to check if a userland
-	 * thread has used the float pt regs, and maybe amke sure we
+	 * thread has used the float pt regs, and maybe make sure we
 	 * want to clobber/save or restore these. But right now, we
 	 * unconditionally save/restore float pt regs in swtich_to()
 	 * so this doesn't matter. */
@@ -668,7 +668,7 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
  */
 void dump_thread(struct pt_regs * regs, struct user * dump)
 {
-	/* Used only for MSDOS binaries */
+	/* Used only for MS-DOS binaries */
 	memset(dump, 0, sizeof(struct user));
 }
 

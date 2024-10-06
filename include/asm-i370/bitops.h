@@ -10,7 +10,7 @@
 #include <asm/system.h>
 #include <asm/byteorder.h>
 
-/* XXX These atomic bitops are implmeneted in bitops.c,
+/* XXX These atomic bitops are implemented in bitops.c,
  * they should be moved here and inlined for performance
  * once we get comfortable that everything works.
  */

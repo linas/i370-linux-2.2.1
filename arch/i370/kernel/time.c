@@ -34,7 +34,7 @@ __initfunc(void time_init(void))
 	 */
 	/* grab the system time of day clock, add 200 milliseconds,
 	 * and store that in the clock comparator.  That should start 
-	 * the interupts going.  We pick a large value just in case
+	 * the interrupts going.  We pick a large value just in case
 	 * VM decides to play games with us.
 	 */
 	tod = _stck();

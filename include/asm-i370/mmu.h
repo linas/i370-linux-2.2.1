@@ -10,7 +10,7 @@
 /* Hardware Page Table Entry */
 typedef struct _i370_pte_s {
 	unsigned long za:1;	/* Must be zero */
-	unsigned long pfra:19;	/* Page Frame Real Adress */
+	unsigned long pfra:19;	/* Page Frame Real Address */
 	unsigned long zb:1;	/* Must be zero */
 	unsigned long iv:1;	/* Page Invalid bit */
 	unsigned long pp:1;	/* Page Protection bit */

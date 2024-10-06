@@ -129,7 +129,7 @@ typedef struct siginfo {
  * SIGBUS si_codes
  */
 #define BUS_ADRALN	1	/* invalid address alignment */
-#define BUS_ADRERR	2	/* non-existant physical address */
+#define BUS_ADRERR	2	/* non-existent physical address */
 #define BUS_OBJERR	3	/* object specific hardware error */
 #define NSIGBUS		3
 

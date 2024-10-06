@@ -171,7 +171,7 @@ __initfunc(void free_initmem(void))
 {
 	unsigned long num_freed_pages = 0;
 
-	/* This is just a shortened version of the code furthr up above */
+	/* This is just a shortened version of the code further up above */
 #define FREESEC(START,END,CNT) \
 	do { \
 		unsigned long a = (unsigned long)(&START); \
@@ -402,7 +402,7 @@ void set_context(int context) {}
 /* XXX probably would get a performance boost by
  * using the 'LRA' instruction. (assuming cr1 is valid).
  */
-/* XXX all wrong for page boundry corssings .... */
+/* XXX all wrong for page boundary crossings .... */
 
 
 int
@@ -499,7 +499,6 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 
 int __strncpy_from_user(char *dst, const char *src, long count)
 {
-
 	/* kernel page tables require no translation */
 	if (current->mm->pgd == swapper_pg_dir) {
 		long  lcl_count;
@@ -556,8 +555,8 @@ int __strncpy_from_user(char *dst, const char *src, long count)
  * clear_user
  * strlen_user
  *
- * The way tht these routines are curently used in the kernel, one must
- * assume that thier arguments are always a virtual addresses, and never
+ * The way that these routines are currently used in the kernel, one must
+ * assume that their arguments are always a virtual addresses, and never
  * real addresses.   For example, create_elf_tables() calls strlen_user()
  * without first doing an appropriate set_fs(). Similarly, padzero in
  * load_elf_binary() does the same ...
@@ -701,7 +700,7 @@ put_user_data(long data, void *addr, long len)
 		*ca = (char) (data & 0xff);
 	}
 
-	/* for length 2 or 4, data may be split over page boundry ... */
+	/* for length 2 or 4, data may be split over page boundary ... */
 	else
 	if (2 == len) {
 		if (0xfff > off) {

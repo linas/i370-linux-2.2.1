@@ -10,7 +10,7 @@
  * to align stuff onto cache lines and thus improve performance
  * e.g. for SMP to avoid cache-line sharing. But the actual impact
  * is not clear to me. Also, these figures should be adjusted for 
- * the actual hardware model; diferent models will have different
+ * the actual hardware model; different models will have different
  * configs.
  */
 

@@ -1,6 +1,6 @@
 /* 
  * DMA is a built-in and automatic part of the I/O
- * subsystem for the 390 architecture. All relevent
+ * subsystem for the 390 architecture. All relevant
  * is in io.h
  */
 

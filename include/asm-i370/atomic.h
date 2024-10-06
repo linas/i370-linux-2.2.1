@@ -8,7 +8,7 @@
 
 /* 
  * We use a funky typdef struct for this atomic type in order
- * to let the compiler catch any accidental assignemnts, increments, etc.
+ * to let the compiler catch any accidental assignments, increments, etc.
  */
 #ifdef __SMP__
 typedef struct { volatile int counter; } atomic_t;

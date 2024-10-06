@@ -115,7 +115,7 @@ setup_frame(struct pt_regs *regs, struct sigframe* frame,
 
 	newsp += sizeof(struct sigframe);
 
-	/* XXX FIXME this is proably insane */
+	/* XXX FIXME this is probably insane */
 	if (put_user(regs->irregs.r11, (unsigned long*) newsp))
 		goto badframe;
 	if (get_user(regs->irregs.r15, &sc->handler))

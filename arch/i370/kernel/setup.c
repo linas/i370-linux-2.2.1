@@ -85,11 +85,11 @@ setup_trace(unsigned long *memory_start)
 
 	trc_page_t	*trc;
 
-	/* align on page boundry ... */
+	/* align on page boundary ... */
 	trace_base = (trc_page_t *)(((int)(*memory_start) + 0xfff));
 	trace_base = (trc_page_t *)(((int)(trace_base) & 0x7ffff000));
 
-	/* build ciruclar list */
+	/* build circular list */
 	trc = trace_base;
 	for (i=0; i<MAX_TRACE_PAGES; i++)
 	{

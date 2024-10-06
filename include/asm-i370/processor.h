@@ -29,14 +29,14 @@
 #define PFX_EXT_SIG	0x80	/* External Interruption Service Signal */
 #define PFX_EXT_CODE	0x84	/* External Interruption Code location */
 #define PFX_SVC_CODE	0x88	/* Supervisor Call Code location */
-#define PFX_PRG_CODE	0x8c	/* Program Interrrupt Code location */
-#define PFX_PRG_TRANS	0x90	/* Program Interrrupt Translation Exception Code */
-#define PFX_MCH_CODE	0xe8	/* Machine Check Interrrupt Code location */
-#define PFX_MCH_CODE_LO	0xe8	/* Machine Check Interrrupt Code low word */
-#define PFX_MCH_CODE_HI	0xec	/* Machine Check Interrrupt Code high word */
+#define PFX_PRG_CODE	0x8c	/* Program Interrupt Code location */
+#define PFX_PRG_TRANS	0x90	/* Program Interrupt Translation Exception Code */
+#define PFX_MCH_CODE	0xe8	/* Machine Check Interrupt Code location */
+#define PFX_MCH_CODE_LO	0xe8	/* Machine Check Interrupt Code low word */
+#define PFX_MCH_CODE_HI	0xec	/* Machine Check Interrupt Code high word */
 
 #define PFX_SUBSYS_ID	0xb8	/* Subsystem id word (subchannel) */
-#define PFX_IO_PARM	0xbc	/* IO interruption paramter */
+#define PFX_IO_PARM	0xbc	/* IO interruption parameter */
 
 /*-----------------------------------------------------------------*/
 /* Interrupt Scratch Areas...                                      */
@@ -61,7 +61,7 @@
 
 /* Location (offset) of struct thread_stred tss; inside struct task_struct.
  * Note struct thread_struct {ulong ksp; struct pt_regs* regs; ... };
- * XXX FIXME automate this so we don't stumble if stucts change!
+ * XXX FIXME automate this so we don't stumble if structs change!
  */
 #define OFFSET_KSP      568     /* Offset to kernel stack pointer */
 #define OFFSET_KREGS    572     /* Offset to pt_regs (_i370_interrupt_state_s) */
@@ -269,7 +269,7 @@ void release_thread(struct task_struct *);
 /*--------------------------------------------------------------------*/
 /* The thread_struct is inlined into the arch-independent task_struct */
 /* Here's the deal:                                                   */
-/* This sturcture contains (obviously) per-thread data that we need to*/
+/* This structure contains (obviously) per-thread data that we need to*/
 /* keep around.  This includes a pointer to per-interrupt data that   */
 /* we need.  The per-interrupt data is in "struct pt_regs" aka        */
 /* i370_interrupt_state.  This is by necessity a pointer into the     */

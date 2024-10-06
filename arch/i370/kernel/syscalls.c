@@ -1,7 +1,7 @@
 /*
  * linux/arch/i370/kernel/syscalls.c
  *
- * i370 version was blatently stolen from PowerPC code
+ * i370 version was blatantly stolen from PowerPC code
  * Derived from "arch/i386/kernel/i370_sys_i386.c"
  * Adapted from the i386 version by Gary Thomas
  * Modified by Cort Dougan (cort@cs.nmt.edu)

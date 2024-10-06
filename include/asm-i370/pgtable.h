@@ -1,7 +1,7 @@
 #include <linux/config.h>
-/* 
- * Page Table mamangement stuff for the ESA/390.  
- * XXX under constructions, some things need fixin
+/*
+ * Page Table mamangement stuff for the ESA/390.
+ * XXX under construction, some things need fixin
  */
 
 #ifndef _I370_PGTABLE_H
@@ -42,17 +42,17 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 /*
  * The ESA/390 MMU uses a page table containing PTEs, together with
  * a segment table containing STE's (pointers to page tables) to define
- * the virtual to physical address mapping. We collapse the linux pgd 
+ * the virtual to physical address mapping. We collapse the linux pgd
  * and pmd to be the same thing, and map them to the 390 segment table.
  *
  * Implementation note: Although conceptually, the pgd and pmd are collapsed
  * into one, the actual implementation is oddly split.  This is because many
- * important functions (such as i370_pte_alloc) get only the pmd as an argument, 
+ * important functions (such as i370_pte_alloc) get only the pmd as an argument,
  * and must still 'do the right thing'.
  */
 
 /* PMD_SHIFT determines the size of the area mapped by the second-level
- * page tables.  For the i370, it is a 1MB segment 
+ * page tables.  For the i370, it is a 1MB segment
  */
 #define PMD_SHIFT	20
 #define PMD_SIZE	(1UL << PMD_SHIFT)
@@ -84,14 +84,14 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 /* USER_PTRS_PER_PGD should equal 2048 to address 2GB */
 #define USER_PTRS_PER_PGD	(TASK_SIZE / PGDIR_SIZE)
 
-/* VMALLOC_OFFSET is an (arbitrary) offset to the start of the vmalloc 
+/* VMALLOC_OFFSET is an (arbitrary) offset to the start of the vmalloc
  * kernel VM area: the current 1GB value means that all kernel vm addresses
- * will have a "1" in bit position 30.  
+ * will have a "1" in bit position 30.
  * We do this to catch out-of-bounds real memory accesses.
- * It also means that we have imposed a practical limit of max of 1GB 
- * a real memory.  This limit can be raised, although it will decrease 
+ * It also means that we have imposed a practical limit of max of 1GB
+ * a real memory.  This limit can be raised, although it will decrease
  * the amount of virtual memory available to the kernel.
- * 
+ *
  * The vmalloc() routines leaves a hole of 4kB between each vmalloced
  * area for the same reason. ;)
  *
@@ -103,7 +103,7 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 
 /*
  * Bits in a linux-style PTE.  Two bits match the hardware
- * PTE, the other bits are software-only thingies that inhabit 
+ * PTE, the other bits are software-only thingies that inhabit
  * low byte of the pte and hopefull won't hurt anybody.
  */
 #define _PAGE_INVALID	0x400	/* hardware pte: I bit is set */
@@ -135,10 +135,10 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
  * If we go fancy, maybe we can do better but this will hold for now.
  * P macros imply copy-on-write, S macros for shared access
  *
- * XXX Some future data, we should consider using sske to 
- * mark pages exectable.  Thus data segments would get loaded
+ * XXX Some future data, we should consider using sske to
+ * mark pages executable.  Thus data segments would get loaded
  * with a data storage key, text segments with a different key (?)
- * This would give nice security protection against buffer overrun 
+ * This would give nice security protection against buffer overrun
  * stack-smashing attacks.
  */
 #define __P000	PAGE_NONE
@@ -187,9 +187,9 @@ extern unsigned long empty_zero_page[1024];
 
 #ifndef __ASSEMBLY__
 
-/* SET_PAGE_DIR is used to set the segment table orign and length.
+/* SET_PAGE_DIR is used to set the segment table origin and length.
  * Although it loads cr1, note that it doesn't take effect until
- * DAT is set in the PSW. 
+ * DAT is set in the PSW.
  */
 /* tsk is a task_struct and pgdir is a pgd_t* */
 #define SET_PAGE_DIR(tsk,pgdir)  { 				\
@@ -199,38 +199,38 @@ extern unsigned long empty_zero_page[1024];
 	(tsk)->tss.cr1.bits.pstl = 127;				\
 	_lctl_r1 ((tsk)->tss.cr1.raw);				\
 }
-     
 
-/* Unused pte's must have the invalid bit set ...  
- * Cleared PTE's must be marked invlaid, and have zeros in all other bit
- * positions.  This distinguishes them from swaped-out pte's, which don't 
+
+/* Unused pte's must have the invalid bit set ...
+ * Cleared PTE's must be marked invalid, and have zeros in all other bit
+ * positions.  This distinguishes them from swaped-out pte's, which don't
  * contain 'true' ptes, but instead contain swapfile info.
  */
 
 /*
  * Note this version was once hobbled by a compiler bug ...
- * extern inline int 
+ * extern inline int
  * 	pte_none(pte_t pte)	{ return !((pte_val(pte) & ~(_PAGE_INVALID |_PAGE_RO))); }
 */
-extern inline int 
+extern inline int
 	pte_none(pte_t pte)	{ return ((pte_val(pte) == (_PAGE_INVALID |_PAGE_RO))); }
 
-extern inline int 
+extern inline int
 	pte_present(pte_t pte)	{ return !((pte_val(pte) & _PAGE_INVALID)); }
-extern inline void 
+extern inline void
 	pte_clear(pte_t *ptep)	{ pte_val(*ptep) = _PAGE_INVALID | _PAGE_RO; }
 
 
 /* unused segment table entries must have the invalid bit set.
  * XXX what's pmd_bad supposed to mean ????
  */
-extern inline int 
+extern inline int
 	pmd_none(pmd_t pmd)	{ return pmd_val(pmd) & _SEG_INVALID; }
-extern inline int 
+extern inline int
 	pmd_bad(pmd_t pmd)	{ return 0; }
-extern inline int 
+extern inline int
 	pmd_present(pmd_t pmd)	{ return (pmd_val(pmd) & _SEG_INVALID) == 0; }
-extern inline void 
+extern inline void
 	pmd_clear(pmd_t * pmdp)	{ pmd_val(*pmdp) = _SEG_INVALID; }
 
 
@@ -259,48 +259,48 @@ extern inline int pte_young(pte_t pte)		{ return !(pte_val(pte) & _PAGE_ACCESSED
 extern inline void pte_uncache(pte_t pte)       { }
 extern inline void pte_cache(pte_t pte)         { }
 
-extern inline pte_t 
+extern inline pte_t
 	pte_rdprotect(pte_t pte) { pte_val(pte) &= ~_PAGE_USER; return pte; }
-extern inline pte_t 
+extern inline pte_t
 	pte_mkread(pte_t pte) 	{ pte_val(pte) |= _PAGE_USER; return pte; }
 
-extern inline pte_t 
+extern inline pte_t
 	pte_exprotect(pte_t pte) { pte_val(pte) &= ~_PAGE_USER; return pte; }
-extern inline pte_t 
+extern inline pte_t
 	pte_mkexec(pte_t pte) 	{ pte_val(pte) |= _PAGE_USER; return pte; }
 
-extern inline pte_t 
+extern inline pte_t
 	pte_wrprotect(pte_t pte) { pte_val(pte) |= _PAGE_RO ; return pte; }
-extern inline pte_t 
+extern inline pte_t
 	pte_mkwrite(pte_t pte) 	{ pte_val(pte) &= ~_PAGE_RO; return pte; }
 
-extern inline pte_t 
+extern inline pte_t
 	pte_mkclean(pte_t pte) 	{ pte_val(pte) &= ~(_PAGE_DIRTY ); return pte; }
-extern inline pte_t 
+extern inline pte_t
 	pte_mkdirty(pte_t pte) 	{ pte_val(pte) |= _PAGE_DIRTY; return pte; }
 
-extern inline pte_t 
+extern inline pte_t
 	pte_mkold(pte_t pte)  	{ pte_val(pte) |= _PAGE_ACCESSED; return pte; }
-extern inline pte_t 
+extern inline pte_t
 	pte_mkyoung(pte_t pte) 	{ pte_val(pte) &= ~_PAGE_ACCESSED; return pte; }
 
 
 
 /* Certain architectures need to do special things when pte's
  * within a page table are directly modified.  Thus, the following
- * hook is made available. 
+ * hook is made available.
  * For the ESA/390, I think we're supposed to set/reset the
  * reference & change bits in the key storage at this time ...
- * XXX right ?? implement this ... 
+ * XXX right ?? implement this ...
  *
  * Note that the swapping code might call set_pte with an argument
- * of zero, in which case we need to set teh invalid bit.
+ * of zero, in which case we need to set the invalid bit.
  * (grep for set_pte (__pte(0));
  */
-extern inline void 
-set_pte (pte_t * ptep, pte_t val)	 
+extern inline void
+set_pte (pte_t * ptep, pte_t val)
 {
-	if (pte_val(val)) { 
+	if (pte_val(val)) {
 		*ptep = val;
 	} else {
 		pte_clear (ptep);
@@ -313,21 +313,21 @@ set_pte (pte_t * ptep, pte_t val)
  */
 
 static inline pte_t mk_pte_phys(unsigned long page, pgprot_t pgprot)
-{ pte_t pte; 
+{ pte_t pte;
 // printk ("mk_pte_phys for vaddr=%lx flags=%lx\n",page,pgprot_val(pgprot));
 pte_val(pte) = (page & PFRA_MASK) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t mk_pte(unsigned long page, pgprot_t pgprot)
-{ pte_t pte; 
+{ pte_t pte;
 // printk ("mk_pte %lx %lx\n",page, pgprot_val(pgprot));
 pte_val(pte) = (page & PFRA_MASK) | pgprot_val(pgprot); return pte; }
 
 extern inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
-{ pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot); 
+{ pte_val(pte) = (pte_val(pte) & _PAGE_CHG_MASK) | pgprot_val(newprot);
 // printk ("pte_modify %lx %lx\n", pte_val(pte),pgprot_val(newprot));
 return pte; }
 
-/* pte_page returns only the addrss part of the entry; mask out misc bits */
+/* pte_page returns only the address part of the entry; mask out misc bits */
 extern inline unsigned long pte_page(pte_t pte)
 { return (unsigned long) (pte_val(pte) & PFRA_MASK); }
 
@@ -352,7 +352,7 @@ extern inline pmd_t * pmd_offset(pgd_t * dir, unsigned long address)
 	return (pmd_t *) dir;
 }
 
-/* Find an entry in the third-level page table.. */ 
+/* Find an entry in the third-level page table.. */
 extern inline pte_t * pte_offset(pmd_t * dir, unsigned long address)
 {
 	pte_t * ppp = (pte_t *) pmd_page(*dir);
@@ -365,7 +365,7 @@ extern __inline__ pgd_t *i370_pgd_alloc(void)
 {
 	pgd_t *ret;
 
-	/* grab two pages, for 2048 entires mapping 2GB */
+	/* grab two pages, for 2048 entries mapping 2GB */
 	ret = (pgd_t *)__get_free_pages(GFP_KERNEL,1);
 	if (ret) {
 		/* zero out the entire pgd, not just the 'user' part of it */
@@ -378,7 +378,6 @@ extern __inline__ pgd_t *i370_pgd_alloc(void)
 			pmd_clear (pme);
 			pme ++;
 		}
-		
 	}
 	return ret;
 }
@@ -453,7 +452,7 @@ extern inline void set_pgdir(unsigned long address, pgd_t entry)
 	i370_halt();
 #if 0
 	struct task_struct * p;
-        
+
 	read_lock(&tasklist_lock);
 	for_each_task(p) {
 		if (!p->mm)
@@ -461,7 +460,7 @@ extern inline void set_pgdir(unsigned long address, pgd_t entry)
 		*pgd_offset(p->mm,address) = entry;
 	}
 	read_unlock(&tasklist_lock);
-#endif 
+#endif
 }
 
 /* the pgdir consists of *TWO* pages (address 2GB of storage) */
@@ -475,7 +474,7 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
 
 	va &= ADDR_MASK;
 	/* printk ("find_pte for va=0x%lx\n", va); */
-	
+
 	dir = pgd_offset( mm, va );
 	if (dir)
 	{
@@ -503,8 +502,8 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
  * the max effective swapfile size is 2^20 pages = 4GBytes.
  * See for example try_to_swap_out() -> get_swap_page()
  *
- * Note that this scheme misidentifies swapfile 0, offset 0 as a 
- * non-existant pte (pte_none()==true).  
+ * Note that this scheme misidentifies swapfile 0, offset 0 as a
+ * non-existent pte (pte_none()==true).
  */
 
 #define SWP_TYPE(entry) ((entry) & 0xff)

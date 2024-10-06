@@ -10,13 +10,13 @@
 
   Usage: use i370_translate for generic operands, of fixed and
   variable length, and with a table specified. For the default tables use
-  i370_translate_to_ebcdic &c. NOTE that variable lengh operands with a
+  i370_translate_to_ebcdic &c. NOTE that variable length operands with a
   length < 256 (! due to compiler/assembler bug for now) are much faster
   treated with __i370_translate[_to...], which modifies the translate
   instruction at run-time.
 
   Date: $Id: ebcdic.h,v 1.5 1999/11/11 04:26:29 linas Exp $
-  Changes: Uses now test for constant lengh operand.
+  Changes: Uses now test for constant length operand.
 
   */
 

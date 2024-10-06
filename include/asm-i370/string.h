@@ -25,7 +25,7 @@
   .     These functions presently use the String Feature -- therefore
   .     they are conditionalised by CONFIG_STRING_INLINES and
   .     CONFIG_STRING_FEATURE, with the intent to make them standard after 
-  .     a sufficient time of debugging and to add more generally useable
+  .     a sufficient time of debugging and to add more generally usable
   .     versions a bit later. After all, the arch/i370/lib/string.c versions
   .     should be no longer useful; we could try to make these here `static'.
   .     Should rewrite this for extended versions of Move/Compare.

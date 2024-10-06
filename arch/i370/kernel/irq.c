@@ -103,7 +103,7 @@ init_IRQ(void))
 /*							    */
 /* Name       - irq_init.				    */
 /*							    */
-/* Function   - preform remainder of irq initilialization.  */
+/* Function   - perform remainder of irq initialization.  */
 /*							    */
 /************************************************************/
 
@@ -113,10 +113,10 @@ irq_init (void)
 	int rc, i_ucb;
 	unitblk_t *ucb;
 
-	/* XXX FIXME: A 3215 unit is ready, only if there is a runnig
+	/* XXX FIXME: A 3215 unit is ready, only if there is a running
 	 * telnet connection to it. There might not be one while we boot.
 	 * we want to give it an IRQ anyway, in case the user telnets in,
-	 * later. In general, thse units will be going up and down.
+	 * later. In general, these units will be going up and down.
 	 * Unless I should to request_IRQ when the unit becomes ready,
 	 * but how do I find that out?
 	 */

@@ -35,7 +35,7 @@ struct _i370_cr0_s {
 	unsigned long tf:5;	/* address translation format */
 	unsigned long :1;	/* unused */
 	unsigned long vc:1;	/* vector control */
-	unsigned long asfc:1;	/* adress space function control */
+	unsigned long asfc:1;	/* address space function control */
 	unsigned long masm:1;	/* malfunction alert subclass mask */
 	unsigned long essm:1;	/* emergency signal subclass mask */
 	unsigned long ecsm:1;	/* external call subclass mask */

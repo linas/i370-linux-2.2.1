@@ -379,7 +379,7 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 }
 
 /* ================================================================ */
-/* Do SLIH intrerrupt handling (the bottom half) */
+/* Do SLIH interrupt handling (the bottom half) */
 int check_stack(struct task_struct *tsk);
 int do_signal(sigset_t *oldset, struct pt_regs *regs);
 
@@ -499,17 +499,17 @@ __initfunc(void i370_trap_init (int key))
 	/* All interrupts will (eventually) run in execution key 6 ... */
 
 	// Install the SVC handler.
-	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
+	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interrupts
 	psw.addr = ((unsigned long) SupervisorCall) | PSW_31BIT;
 	*((psw_t *) SVC_PSW_NEW) = psw;
 
 	// Install the External Interrupt (clock) handler.
-	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
+	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interrupts
 	psw.addr = ((unsigned long) External) | PSW_31BIT;
 	*((psw_t *) EXTERN_PSW_NEW) = psw;
 
 	// Install the I/O Interrupt handler.
-	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
+	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interrupts
 	psw.addr = ((unsigned long) InputOutput) | PSW_31BIT;
 	*((psw_t *) IO_PSW_NEW) = psw;
 
@@ -519,7 +519,7 @@ __initfunc(void i370_trap_init (int key))
 	*((psw_t *) IPL_PSW_NEW) = psw;
 
 	// Install the ProgramCheck handler.
-	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interupts
+	psw.flags = PSW_VALID | PSW_KEY(key);      // disable all interrupts
 	psw.addr = ((unsigned long) ProgramCheck) | PSW_31BIT;
 	*((psw_t *) PROG_PSW_NEW) = psw;
 }

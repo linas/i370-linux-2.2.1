@@ -45,7 +45,7 @@ int idled(void *unused)
 #endif
 		schedule();
 
-		/* If we came back here, then yeild the cpu with an enabled wait */
+		/* If we came back here, then yield the cpu with an enabled wait */
 		/* This seems appropriate both for VM and LPAR boots */
 		i370_enabled_wait();
 	}

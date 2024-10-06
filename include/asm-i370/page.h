@@ -12,14 +12,14 @@
 #define ADDR_MASK	0x7fffffff
 
 /* For now, we will run in real mode,
- * so all real address == virtual addres
+ * so all real address == virtual address
  * Eventually, maybe set this to 0xC0000000 .. but why? .. as an
  * eyecatcher? Anyway, things should work either way.
  */
 #define PAGE_OFFSET	0x0  
 
 /* When running the kernel in real mode, use storage keys
- * to protect the text segment from acidental corruption.
+ * to protect the text segment from accidental corruption.
  * Kernel executes in key 6.
  * User segment runs in key 9.
  * The four-bit key is stored in bits 24-28 of sske.
@@ -73,7 +73,7 @@ typedef unsigned long pgprot_t;
 #endif
 
 
-/* align addr on a size boundry - adjust address up if needed -- Cort */
+/* align addr on a size boundary - adjust address up if needed -- Cort */
 #define _ALIGN(addr,size)	(((addr)+size-1)&(~(size-1)))
 
 /* to align the pointer to the (next) page boundary */

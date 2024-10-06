@@ -7,7 +7,7 @@
  * XXX These should probably be moved to the header file and made inline.
  * They are here right now for debugging & convenience purposes.
  *
- * These bitops are implmented in an atomic SMP-safe fashion so that we don't
+ * These bitops are implemented in an atomic SMP-safe fashion so that we don't
  * have to worry about multiple setters accidentally clobbering different
  * bits in the same byte.
  */

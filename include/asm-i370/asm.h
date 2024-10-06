@@ -283,7 +283,7 @@ extern inline void i370_halt (void)
 }
 
 /* -------------------------------------------------------- */
-/* Enabled wait will yeild the CPU but keep the interrupts hot */
+/* Enabled wait will yield the CPU but keep the interrupts hot */
 
 extern inline void i370_enabled_wait (void)
 {

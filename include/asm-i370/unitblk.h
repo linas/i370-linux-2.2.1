@@ -37,7 +37,7 @@ typedef struct _unitblk {
 	unsigned  int   unitminor;	/* Minor device number */
 	unsigned  int   unitisc;	/* Device interrupt subclass */
 	struct file_operations *unitfops;
-	void     	(*unitirqh)(int,    /* Interupt handler       */
+	void     	(*unitirqh)(int,    /* Interrupt handler       */
 				void *, struct pt_regs *);
 	unsigned char   unitname[DEVNAMELEN];	/* Device name */
 	unsigned char   unitflg1;	/* flag byte */
@@ -81,7 +81,7 @@ typedef struct {
 	char		devName[8];	/* Device name            */
 	struct file_operations *fops;
 	unsigned int 	isc;    	/* Interrupt sub-class    */
-	void     	(*irqh)(int,    /* Interupt handler       */
+	void     	(*irqh)(int,    /* Interrupt handler       */
 				void *, struct pt_regs *);
 } S390dev_t;
 

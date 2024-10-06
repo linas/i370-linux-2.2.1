@@ -66,7 +66,7 @@ SECTIONS
   .note : { *(.note) }
   .comment : { *(.comment) }
 
-  /* startup code wilkl be freed later on, place at end */
+  /* startup code will be freed later on, place at end */
   /* Startup code; text and data get different storage keys */
   . = ALIGN(4096);
   __init_text_begin = .;

@@ -122,15 +122,20 @@ _cinit:
  */
 
 /* -------------------------------------------------------- */
-/* Stack related offsets.                                   */
+/* Stack related offsets and total size.                    */
+/* Double-word align.                                       */
+/* Note that the exception might be caught during the       */
+/* function prolog, and so r11 does not yet point at the    */
+/* true top. In this case, args are at 88(r1), 92(r11) etc. */
+/* so we make sure we are well past these.                  */
 /* -------------------------------------------------------- */
 #define STACK_SIZE  0x58        /* sizeof (_i370_elf_stack_t) */
 #define ARGS_BASE   STACK_SIZE
-#define ARGS_SIZE   0x4         /* args size */
+#define ARGS_SIZE   0x28        /* Enough for 10 args of 4 word each. */
 #define FRAME_BASE  STACK_SIZE + ARGS_SIZE
 #define FRAME_SIZE  0x60        /* sizeof( _i370_interrupt_state_s) */
-#define EXF_SIZE    STACK_SIZE + ARGS_SIZE + FRAME_SIZE + 4
-#define EXF_SIZ      192 /* Add above together by hand, double-word align */
+#define EXF_SIZE    STACK_SIZE + ARGS_SIZE + FRAME_SIZE
+#define EXF_SIZ     224         /* Add above together by hand. */
 
 /* -------------------------------------------------------- */
 /* Structure of our "exception frame"                       */

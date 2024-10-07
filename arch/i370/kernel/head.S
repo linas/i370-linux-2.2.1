@@ -397,7 +397,7 @@ InputOutput:
 
 /* ===================================================================== */
 /* Miscellaneous stuff in the data segment */
-/* p2align 12  aligns to a page boundry (2^12) */
+/* p2align 12 aligns to a page boundary (2^12) */
 
 	.data
 	.p2align 12

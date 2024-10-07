@@ -107,7 +107,7 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
   }
 
   /* If we are here, then the address was below the vma start.
-   * Three ways this happens; a wild point in the kernel, a
+   * Three ways this happens; a wild pointer in the kernel, a
    * null-pointer deref in userland, or a  user-space stack touch.
    */
   if (!user_mode(regs)) {

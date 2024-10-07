@@ -199,10 +199,15 @@ pc_unsupported(i370_interrupt_state_t *saved_regs,
 	return(1);
 }
 
-/* This is hit when touching real addresses outside of real RAM.
- * Mostly like cause is corrupted registers/stack.
+/* This is hit by translation exceptions.
  *
- * Other reasons for hitting this are, I quote:
+ * Examples include unmapped virtual addresses accessed by
+ * kernel code. Typical cause is access through a wild pointer
+ * in the kernel. Unclear to me why wild pointers don't go
+ * through 0x10 or 0x11. Perhaps this should be wired to
+ * do_page_fault(), instead?
+ *
+ * Principles of Operation give other reasons:
  * The dispatchable-unit-control table,
  * the primary ASN-second-table entry,
  * entries in the access list, region first table,
@@ -219,14 +224,14 @@ static int pc_addressing(i370_interrupt_state_t *saved_regs,
                           unsigned long  trans,
                           unsigned short code)
 {
-	printk ("Unexpected Addressing Exception trans=0x%lx\n", trans);
+	printk ("\nUnexpected Addressing Exception trans=0x%lx\n", trans);
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
 	i370_halt();
 	return(1);
 }
 
-/* Exception throw when instruction is not recognized or if operand
+/* Exception thrown when instruction is not recognized or if operand
  * is invalid. Fatal if in the kernel, should be converted to
  * SIGBUS or something for userland. (User tries to exeute something
  * that isn't code.

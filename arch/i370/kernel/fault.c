@@ -150,7 +150,7 @@ good_area:
      if (!valid_addr)
         goto bad_area;
      write = 1;
-     ilc   = PFX_PRG_CODE;
+     ilc   = (unsigned short *) PFX_PRG_CODE;
      regs->psw.addr -= *ilc;  /* Adjust the instruction ptr    */
   } else {
      /*-------------------------------------------------------*/
@@ -182,6 +182,16 @@ bad_area:
   up(&mm->mmap_sem);
   if (user_mode(regs)) {
        siginfo_t info;
+
+       /* If /sbin/init faults, there is nothing we can do. */
+       /* We can't kill it. We have to halt. */
+       if (1 == current->pid) {
+          printk("Init process (%s:%d) bad access to 0x%lx pic=%x\n",
+                 current->comm, current->pid, address, pic_code);
+          show_regs(regs);
+          print_backtrace (regs->irregs.r13);
+          i370_halt();
+       }
 
 printk("sending SEGV to user proc: bad access to 0x%lx pic=%x\n", address, pic_code);
 show_regs(regs);

@@ -227,6 +227,7 @@ _cinit:
 	MVC	sav(8,0),SAVED_PSW(r13);/* restore old psw frm stack */	\
 	LM	r11,r12,SAVED_R11(r13);	/* restore r11, r12          */	\
 	LM	r14,r4,SAVED_R14(r13);	/* restore r14 to r4         */	\
+	LM	r5,r10,SAVED_R5(r13);   /* restore r5 thru r10       */	\
 	L	r13,SAVED_R13(r13);	/* restore r13               */	\
 	LPSW	sav(0);			/* return from interrupt     */
 

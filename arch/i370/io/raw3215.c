@@ -30,7 +30,7 @@
  * mode again.
  *
  * So overall this is delicate.
-/****************************************************************/
+ ****************************************************************/
 
 #include <asm/3270.h>
 #include <asm/delay.h>
@@ -43,6 +43,7 @@
 
 #include <linux/fs.h>
 #include <linux/mm.h>
+#include <linux/slab.h>
 
 /* Mapping of minor devnos to units. */
 extern unitblk_t *unt_raw[NRAWTERM];
@@ -169,17 +170,13 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 #define EBCLEN 120
 	char  ebcstr[EBCLEN];
 
-	if (PAGE_SIZE <= len)
-	{
-		printk("Error: unexpected long raw3215 input; FIXME!\n");
-		return -ENAMETOOLONG;
-	}
-
 	rc = strncpy_from_user(kstr, str, len);
 	if (rc < 0)
 		return rc;
+
+	/* Odd. We've been asked to write a zero-length string. */
 	if (0 == rc)
-		return -ENOENT;
+		return 0;
 
 	j = 0;
 	for (i=0; i<len; i++) {
@@ -206,13 +203,17 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
 
 	unitblk_t* unit = (unitblk_t*) filp->private_data;
 
-	kstr = (char *) __get_free_page(GFP_KERNEL);
+	/* Avoid spew to console */
+	if (10*PAGE_SIZE < len)
+		return -ENOMEM;
+
+	kstr = (char *) kmalloc(len+1, GFP_KERNEL);
 	if (!kstr)
 		return -ENOMEM;
 
 	rc = do_write(kstr, str, len, unit);
 
-	free_page((unsigned long)kstr);
+	kfree(kstr);
 	return rc;
 }
 

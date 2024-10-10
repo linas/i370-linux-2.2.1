@@ -43,7 +43,6 @@
 
 #include <linux/fs.h>
 #include <linux/mm.h>
-#include <linux/slab.h>
 
 /* Mapping of minor devnos to units. */
 extern unitblk_t *unt_raw[NRAWTERM];
@@ -178,7 +177,8 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 	if (0 == rc)
 		return 0;
 
-	/* In general, we expect len == rc ... unless we've been lied to. */
+	/* In general, we expect len == rc, unless str contains a null
+	 * byte, in which case, strncpy chopped things off there. */
 	if (rc < len) len = rc;
 
 	j = 0;
@@ -195,7 +195,7 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 			j++;
 	}
 
-	/* Anything left? Perhaps missing string null terminator? */
+	/* Anything left? */
 	if (0 < j)
 		do_write_one_line(ebcstr, j, unit);
 
@@ -211,16 +211,16 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
 	unitblk_t* unit = (unitblk_t*) filp->private_data;
 
 	/* Avoid spew to console */
-	if (10*PAGE_SIZE < len)
-		return -ENOMEM;
+	if (PAGE_SIZE <= len)
+		return -E2BIG;
 
-	kstr = (char *) kmalloc(len+1, GFP_KERNEL);
+	kstr = (char *) __get_free_page(GFP_KERNEL);
 	if (!kstr)
 		return -ENOMEM;
 
 	rc = do_write(kstr, str, len, unit);
 
-	kfree(kstr);
+	free_page((unsigned long)kstr);
 	return rc;
 }
 

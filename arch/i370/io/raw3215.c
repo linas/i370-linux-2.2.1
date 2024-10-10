@@ -178,6 +178,9 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 	if (0 == rc)
 		return 0;
 
+	/* In general, we expect len == rc ... unless we've been lied to. */
+	if (rc < len) len = rc;
+
 	j = 0;
 	for (i=0; i<len; i++) {
 		ebcstr[j] = ascii_to_ebcdic[(unsigned char)kstr[i]];
@@ -191,6 +194,10 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 		else
 			j++;
 	}
+
+	/* Anything left? Perhaps missing string null terminator? */
+	if (0 < j)
+		do_write_one_line(ebcstr, j, unit);
 
 	return len;
 }

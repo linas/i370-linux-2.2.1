@@ -247,6 +247,8 @@ _cinit:
 #define EXT_TRC_ID   0x500
 #define IO_TRC_ID    0x600
 
+// #define DO_TRACING
+#ifdef DO_TRACING
 #define EXCEPTION_TRACE(trc_id,subid,irpt_code,old_psw)			\
 	SLR	r0,r0;			/* Not Used */			\
 	LA	r1,trc_id(0);		/* Trace id */			\
@@ -255,6 +257,9 @@ _cinit:
 	L	r2,irpt_code(0);	/* Get Irpt code */		\
 	LM	r3,r4,old_psw(0);	/* Get Old PSW */		\
 	TRACE	r0,r4,PFX_TRACE(0);	/* Trace Wondrous event */
+#else
+#define EXCEPTION_TRACE(trc_id,subid,irpt_code,old_psw)
+#endif
 
 /* Restart IPL (Initial Program Load) */
 	.globl Restart
@@ -320,56 +325,64 @@ SupervisorCall:
 	LPSW	INTERRUPT_BASE(0);	/* return from interrupt */
 
 
+#ifdef DO_TRACING
+/* Trace Program Interruption */
+#define TRACE_PC \
+	BASR	r15,0 \
+	.using	*,r15 \
+	/*--------------------------------------------------------------*/ \
+	/* If this is a trace table related program check then we'd     */ \
+	/* better not generate a trace record or we could get ourselves */ \
+	/* in a rather tight loop. In fact, we bypass nearly all proc-  */ \
+	/* essing for the TRACE TABLE condition.                        */ \
+	/*--------------------------------------------------------------*/ \
+	L	r0,PFX_PRG_CODE(0) \
+	LA	r14,0x7f(0) \
+	NR	r0,r14 \
+	LA	r14,PIC_TRACE_TABLE(0) \
+	CR	r0,r14 \
+	BNE	.DoPC \
+ \
+	STCTL	r12,r12,PRG_SAVE_CTX_C12(0) \
+	L	r8,PRG_SAVE_CTX_C12(0) \
+	N	r8,=X'7FFFF000' \
+	L	r8,4088(,r8) \
+	LA	r9,1(,0) \
+	OR	r8,r9 \
+	ST	r8,PRG_SAVE_CTX_C12(0) \
+	LCTL	r12,r12,PRG_SAVE_CTX_C12(0) \
+	LM	r11,r4,PC_INTERRUPT_BASE+IR_R11(0) \
+	LM	r5,r10,PC_INTERRUPT_BASE+IR_R5(0) \
+	LPSW	PROG_PSW_OLD(0) \
+ \
+.DoPC: \
+	/*--------------------------------------------------------------*/ \
+	/* We had better take a copy of the current context information */ \
+	/* just in case the TRACE does cause a program check and we     */ \
+	/* lose all our previous information (PSW, registers...).       */ \
+	/*--------------------------------------------------------------*/ \
+	MVC	PRG_SAVE_CTX_REGS(64,0),PC_INTERRUPT_BASE(0) \
+	MVC	PRG_SAVE_CTX_PSW(8,0),PROG_PSW_OLD(0) \
+	MVC	PRG_SAVE_CTX_CODE(4,0),PFX_PRG_CODE(0) \
+	MVC	PRG_SAVE_CTX_TRANS(4,0),PFX_PRG_TRANS(0) \
+	EXCEPTION_TRACE (PRG_TRC_ID, PFX_PRG_TRANS, PFX_PRG_CODE, PROG_PSW_OLD) \
+	CLC	PRG_SAVE_CTX_PSW(8,0),PROG_PSW_OLD(0) \
+	BE	.SkipRestore \
+	MVC	PC_INTERRUPT_BASE(64,0),PRG_SAVE_CTX_REGS(0) \
+	MVC	PROG_PSW_OLD(8,0),PRG_SAVE_CTX_PSW(0) \
+	MVC	PFX_PRG_CODE(4,0),PRG_SAVE_CTX_CODE(0) \
+	MVC	PFX_PRG_TRANS(4,0),PRG_SAVE_CTX_TRANS(0) \
+.SkipRestore: \
+	.drop	r15
+#else
+#define TRACE_PC
+#endif
+
 /* Program Interruption */
 	.global ProgramCheck
 ProgramCheck:
 	SAVE_REGS (PC_INTERRUPT_BASE)
-	BASR	r15,0
-	.using	*,r15
-	/*--------------------------------------------------------------*/
-	/* If this is a trace table related program check then we'd     */
-	/* better not generate a trace record or we could get ourselves */
-	/* in a rather tight loop. In fact, we bypass nearly all proc-  */
-	/* essing for the TRACE TABLE condition.                        */
-	/*--------------------------------------------------------------*/
-	L	r0,PFX_PRG_CODE(0)
-	LA	r14,0x7f(0)
-	NR	r0,r14
-	LA	r14,PIC_TRACE_TABLE(0)
-	CR	r0,r14
-	BNE	.DoPC
-
-	STCTL	r12,r12,PRG_SAVE_CTX_C12(0)
-	L	r8,PRG_SAVE_CTX_C12(0)
-	N	r8,=X'7FFFF000'
-	L	r8,4088(,r8)
-	LA	r9,1(,0)
-	OR	r8,r9
-	ST	r8,PRG_SAVE_CTX_C12(0)
-	LCTL	r12,r12,PRG_SAVE_CTX_C12(0)
-	LM	r11,r4,PC_INTERRUPT_BASE+IR_R11(0)
-	LM	r5,r10,PC_INTERRUPT_BASE+IR_R5(0)
-	LPSW	PROG_PSW_OLD(0)
-
-.DoPC:
-	/*--------------------------------------------------------------*/
-	/* We had better take a copy of the current context information */
-	/* just in case the TRACE does cause a program check and we     */
-	/* lose all our previous information (PSW, registers...).       */
-	/*--------------------------------------------------------------*/
-	MVC	PRG_SAVE_CTX_REGS(64,0),PC_INTERRUPT_BASE(0)
-	MVC	PRG_SAVE_CTX_PSW(8,0),PROG_PSW_OLD(0)
-	MVC	PRG_SAVE_CTX_CODE(4,0),PFX_PRG_CODE(0)
-	MVC	PRG_SAVE_CTX_TRANS(4,0),PFX_PRG_TRANS(0)
-	EXCEPTION_TRACE (PRG_TRC_ID, PFX_PRG_TRANS, PFX_PRG_CODE, PROG_PSW_OLD)
-	CLC	PRG_SAVE_CTX_PSW(8,0),PROG_PSW_OLD(0)
-	BE	.SkipRestore
-	MVC	PC_INTERRUPT_BASE(64,0),PRG_SAVE_CTX_REGS(0)
-	MVC	PROG_PSW_OLD(8,0),PRG_SAVE_CTX_PSW(0)
-	MVC	PFX_PRG_CODE(4,0),PRG_SAVE_CTX_CODE(0)
-	MVC	PFX_PRG_TRANS(4,0),PRG_SAVE_CTX_TRANS(0)
-.SkipRestore:
-	.drop	r15
+	TRACE_PC
 	EXCEPTION_PROLOG (PC_INTERRUPT_BASE, PROG_PSW_OLD)
 	EXCEPTION_CALL_C (ProgramCheckException)
 	EXCEPTION_EPILOG (PC_INTERRUPT_BASE)

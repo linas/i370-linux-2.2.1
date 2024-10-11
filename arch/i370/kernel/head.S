@@ -133,6 +133,7 @@ _cinit:
 #define ARGS_BASE   STACK_SIZE
 #define ARGS_SIZE   0x28        /* Enough for 10 args of 4 word each. */
 #define FRAME_BASE  STACK_SIZE + ARGS_SIZE
+#define FRB_SIZ     128         /* STACK_SIZE + ARGS_SIZE by hand */
 #define FRAME_SIZE  0x60        /* sizeof( _i370_interrupt_state_s) */
 #define EXF_SIZE    STACK_SIZE + ARGS_SIZE + FRAME_SIZE
 #define EXF_SIZ     224         /* Add above together by hand. */
@@ -181,18 +182,19 @@ _cinit:
 	BASR	r15,0;			/* load r15 with PSW         */	\
 	.using	.,r15;			/* use r15 as base register  */	\
 	L	r12,_psa_current(,0);	/* addr of current process   */	\
-	/* interrupted from user space or kernel space ?             */	\
+	/* Interrupted from user space or kernel space?              */	\
 	L	r1,oldpsw(,0);		/* get old psw flags into r1 */	\
 	N	r1,=X'00010000';	/* is in problem state?      */	\
 	BZ	1f;			/* sp is already ok if kern  */	\
-	/* interrupted user proc, so need to find a kernel stack     */	\
+	/* Interrupted user proc, so need to find a kernel stack.    */	\
 	LA	r13,TASK_STRUCT_SIZE(,r12); /* framep is stack bot   */	\
 	B	2f;                     /*                           */	\
 1:					/* branch here if kernel     */	\
-	/* we have valid top-of-stack ptr (r11) */			\
-	LR	r13,r11; /* bot of next frame is top of prev stack */	\
+	/* We have valid top-of-stack ptr (r11). Make room,          */	\
+	/* just in case the exception hits in the function prolog.   */	\
+	LA	r13,FRB_SIZ(r11);	/* Make room, for prolog.    */	\
 2:					/*                           */	\
-	LA	r11,EXF_SIZ(,r13);	/* add stackframe size       */	\
+	LA	r11,EXF_SIZ(,r13);	/* Add stackframe size.      */	\
 	SLR	r3,r3;			/* zero                      */	\
 	ST	r3,8(,r13);		/* terminate stack backchain */	\
 	/* move saved regs out of prefix page to stackframe          */	\

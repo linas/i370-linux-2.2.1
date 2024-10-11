@@ -169,17 +169,9 @@ static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
 #define EBCLEN 120
 	char  ebcstr[EBCLEN];
 
-	rc = strncpy_from_user(kstr, str, len);
-	if (rc < 0)
-		return rc;
-
-	/* Odd. We've been asked to write a zero-length string. */
-	if (0 == rc)
-		return 0;
-
-	/* In general, we expect len == rc, unless str contains a null
-	 * byte, in which case, strncpy chopped things off there. */
-	if (rc < len) len = rc;
+	rc = copy_from_user(kstr, str, len);
+	if (rc)
+		return -EIO;
 
 	j = 0;
 	for (i=0; i<len; i++) {

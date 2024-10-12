@@ -1,6 +1,9 @@
 #ifndef _I370_STAT_H
 #define _I370_STAT_H
 
+#ifdef __KERNEL__
+/* Keep away from userland. Will only lead to tears. */
+
 #include <linux/types.h>
 
 struct __old_kernel_stat {
@@ -36,5 +39,6 @@ struct stat {
 	unsigned long  	__unused4;
 	unsigned long  	__unused5;
 };
+#endif /* __KERNEL__ */
 
 #endif

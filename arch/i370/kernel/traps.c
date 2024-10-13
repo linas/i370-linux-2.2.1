@@ -344,8 +344,12 @@ static void
 ei_unsupported(i370_interrupt_state_t *saved_regs,
                unsigned short code)
 {
-printk("\n\n\n\n\n\n");
-	printk ("unexpected external exception code=0x%x\n", code);
+	if (code == 0x40)
+		printk ("\nInterrupt key pressed, halting\n");
+	else
+		printk ("Unexpected external exception, code=0x%x, halting\n", code);
+	show_regs (saved_regs);
+	print_backtrace (saved_regs->irregs.r13);
 	i370_halt();
 }
 
@@ -420,8 +424,10 @@ ret_from_syscall (void)
 			do_bottom_half ();  // handle_bottom_half()
 			do_it_again = 1;
 		}
+
 		/* Are we returning to the user? */
 		if (user_mode(current->tss.regs)) {
+
 			/* Reschedule before delivering signals */
 			if (current->need_resched) {
 				schedule ();
@@ -438,7 +444,8 @@ ret_from_syscall (void)
 			}
 		}
 	}
-	/* return to FLIH with interrupts disabled */
+
+	/* Return to FLIH with interrupts disabled. */
 	cli ();
 	current->tss.in_slih = 0;
 }

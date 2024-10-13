@@ -87,6 +87,14 @@ int i370_raw3215_open (struct inode *inode, struct file *filp)
 	return 0;
 }
 
+int i370_raw3215_close (struct inode *inode, struct file *filp)
+{
+	printk ("raw3215_close of /dev/%s\n",
+	        filp->f_dentry->d_iname);
+}
+
+/* ---------------------------------------------------------------- */
+
 static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 {
 	long  flags;
@@ -357,7 +365,7 @@ struct file_operations i370_fop_raw3215 =
    NULL,		 /* mmap */
    i370_raw3215_open,	 /* open */
    NULL,		 /* flush */
-   NULL,		 /* release */
+   i370_raw3215_close,	 /* release */
    NULL,		 /* fsync */
    NULL,		 /* fasync */
    NULL,		 /* check_media_change */

@@ -359,10 +359,10 @@ modules modules_install: dummy
 endif
 
 headers_install: dummy
-	$(INSTALL) -d /usr/local/i370-ibm-linux/include/asm
-	$(INSTALL) -d /usr/local/i370-ibm-linux/include/linux
-	$(INSTALL) include/asm/*.h -D /usr/local/i370-ibm-linux/include/asm
-	$(INSTALL) include/linux/*.h -D /usr/local/i370-ibm-linux/include/linux
+	$(INSTALL) -d /usr/local/i370-linux/include/asm
+	$(INSTALL) -d /usr/local/i370-linux/include/linux
+	$(INSTALL) include/asm/*.h -D /usr/local/i370-linux/include/asm
+	$(INSTALL) include/linux/*.h -D /usr/local/i370-linux/include/linux
 
 clean:	archclean
 	rm -f kernel/ksyms.lst include/linux/compile.h

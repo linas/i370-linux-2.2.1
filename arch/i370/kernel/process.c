@@ -112,20 +112,20 @@ print_backtrace (unsigned long stackp)
 			}
 			ksp = pte_page (*pte) | (stackp & ~PAGE_MASK);
 			sp = (i370_elf_stack_t *) ksp;
-			printk ("   %02d   base[r3]=0x%lx link[r14]=0x%lx usp=0x%lx ksp=0x%08lx\n",
+			printk ("   %02d   base[r3]: %lx link[r14]: %lx usp: 0x%lx ksp: %08lx\n",
 				cnt, sp->caller_r3, sp->caller_r14, stackp, ksp);
 
 			/* Try walking user stack. Assume it's not insane. */
 			stackp = sp->caller_sp;
 			if (stackp < STACK_TOP - I370_STACK_SIZE + sizeof(i370_elf_stack_t)) {
-				printk ("        ----------------- end of user stack -------------------\n");
+				printk ("        ---------------- end of user stack -----------------\n");
 				stackp = current->tss.ksp;
 			}
 		} else {
 
 			/* We've got a kernel stack pointer now. */
 			sp = (i370_elf_stack_t *) stackp;
-			printk ("   %02d   base[r3]=0x%08lx link[r14]=0x%08lx ksp=0x%08lx\n",
+			printk ("   %02d   base[r3]: %08lx link[r14]: %08lx ksp: %08lx\n",
 				cnt, sp->caller_r3, sp->caller_r14, stackp);
 
 			stackp = sp->caller_sp;

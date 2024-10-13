@@ -290,6 +290,9 @@ InputOutputException(i370_interrupt_state_t *saved_regs)
 
 	do {
 		rc = _tsch(pfx_subsys_id, &ucb->unitirb);
+		/* ??? I don't get it. We got the I/O exception, but decided
+		 * we don't like it, so we're not going to pass it on? Isn't
+		 * this going to result in lost interrupts? Maybe XXX FIXME. */
 		if (!rc) {
 			rc = _stsch(pfx_subsys_id, &schib);
 			irq = schib.isc;

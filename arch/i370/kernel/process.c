@@ -102,20 +102,34 @@ print_backtrace (unsigned long stackp)
 		 * that its a user-space stack pointer and that
 		 * it needs address translation.
 		 */
-		if (STACK_TOP - I370_STACK_SIZE < stackp) {
+		if (STACK_TOP - I370_STACK_SIZE <= stackp) {
+			unsigned long ksp;
 			pte_t *pte = find_pte (current->mm, stackp);
 			if (!pte || pte_none(*pte)) {
-				make_pages_present (stackp, 0x7fffffff);
+				make_pages_present (stackp, stackp+4096);
+				// make_pages_present (stackp, 0x7fffffff);
 				pte = find_pte (current->mm, stackp);
 			}
-			stackp = pte_page (*pte) | (stackp & ~PAGE_MASK);
+			ksp = pte_page (*pte) | (stackp & ~PAGE_MASK);
+			sp = (i370_elf_stack_t *) ksp;
+			printk ("   %02d   base[r3]=0x%lx link[r14]=0x%lx usp=0x%lx ksp=0x%08lx\n",
+				cnt, sp->caller_r3, sp->caller_r14, stackp, ksp);
+
+			/* Try walking user stack. Assume it's not insane. */
+			stackp = sp->caller_sp;
+			if (stackp < STACK_TOP - I370_STACK_SIZE + sizeof(i370_elf_stack_t)) {
+				printk ("        ----------------- end of user stack -------------------\n");
+				stackp = current->tss.ksp;
+			}
+		} else {
+
+			/* We've got a kernel stack pointer now. */
+			sp = (i370_elf_stack_t *) stackp;
+			printk ("   %02d   base[r3]=0x%08lx link[r14]=0x%08lx ksp=0x%08lx\n",
+				cnt, sp->caller_r3, sp->caller_r14, stackp);
+
+			stackp = sp->caller_sp;
 		}
-		sp = (i370_elf_stack_t *) stackp;
-
-		printk ("   %02d   base[r3]=0x%lx link[r14]=0x%lx stack=%p\n",
-			cnt, sp->caller_r3, sp->caller_r14, sp);
-
-		stackp = sp->caller_sp;
 		cnt ++;
 	} while (stackp &&  (cnt < 10)) ;
 	printk("\n");

@@ -488,7 +488,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	lastdst -> caller_sp = 0;
 
 	/* An exception frame (_i370_interrupt_state_t) is stored on stack.
-	 * That frame holds r13 and r11 there were put there by the SVC
+	 * That frame holds r13 and r11 that were put there by the SVC
 	 * EXCEPTION_PROLOG (in head.S) and the EPILOG will restore them
 	 * when the SVC returns.  We have to find these values and thunk
 	 * them.  The code below will correctly handle nested interrupts,
@@ -516,6 +516,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	do {
 		*dstregs = (i370_interrupt_state_t *)
 			(((unsigned long) srcregs) - delta);
+		(*dstregs)->caller_sp = 0;
 		(*dstregs)->psw = srcregs->psw;
 		(*dstregs)->irregs.r13 = srcregs->irregs.r13 - delta;
 		(*dstregs)->irregs.r11 = srcregs->irregs.r11 - delta;

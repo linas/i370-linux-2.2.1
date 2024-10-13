@@ -310,8 +310,8 @@ struct thread_struct {
 	INIT_SP, /* ksp */ 					\
 	0, /* regs */ 						\
 	(unsigned long *) swapper_pg_dir, /* pg_tables */ 	\
-	0, /* cr0 */ 						\
-	0, /* cr1 */ 						\
+	{0}, /* cr0 */ 						\
+	{0}, /* cr1 */ 						\
 	{0.0, 0.0, 0.0, 0.0,   /* FPR's */ 			\
 	 0.0, 0.0, 0.0, 0.0,   /* FPR's */ 			\
 	 0.0, 0.0, 0.0, 0.0,   /* FPR's */ 			\

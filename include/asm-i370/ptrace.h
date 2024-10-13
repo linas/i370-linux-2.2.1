@@ -211,7 +211,7 @@ struct _i370_interrupt_state_s {
 	{0,0},             /* psw    */	\
 	{0,0,0,0,0,0,0,0,  /* irregs */	\
 	 0,0,0,0,0,0,0,0}, /* irregs */	\
-	0}                 /* oldregs */
+	0,0}               /* oldregs */
 #endif /* __ASSEMBLY__ */
 
 /* These defines map the struct _i370_interrupt_state_s .

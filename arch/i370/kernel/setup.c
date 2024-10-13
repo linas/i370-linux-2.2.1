@@ -193,6 +193,8 @@ __initfunc(void setup_arch(char **cmdline_p,
 	init_task.tss.regs = (void *) init_task.tss.ksp;
 	init_task.tss.ksp += sizeof (i370_interrupt_state_t);
 	init_task.tss.regs->psw = _PSA_.ipl_psw_new;
+	init_task.tss.regs->oldregs = 0;
+	init_task.tss.regs->caller_sp = 0;
 
 	setup_trace(memory_start_p);
 

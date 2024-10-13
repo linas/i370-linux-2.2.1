@@ -51,6 +51,8 @@ asmlinkage int i370_sys_execve(unsigned long fname, unsigned long argv,
 	printk("i370_sys_execve: name = %s\n", (char *) fname);
 	lock_kernel();
 	regs = current->tss.regs;
+	// regs->caller_sp = 0;
+	// regs->oldregs = 0;  // ???
 	filename = getname((char *) fname);
 	error = PTR_ERR(filename);
 	if (IS_ERR(filename)) {

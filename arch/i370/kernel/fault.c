@@ -119,16 +119,16 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
   /*-----------------------------------------------------*/
   if (user_mode(regs)) {
        /* The only valid access is if the user is touching the stack.
-        * The stack is (currently) between 7ffe0000 and 0x7ffff000.
-        * (A 4 MB stack). See i370_start_thread() for details. Must
+        * The stack is (currently) between 7f800000 and 0x7ffff000.
+        * (A 8 MB stack). See i370_start_thread() for details. Must
         * match what is there. Normal operation means
         * regs->irregs.r13 is above this.
         */
-       unsigned long frame_base = STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
+       unsigned long frame_base = STACK_TOP - I370_STACK_SIZE;
        if (address < frame_base) goto bad_area;
 
        /* The first time the user touches the stack, the expand_stack
-        * will move vma->vm_start down by 4MBytes (to 7ffe0000) and
+        * will move vma->vm_start down by 8MBytes (to 7f800000) and
         * that's that. I guess this is harmless, since only the vma
         * grew, not actual memory consumption. In this kernel, the vma
         * can only ever grow down, never up, so it seems like there's

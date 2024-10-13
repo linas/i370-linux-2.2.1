@@ -102,7 +102,7 @@ print_backtrace (unsigned long stackp)
 		 * that its a user-space stack pointer and that
 		 * it needs address translation.
 		 */
-		if (0x7f000000 < stackp) {
+		if (STACK_TOP - I370_STACK_SIZE < stackp) {
 			pte_t *pte = find_pte (current->mm, stackp);
 			if (!pte || pte_none(*pte)) {
 				make_pages_present (stackp, 0x7fffffff);
@@ -114,6 +114,7 @@ print_backtrace (unsigned long stackp)
 
 		printk ("   %02d   base[r3]=0x%lx link[r14]=0x%lx stack=%p\n",
 			cnt, sp->caller_r3, sp->caller_r14, sp);
+
 		stackp = sp->caller_sp;
 		cnt ++;
 	} while (stackp &&  (cnt < 10)) ;
@@ -184,7 +185,7 @@ int check_stack(struct task_struct *tsk)
 		printk("bad stack, halting\n");
 		show_regs (tsk->tss.regs);
 		print_backtrace (tsk->tss.regs->irregs.r13);
-	//	i370_halt();
+		i370_halt();
 	}
 	return(ret);
 }
@@ -208,7 +209,8 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	set_fs(USER_DS);
 
 	/* The i370 ELF ABI stack grows up. Thus, the first frame is at
-	 * the frame base, which is STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
+	 * the frame base, which is STACK_TOP - I370_STACK_SIZE.
+	 * The I370_STACK_SIZE should be same as _STK_LIM. Currently 8MB.
 	 * Per ABI, r11 is the frame pointer. The stack top is just the
 	 * frame pointer, plus the size of the frame; which is
 	 * sizeof (i370_elf_stack_t) which is 88 bytes.
@@ -217,12 +219,14 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	 * find it.
 	 * Pass argc in r2, argv in r3 and envp in r4.
 	 */
-	unsigned long frame_base = STACK_TOP - MAX_ARG_PAGES*PAGE_SIZE;
+	unsigned long frame_base = STACK_TOP - I370_STACK_SIZE;
 
 	/* Set up the registers we will hand over to the user. */
 	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
 	regs->psw.flags |= USER_PSW;
 	regs->psw.addr = nip | PSW_31BIT;
+
+	// regs->caller_sp = 0;
 
 	/* Setting r15 is pointless; userland will never see this,
 	 * because r15 will hold the return value of sys_fork() */

@@ -22,6 +22,8 @@ HOSTCFLAGS	=-Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
 CROSS_COMPILE 	= i370-ibm-linux-
 # CROSS_COMPILE 	= i370-ibm-elf-
 
+INSTALL = /usr/bin/install
+
 AS	=$(CROSS_COMPILE)as
 LD	=$(CROSS_COMPILE)ld
 CC	=$(CROSS_COMPILE)gcc -D__KERNEL__ -I$(HPATH)
@@ -355,6 +357,12 @@ modules modules_install: dummy
 	@echo
 	@exit 1
 endif
+
+headers_install: dummy
+	$(INSTALL) -d /usr/local/i370-ibm-linux/include/asm
+	$(INSTALL) -d /usr/local/i370-ibm-linux/include/linux
+	$(INSTALL) include/asm/*.h -D /usr/local/i370-ibm-linux/include/asm
+	$(INSTALL) include/linux/*.h -D /usr/local/i370-ibm-linux/include/linux
 
 clean:	archclean
 	rm -f kernel/ksyms.lst include/linux/compile.h

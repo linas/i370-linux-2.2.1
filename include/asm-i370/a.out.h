@@ -9,8 +9,10 @@
     to indicate this */
 #define VM_STACK_FLAGS 0x0277
 
-/* currently 4meg  XXX hack alert .... */
-#define I370_STACK_SIZE 0x400000
+/* Max stack that a user can get. Currently set to 8 MBytes,
+   because this is identical to _STK_LIM set in sched.h.
+   These shoul be kept in sync. */
+#define I370_STACK_SIZE 0x800000  /* = _STK_LIM */
 
 struct exec
 {
@@ -28,6 +30,5 @@ struct exec
 #define N_TRSIZE(a)	((a).a_trsize)
 #define N_DRSIZE(a)	((a).a_drsize)
 #define N_SYMSIZE(a)	((a).a_syms)
-
 
 #endif

@@ -194,43 +194,51 @@ typedef struct _i370_irregs_s irregs_t;
 typedef struct _i370_interrupt_state_s i370_interrupt_state_t;
 
 struct _i370_interrupt_state_s {
-	psw_t   	psw;	/* process status word */
-	irregs_t	irregs;	/* some but not all of the GPR's */
-	i370_interrupt_state_t *oldregs;	/* backchain */
+	unsigned long	unused0;     /* 0x00 ELF page table */
+	unsigned long	unused1;     /* 0x04 ELF unused1 */
+	unsigned long	caller_sp;   /* 0x08 ELF backchain */
+	unsigned long	unused2;     /* 0x0c ELF r14 */
+	psw_t   	psw;               /* 0x10 process status word */
+	irregs_t	irregs;            /* 0x18 all of the GPR's */
+	i370_interrupt_state_t *oldregs;	/* 0x58 backchain */
+	unsigned long	unused3;     /* 0x5c to get double-word align */
 };
 
 #define pt_regs _i370_interrupt_state_s
 
 #define INIT_REGS { 			\
-	{0,0},	/* psw */ 		\
-	{0,0,0,0,0,0,0,0, /* irregs */	\
+	{0,0,0,0},         /* ELF    */	\
+	{0,0},             /* psw    */	\
+	{0,0,0,0,0,0,0,0,  /* irregs */	\
 	 0,0,0,0,0,0,0,0}, /* irregs */	\
-	0}
+	0}                 /* oldregs */
 #endif /* __ASSEMBLY__ */
 
 /* These defines map the struct _i370_interrupt_state_s .
  * This is used by the assembly code to find things.
  */
-#define IR_PSW          0x0
-#define IR_R11          0x8
-#define IR_R12          0xc
-#define IR_R13          0x10
-#define IR_R14          0x14
-#define IR_R15          0x18
-#define IR_R0           0x1c
-#define IR_R1           0x20
-#define IR_R2           0x24
-#define IR_R3           0x28
-#define IR_R4           0x2c
+#define IR_CALLER       0x8
+#define IR_PSW          0x10
+#define IR_R11          0x18
+#define IR_R12          0x1c
+#define IR_R13          0x20
+#define IR_R14          0x24
+#define IR_R15          0x28
+#define IR_R0           0x2c
+#define IR_R1           0x30
+#define IR_R2           0x34
+#define IR_R3           0x38
+#define IR_R4           0x3c
 
-#define IR_R5           0x30
-#define IR_R6           0x34
-#define IR_R7           0x38
-#define IR_R8           0x3c
-#define IR_R9           0x40
-#define IR_R10          0x44
+#define IR_R5           0x40
+#define IR_R6           0x44
+#define IR_R7           0x48
+#define IR_R8           0x4c
+#define IR_R9           0x50
+#define IR_R10          0x54
 
-#define IR_OLDREGS      0x48
+#define IR_OLDREGS      0x58
+#define IR_SIZE         0x60
 
 #ifndef __ASSEMBLY__
 /* ---------------------------------------------------------------- */

@@ -124,26 +124,23 @@ _cinit:
 /* -------------------------------------------------------- */
 /* Stack related offsets and total size.                    */
 /* Double-word align.                                       */
-/* Note that the exception might be caught during the       */
-/* function prolog, and so r11 does not yet point at the    */
-/* true top. In this case, args are at 88(r1), 92(r11) etc. */
-/* so we make sure we are well past these.                  */
 /* -------------------------------------------------------- */
 #define STACK_SIZE  0x58        /* sizeof (_i370_elf_stack_t) */
 #define ARGS_BASE   STACK_SIZE
+#define ARGP        ARGS_BASE   /* Callee's args in callee's frame */
+
+/* Adjustments for catching exception while in kernel */
 #define ARGS_SIZE   0x28        /* Enough for 10 args of 4 word each. */
 #define FRAME_BASE  STACK_SIZE + ARGS_SIZE
 #define FRB_SIZ     128         /* STACK_SIZE + ARGS_SIZE by hand */
-#define FRAME_SIZE  0x60        /* sizeof( _i370_interrupt_state_s) */
-#define EXF_SIZE    STACK_SIZE + ARGS_SIZE + FRAME_SIZE
-#define EXF_SIZ     224         /* Add above together by hand. */
+
+#define EXF_SIZ     IR_SIZE     /* Exception frame size */
 
 /* -------------------------------------------------------- */
 /* Structure of our "exception frame"                       */
 /* Location of saved registers on stack                     */
 /* -------------------------------------------------------- */
-#define ARGP		ARGS_BASE
-#define SAVE_BASE FRAME_BASE
+#define SAVE_BASE 0
 #define SAVED_PSW	SAVE_BASE + IR_PSW
 #define SAVED_R11	SAVE_BASE + IR_R11
 #define SAVED_R12	SAVE_BASE + IR_R12
@@ -197,7 +194,7 @@ _cinit:
 2:					/*                           */	\
 	LA	r11,EXF_SIZ(,r13);	/* Add stackframe size.      */	\
 	SLR	r3,r3;			/* zero                      */	\
-	ST	r3,8(,r13);		/* terminate stack backchain */	\
+	ST	r3,IR_CALLER(,r13);	/* terminate stack backchain */	\
 	/* move saved regs out of prefix page to stackframe          */	\
 	MVC	SAVED_PSW(8,r13),oldpsw(0); /* save old psw on stack */	\
 	MVC	SAVED_R11(64,r13),sav+IR_R11(0); /* 16 regs=64 bytes */	\

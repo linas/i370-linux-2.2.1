@@ -100,7 +100,7 @@ print_backtrace (unsigned long stackp)
 	{
 		/* If the stack is at a very high address, assume
 		 * that its a user-space stack pointer and that
-		 * it needs address trnslation.
+		 * it needs address translation.
 		 */
 		if (0x7f000000 < stackp) {
 			pte_t *pte = find_pte (current->mm, stackp);
@@ -116,7 +116,7 @@ print_backtrace (unsigned long stackp)
 			cnt, sp->caller_r3, sp->caller_r14, sp);
 		stackp = sp->caller_sp;
 		cnt ++;
-	} while (stackp &&  (cnt < 6)) ;
+	} while (stackp &&  (cnt < 10)) ;
 	printk("\n");
 }
 

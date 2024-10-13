@@ -143,26 +143,27 @@ _cinit:
 /* Location of saved registers on stack                     */
 /* -------------------------------------------------------- */
 #define ARGP		ARGS_BASE
-#define SAVED_PSW	FRAME_BASE + IR_PSW
-#define SAVED_R11	FRAME_BASE + IR_R11
-#define SAVED_R12	FRAME_BASE + IR_R12
-#define SAVED_R13	FRAME_BASE + IR_R13
-#define SAVED_R14	FRAME_BASE + IR_R14
-#define SAVED_R15	FRAME_BASE + IR_R15
-#define SAVED_R0	FRAME_BASE + IR_R0
-#define SAVED_R1	FRAME_BASE + IR_R1
-#define SAVED_R2	FRAME_BASE + IR_R2
+#define SAVE_BASE FRAME_BASE
+#define SAVED_PSW	SAVE_BASE + IR_PSW
+#define SAVED_R11	SAVE_BASE + IR_R11
+#define SAVED_R12	SAVE_BASE + IR_R12
+#define SAVED_R13	SAVE_BASE + IR_R13
+#define SAVED_R14	SAVE_BASE + IR_R14
+#define SAVED_R15	SAVE_BASE + IR_R15
+#define SAVED_R0	SAVE_BASE + IR_R0
+#define SAVED_R1	SAVE_BASE + IR_R1
+#define SAVED_R2	SAVE_BASE + IR_R2
 
-#define SAVED_R3	FRAME_BASE + IR_R3
-#define SAVED_R4	FRAME_BASE + IR_R4
-#define SAVED_R5	FRAME_BASE + IR_R5
-#define SAVED_R6	FRAME_BASE + IR_R6
-#define SAVED_R7	FRAME_BASE + IR_R7
-#define SAVED_R8	FRAME_BASE + IR_R8
-#define SAVED_R9	FRAME_BASE + IR_R9
-#define SAVED_R10	FRAME_BASE + IR_R10
+#define SAVED_R3	SAVE_BASE + IR_R3
+#define SAVED_R4	SAVE_BASE + IR_R4
+#define SAVED_R5	SAVE_BASE + IR_R5
+#define SAVED_R6	SAVE_BASE + IR_R6
+#define SAVED_R7	SAVE_BASE + IR_R7
+#define SAVED_R8	SAVE_BASE + IR_R8
+#define SAVED_R9	SAVE_BASE + IR_R9
+#define SAVED_R10	SAVE_BASE + IR_R10
 
-#define SAVED_OLDREGS	FRAME_BASE + IR_OLDREGS
+#define SAVED_OLDREGS	SAVE_BASE + IR_OLDREGS
 
 /* We don't have to save all; only those clobbered by
  * EXCEPTION_PROLOG and friends. Currently, we clobber
@@ -204,13 +205,13 @@ _cinit:
 	LA	r1,OFFSET_KREGS(,r12);	/* add offset to regs ptr    */ \
 	L	r2,0(,r1);		/* load regs ptr             */	\
 	ST	r2,SAVED_OLDREGS(,r13); /* save regs ptr to stack    */	\
-	LA	r2,FRAME_BASE(,r13);	/* put addr of newregs in r2 */	\
+	LA	r2,SAVE_BASE(,r13);	/* put addr of newregs in r2 */	\
 	ST	r2,0(,r1);		/* update regs ptr in proc   */	\
 
 
 #define EXCEPTION_CALL_C(handler)  					\
 	L	r15,=A(handler);	/* load address of C routine */	\
-	LA	r2,FRAME_BASE(,r13);	/* ptr to saved psw, regs    */	\
+	LA	r2,SAVE_BASE(,r13);	/* ptr to saved psw, regs    */	\
 	ST	r2,ARGP(,r11);		/* ptr to arguments on stack */	\
 	BASR	lr,r15;			/* jump to C routine         */	\
 	.using	.,lr;			/* use r14 to the end        */	\

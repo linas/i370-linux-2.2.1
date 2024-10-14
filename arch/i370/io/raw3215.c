@@ -57,7 +57,7 @@ extern unitblk_t *unt_con3215;
 static int align_ccw[5];
 ccw_t *ioccw;
 
-// #define SHOW_IRB_STATUS
+#define SHOW_IRB_STATUS
 #ifdef SHOW_IRB_STATUS
 	#define DBGPRT(...) printk(__VA_ARGS__)
 #else
@@ -99,45 +99,12 @@ int i370_raw3215_close (struct inode *inode, struct file *filp)
 static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 {
 	long  flags;
-	int i;
 	long rc;
 	orb_t orb;
-	irb_t irb;
 
 	spin_lock_irqsave(NULL,flags);
 
-	/* We can't start a new write, until the previous one has finished.
-	 * Two ways to find out if its done: 1) wait for an interrupt,
-	 * (caught by flih, below; this works) or just test it here.
-	 * Its easier to test here.
-	 *
-	 * There's two ways to test here. One is to test before issuing
-	 * the SSCH. I can't get this to work. TSCH reports "channel end;
-	 * device end" which is what we want, but unless we also test
-	 * afterwards, output gets garbled. And if we test after, then
-	 * the test before is not needed. Go figure.
-	 *
-	 * There got to be a prettier way.
-	 */
-
-#ifdef INEFFECTIVE
-	/* Look for a Device Status of 'channel end; device end'. We ignore
-	 * unit check because that's how the device comes up after boot !?
-	 * This is to that we don't accidentally clobber the ioccw. I guess
-	 * that maybe if we had a different ioccw each time, this would not
-	 * be needed ??? I'm confused.
-	 */
-#define NLOOP 1000
-	for (i=0; i<NLOOP; i++) {
-		rc = _tsch(unit->unitsid, &irb);
-		if ((irb.scsw.devstat & 0xfd) == 0xc) break;
-		udelay (25);   /* spin 25 microseconds */
-	}
-	if (NLOOP == i) {
-		// return -EIO;
-		printk("Oooh no Mr. Bill!\n");
-	}
-#endif
+	/* Can't start a new write, until the previous one has finished. */
 
 	/*
 	 *  Build the CCW for the 3215 Console I/O
@@ -161,13 +128,6 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	orb.ptrccw = ioccw;		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
-
-	/* See comments about the need for TSCH above */
-	for (i=0; i<1000; i++) {
-		udelay (25);   /* spin 25 microseconds */
-		rc = _tsch(unit->unitsid, &irb);
-		if (irb.scsw.status & 0x1) break;
-	}
 	spin_unlock_irqrestore(NULL,flags);
 }
 
@@ -345,11 +305,17 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 void
 i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
-	unitblk_t* unit = (unitblk_t*) dev_id;
+	unitblk_t* ucb = (unitblk_t*) dev_id;
+	irb_t* irb = &ucb->unitirb;
+
+	DBGPRT("raw3215_flihw irb FCN=%x activity=%x status=%x\n",
+	       irb->scsw.fcntl, irb->scsw.actvty, irb->scsw.status);
+	DBGPRT("devstat=%x schstat=%x residual=%x\n",
+	       irb->scsw.devstat, irb->scsw.schstat, irb->scsw.residual);
 
 	// In the current implementation, we only get interrupts for reads.
 	i370_pending = 1;
-	wake_up_interruptible(&unit->unitinq);
+	wake_up_interruptible(&ucb->unitinq);
 }
 
 /*===================== End of Mainline ====================*/

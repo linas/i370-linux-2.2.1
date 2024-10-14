@@ -251,10 +251,6 @@ typedef struct
 /*------------------------------------------------------------*/
 #define TASK_SIZE	(0x80000000UL)
 
-/*------------------------------------------------------------*/
-/* XXX The rest of this file is sort of garbage user beware   */
-/*------------------------------------------------------------*/
-
 void i370_start_thread(struct pt_regs *regs, unsigned long pswa, unsigned long sp);
 struct task_struct;
 void release_thread(struct task_struct *);
@@ -345,13 +341,14 @@ static inline unsigned long thread_saved_pc(struct thread_struct *t)
 #define forget_segments()		do { } while (0)
 
 /*
- * NOTE! The task struct and the stack go together
- * alloc_task_struct is only invoked inside of do_fork() in
- * the arch-indy code.
+ * The task struct and the kernel stack live together.
+ * alloc_task_struct() is only invoked inside of do_fork() in
+ * the arch-indepedent code.
  */
+#define TASK_NPAGES (sizeof(union task_union) / PAGE_SIZE)
 #define alloc_task_struct() \
-	((struct task_struct *) __get_free_pages(GFP_KERNEL,1))
-#define free_task_struct(p)	free_pages((unsigned long)(p),1)
+	((struct task_struct *) __get_free_pages(GFP_KERNEL, TASK_NPAGES))
+#define free_task_struct(p) free_pages((unsigned long)(p), TASK_NPAGES)
 
 #endif /* endif ASSEMBLY*/
 

@@ -22,7 +22,7 @@ static inline int abs (int j)
 /* Get and set the current value of the stack pointer SP and the stack
  * top pointer STP.  Note that SP points at the base, and that saved
  * regs, args, frame, * etc. are a positive offset from SP.  The STP
- * becomes the SP during a subrutine call.
+ * becomes the SP during a function call.
  */
 /* Get the current value of the stack pointer. */
 /* Since this inlines, it will basically copy r13 to where-ever. */

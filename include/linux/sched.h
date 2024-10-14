@@ -379,9 +379,12 @@ struct task_struct {
 /* signals */	SPIN_LOCK_UNLOCKED, &init_signals, {{0}}, {{0}}, NULL, &init_task.sigqueue, 0, 0, \
 }
 
+/* For i370, 2048 words is a bit too small. 4096 is probably OK.
+   But I never want to see this again, so set to 8192 and forget about it.
+   Who cares. No one is using this code. */
 union task_union {
 	struct task_struct task;
-	unsigned long stack[2048];
+	unsigned long stack[8192];
 };
 
 extern union task_union init_task_union;

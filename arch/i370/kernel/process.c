@@ -38,7 +38,15 @@ static struct files_struct init_files = INIT_FILES;
 static struct signal_struct init_signals = INIT_SIGNALS;
 
 struct mm_struct init_mm = INIT_MM;
-union task_union init_task_union = { INIT_TASK };
+
+/* Debugging is easier when we can easily find this. So, align it on
+   a (two) page boundary. Place it at the begining of the .data section.
+   This location is set up in the vmlinux.lds linker script. */
+union task_union init_task_union
+	// __attribute__((section(".data.init_task"), aligned(2*PAGE_SIZE)))
+	// __attribute__((section(".data"), aligned(2*PAGE_SIZE)))
+	__attribute__((aligned(2*PAGE_SIZE)))
+	= { task: INIT_TASK };
 
 /* init_ksp is used only in head.S during startup to set up the initial stack */
 const unsigned long init_ksp __initdata = (unsigned long) init_stack;

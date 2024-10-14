@@ -202,8 +202,7 @@ static int do_read(unitblk_t* ucb, char* rdbuf)
 	 */
 	rdccw[0].flags   = CCW_CC;         /* Read chained to NOOP */
 	rdccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
-	// rdccw[0].count   = LINELEN;
-	rdccw[0].count   = 120;
+	rdccw[0].count   = 120;            /* More than 120 is hated */
 	rdccw[0].dataptr = rdbuf;          /* address of 3215 buffer */
 	rdccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
 	rdccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */

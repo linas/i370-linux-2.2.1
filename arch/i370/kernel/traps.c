@@ -243,14 +243,24 @@ static int pc_operation(i370_interrupt_state_t *saved_regs,
                         unsigned long  trans,
                         unsigned short code)
 {
-	if (code == 1)
-		printk ("Operation/Operand exception trans=0x%lx\n", trans);
-	else if (code == 6)
-		printk ("Specification exception trans=0x%lx\n", trans);
-	else
-		printk ("Unsupported exception code=%x\n", code);
+	if (user_mode(current->tss.regs)) {
+		printk ("User-space Operation exception code=%x trans=0x%lx\n",
+		         code, trans);
+		printk("TODO: implement me by sending a signal to the user.\n");
+		show_regs (saved_regs);
+		print_backtrace (saved_regs->irregs.r13);
+		i370_halt();
+		return(1);
+	}
 
-	printk("TODO: imlement me by sending a signal tot he user.\n");
+	/* Fatal in the kernel! */
+	if (code == 1)
+		printk ("Fatal: Operation/Operand exception trans=0x%lx\n", trans);
+	else if (code == 6)
+		printk ("Fatal: Specification exception trans=0x%lx\n", trans);
+	else
+		printk ("Fatal: Unsupported exception code=%x\n", code);
+
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
 	i370_halt();

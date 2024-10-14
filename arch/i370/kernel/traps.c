@@ -99,7 +99,7 @@ static pc_handler pc_table[] = {
 	{PIC_EXECUTE,          pc_unsupported},
 	{PIC_PROTECTION,       do_page_fault},
 	{PIC_ADDRESSING,       pc_addressing},
-	{PIC_SPECIFICATION,    pc_unsupported},
+	{PIC_SPECIFICATION,    pc_operation},
 	{PIC_DATA,             pc_unsupported},
 	{PIC_FIXED_OVERFLOW,   pc_math}, /* 0x8 */
 	{PIC_FIXED_DIVIDE,     pc_math},
@@ -231,17 +231,26 @@ static int pc_addressing(i370_interrupt_state_t *saved_regs,
 	return(1);
 }
 
-/* Exception thrown when instruction is not recognized or if operand
- * is invalid. Fatal if in the kernel, should be converted to
- * SIGBUS or something for userland. (User tries to exeute something
- * that isn't code.
+/* Operation Exception thrown when instruction is not recognized or
+ * if an operand is invalid. Specification Exception thrown if the PSW
+ * is invalid, if a double-word operand uses an odd register, if a
+ * float poing insn uses registers incorrectly.
+ *
+ * Fatal if in the kernel, should be converted to SIGBUS or something
+ * for userland. (User tries to exeute something that isn't code.)
  */
 static int pc_operation(i370_interrupt_state_t *saved_regs,
                         unsigned long  trans,
                         unsigned short code)
 {
-	printk ("Operation/Operand exception trans=0x%lx\n", trans);
-	printk("Not implemented\n");
+	if (code == 1)
+		printk ("Operation/Operand exception trans=0x%lx\n", trans);
+	else if (code == 6)
+		printk ("Specification exception trans=0x%lx\n", trans);
+	else
+		printk ("Unsupported exception code=%x\n", code);
+
+	printk("TODO: imlement me by sending a signal tot he user.\n");
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
 	i370_halt();

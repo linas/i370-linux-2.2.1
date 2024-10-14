@@ -651,6 +651,14 @@ i370_sys_clone (unsigned long clone_flags)
 	/* all args pass to copy_thread */
 	res = do_fork(clone_flags, regs->irregs.r13, regs);
 
+	if ((res < 0) && (0 == user_mode(current->tss.regs))) {
+		printk("Error: i370_sys_clone failed for %s/%d\n",
+		        current->comm, current->pid);
+		show_regs(regs);
+		print_backtrace(_get_SP());
+		i370_halt();
+	}
+
 #ifdef __SMP__
 	/* When we clone the idle task we keep the same pid but
 	 * the return value of 0 for both causes problems.

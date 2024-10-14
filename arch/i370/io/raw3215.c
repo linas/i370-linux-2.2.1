@@ -183,16 +183,16 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
 char rdbuf[RDBUFSZ];
 char rascii[RDBUFSZ];
 
-/* Return the number of characters read.
+/* Perform the read.
+ * Return the number of characters read.
  * Max possible is 120.
  */
 static int do_read(unitblk_t* ucb)
 {
 	int flags;
-	int i;
 	long rc;
 	orb_t orb;
-	irb_t irb;
+	irb_t *irb;
 
 	/* Can't start a new read, until the previous one has finished. */
 	if (ucb->unitflg1 & READ_PENDING)
@@ -200,9 +200,8 @@ static int do_read(unitblk_t* ucb)
 
 	memset(rdbuf, 0, RDBUFSZ);
 	spin_lock_irqsave(NULL,flags);
-
 	ucb->unitflg1 &= ~READ_WANTED;
-	ucb->unitflg1 |= READ_PENDING;
+
 	/*
 	 *  Build the CCW for the 3215 Console I/O
 	 *  CCW = READ chained to NOP.
@@ -224,19 +223,23 @@ static int do_read(unitblk_t* ucb)
 	orb.lpm    = 0xff;		/* Logical Path Mask */
 	orb.ptrccw = rdccw;		/* ccw addr to orb */
 
+	ucb->unitflg1 |= READ_PENDING;
 	rc = _ssch(ucb->unitsid, &orb); /* issue Start Subchannel */
-
-	DBGPRT("raw3215_read spin for %d\n", i);
-	DBGPRT("raw3215_read irb FCN=%x activity=%x status=%x\n",
-		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
-	DBGPRT("devstat=0x%x schstat=0x%x residual=%d\n", irb.scsw.devstat,
-		irb.scsw.schstat, irb.scsw.residual);
-
+	DBGPRT("raw3215_read ssch=%d\n", rc);
 	spin_unlock_irqrestore(NULL,flags);
 
+	/* Wait for the read-completed interrupt */
+	interruptible_sleep_on(&ucb->unitinq);
+	irb = &ucb->unitirb;
+
+	DBGPRT("raw3215_read irb FCN=%x activity=%x status=%x\n",
+		irb->scsw.fcntl, irb->scsw.actvty, irb->scsw.status);
+	DBGPRT("devstat=0x%x schstat=0x%x residual=%d\n",
+		irb->scsw.devstat, irb->scsw.schstat, irb->scsw.residual);
+
 	/* The "residual" is how much room is still left in a 120-character
-	 * line. So the number of characters read is 120 minus residual */
-	return 120 - irb.scsw.residual;
+	 * line. So the number of characters read is 120 minus residual.  */
+	return 120 - irb->scsw.residual;
 }
 
 /* ---------------------------------------------------------------- */

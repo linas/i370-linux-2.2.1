@@ -345,17 +345,7 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 void
 i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
-	int rc;
-	irb_t irb;
 	unitblk_t* unit = (unitblk_t*) dev_id;
-
-	rc = _tsch(unit->unitsid, &irb);
-
-	DBGPRT("raw3215_flihw irb FCN=%x activity=%x status=%x\n",
-		irb.scsw.fcntl, irb.scsw.actvty, irb.scsw.status);
-
-	DBGPRT("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
-		irb.scsw.schstat, irb.scsw.residual);
 
 	// In the current implementation, we only get interrupts for reads.
 	i370_pending = 1;

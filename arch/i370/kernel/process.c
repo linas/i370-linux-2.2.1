@@ -129,6 +129,16 @@ print_backtrace (unsigned long stackp)
 				cnt, sp->caller_r3, sp->caller_r14, stackp);
 
 			stackp = sp->caller_sp;
+
+			/* Exception handlers intentionally cut the stack. But we want
+			   to set the rest of it. We cheat, cause we know where it is */
+			if (0 == stackp) {
+				i370_interrupt_state_t *exframe = (i370_interrupt_state_t *) sp;
+				if (exframe) {
+					stackp =  exframe->irregs.r13;
+					printk ("        ----------------- exception frame ------------------\n");
+				}
+			}
 		}
 		cnt ++;
 	} while (stackp &&  (cnt < 10)) ;

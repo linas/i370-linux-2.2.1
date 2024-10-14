@@ -176,18 +176,12 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
 }
 
 /* ---------------------------------------------------------------- */
-/* XXX FIXME this is shared by all and gets clobbered.
- * we want a per-unit read buffer.
- */
-#define RDBUFSZ 120
-char rdbuf[RDBUFSZ];
-char rascii[RDBUFSZ];
 
 /* Perform the read.
  * Return the number of characters read.
  * Max possible is 120.
  */
-static int do_read(unitblk_t* ucb)
+static int do_read(unitblk_t* ucb, char* rdbuf)
 {
 	int flags;
 	long rc;
@@ -198,9 +192,9 @@ static int do_read(unitblk_t* ucb)
 	if (ucb->unitflg1 & READ_PENDING)
 		interruptible_sleep_on(&ucb->unitinq);
 
-	memset(rdbuf, 0, RDBUFSZ);
 	spin_lock_irqsave(NULL,flags);
 	ucb->unitflg1 &= ~READ_WANTED;
+	memset(rdbuf, 0, LINELEN);
 
 	/*
 	 *  Build the CCW for the 3215 Console I/O
@@ -208,7 +202,8 @@ static int do_read(unitblk_t* ucb)
 	 */
 	rdccw[0].flags   = CCW_CC;         /* Read chained to NOOP */
 	rdccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
-	rdccw[0].count   = RDBUFSZ;
+	// rdccw[0].count   = LINELEN;
+	rdccw[0].count   = 120;
 	rdccw[0].dataptr = rdbuf;          /* address of 3215 buffer */
 	rdccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
 	rdccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
@@ -250,6 +245,7 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 	int nread;
 	int i;
 	unitblk_t* ucb = (unitblk_t*) filp->private_data;
+	char rdbuf[LINELEN];
 
 	if ((0 == (ucb->unitflg1 & READ_WANTED)) && (filp->f_flags & O_NONBLOCK))
 		return -EAGAIN;
@@ -260,17 +256,14 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 
 	/* Wait for unsolicited keyboard interrupt. */
 	interruptible_sleep_on(&ucb->unitexpq);
-	nread = do_read(ucb);
+	nread = do_read(ucb, rdbuf);
+	if (0 == nread) return -EAGAIN;
 
-	/* Seems like nread == i always, on exit of loop. */
-	for (i=0; i<RDBUFSZ; i++) {
-		rascii[i] = ebcdic_to_ascii[(unsigned char)rdbuf[i]];
-		if (0 == rdbuf[i]) break;
-	}
-	if (0 == i) return -EAGAIN;
+	for (i=0; i<nread; i++)
+		rdbuf[i] = ebcdic_to_ascii[(unsigned char)rdbuf[i]];
 
-	i++;
-	__copy_to_user(str, rascii, i);
+	rdbuf[i] = 0;
+	__copy_to_user(str, rdbuf, i);
 	return i;
 }
 

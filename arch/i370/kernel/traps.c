@@ -309,21 +309,15 @@ InputOutputException(i370_interrupt_state_t *saved_regs)
 
 	do {
 		rc = _tsch(pfx_subsys_id, &ucb->unitirb);
-		/* OK, So I broke channel status in the 3215 driver and the price
-		   to pay is that tsch returns wonky status, because we already
-		   tested earlier, and cleared the channel status pending bit.
-		   Because we cleared it earlier, this time we get CC set to 1
-		   (from IPM Insert Program Mask in the _tsch snippet) which
-		   manifests as rc==1 here. And yet, the only way we can arrive
-		   here is if there really is an actual I/O excpetion! So, rather
-			than avoiding the IRQ, we'll just go and do it anyway, no matter
-		   what state the status-pending might have been on the channel.
-		   This might be the wrong thing to do if we're getting a zillion
-		   exceptions, but right now, we're gonna punt. No one is using this
-		   anyway.  */
-printk("got irq rc=%d\n", rc);
-		/* if (!rc) Don't do this until above is fixed. */
-		{
+		/* The use of rc here can cause trouble if you cheat in your
+		   drivers. A value of rc==0 is returned when the subchannel
+		   was in status-pending, and the TSCH successfully cleared
+		   that status.  However, if *someone else* (who?) already
+		   cleared the pending status, then rc==1, and the IRQ handler
+		   won't be called. Which may be a surprise: we got the execption,
+		   that's why we are here, but "someone" already mucked with
+		   the subchannel.  Oh well.  */
+		if (!rc) {
 			rc = _stsch(pfx_subsys_id, &schib);
 			irq = schib.isc;
 			do_IRQ(irq, saved_regs, ucb);

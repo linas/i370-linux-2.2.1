@@ -281,7 +281,7 @@ request_irq(unsigned int irq,
 {
 	int retval = 0;
 	struct irqaction *action, *old, **p;
-	unitblk_t *ucb;
+	unitblk_t *ucb	= (unitblk_t *) dev_id;
 
 	if (irq > NR_IRQS)
 		retval = -EINVAL;
@@ -300,8 +300,7 @@ request_irq(unsigned int irq,
 				action->name    = devname;
 				action->next    = NULL;
 				action->dev_id  = dev_id;
-				ucb	     = (unitblk_t *) dev_id;
-				ucb->unitaction = (void *) action;
+				ucb->unitaction = action;
 
 				p = irq_action + irq - 1;
 				if ((old = *p) != NULL) {

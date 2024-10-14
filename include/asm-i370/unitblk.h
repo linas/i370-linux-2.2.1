@@ -24,7 +24,7 @@ typedef struct _unitblk {
 	void		*unitque;	/* last queuing element */
 	long		unitsid;	/* Subchannel Identifier */
 	irb_t		unitirb;	/* Interrupt Request Block */
-	void		*unitaction;	/* Pointer to irq action element */
+	struct irqaction *unitaction;	/* Pointer to irq action element */
 
 	/* Linux kernel stuff */
 	struct wait_queue *unitinq;     /* Input wait queue */

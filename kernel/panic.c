@@ -47,6 +47,12 @@ NORET_TYPE void panic(const char * fmt, ...)
 	else
 		sys_sync();
 
+#ifdef CONFIG_I370
+	show_regs (current->tss.regs);
+	print_backtrace (current->tss.regs->irregs.r13);
+	i370_halt();
+#endif
+
 	unblank_console();
 
 #ifdef __SMP__
@@ -58,7 +64,7 @@ NORET_TYPE void panic(const char * fmt, ...)
 	 	 * Delay timeout seconds before rebooting the machine. 
 		 * We can't use the "normal" timers since we just panicked..
 	 	 */
-		printk(KERN_EMERG "Rebooting in %d seconds..",panic_timeout);
+		printk(KERN_EMERG "Rebooting in %d seconds..\n",panic_timeout);
 		mdelay(panic_timeout*1000);
 		/*
 		 *	Should we run the reboot notifier. For the moment Im
@@ -73,11 +79,6 @@ NORET_TYPE void panic(const char * fmt, ...)
 #ifdef __alpha__
 	if (alpha_using_srm)
 		halt();
-#endif
-#ifdef CONFIG_I370
-	show_regs (current->tss.regs);
-	print_backtrace (current->tss.regs->irregs.r13);
-	i370_halt();
 #endif
 	sti();
 	for(;;) {

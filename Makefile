@@ -17,7 +17,7 @@ HPATH   	= $(TOPDIR)/include
 FINDHPATH	= $(HPATH)/asm $(HPATH)/linux $(HPATH)/scsi $(HPATH)/net
 
 HOSTCC  	=gcc
-HOSTCFLAGS	=-Wall -Wstrict-prototypes -O2 -fomit-frame-pointer
+HOSTCFLAGS	=-Wall -Wstrict-prototypes -O2
 
 CROSS_COMPILE 	= i370-ibm-linux-
 # CROSS_COMPILE 	= i370-ibm-elf-

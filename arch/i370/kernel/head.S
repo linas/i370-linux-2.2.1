@@ -287,42 +287,49 @@ SupervisorCall:
 	EXCEPTION_TRACE (SVC_TRC_ID, 0, PFX_SVC_CODE, SVC_PSW_OLD)
 	EXCEPTION_PROLOG (INTERRUPT_BASE, SVC_PSW_OLD)
 
-	SLR	r2,r2			/* put zero in r2 */
-	LH	r2,138(,0)		/* load interruption code from pfx */
-	LTR	r2,r2			/* is r2 zero ? */
-	BZ	3f			/* branch if zero */
-	HALT (INTERRUPT_BASE)		/* stop the machine (debug) XXX */
+	SLR	r2,r2			/* Put zero in r2             */
+	LH	r2,138(,0)		/* Interruption code from pfx */
+	LTR	r2,r2			/* Is r2 zero ?               */
+	BZ	3f			/* Branch if zero             */
+	HALT (INTERRUPT_BASE)		/* Stop the machine (debug)   */
 3:
-	L	r1,SAVED_R1(sp)		/* get syscall number */
-	LA	r2,NR_syscalls(,0)	/* max of NR_syscalls */
-	CR	r1,r2			/* syscall must be less than NR */
-	BL	4f			/* valid syscall ? */
-	LA	r2,ENOSYSCALL(,0)	/* load r2 with errno */
-	ST	r2,SAVED_R15(,r13)	/* return r15 to caller */
-	ST	r1,SAVED_R1(,r13)	/* return r1 to caller */
-	EXCEPTION_EPILOG (INTERRUPT_BASE)	/* return from interrupt */
+	L	r1,SAVED_R1(sp)		/* Get syscall number         */
+	LA	r2,NR_syscalls(,0)	/* Max of NR_syscalls.        */
+	CR	r1,r2			/* Is syscall less than NR?   */
+	BL	4f			/* Branch if less.            */
+	LA	r2,ENOSYSCALL(,0)	/* Load r2 with errno.        */
+	ST	r2,SAVED_R15(,r13)	/* Return r15 to caller.      */
+	ST	r1,SAVED_R1(,r13)	/* Return r1 to caller.       */
+	EXCEPTION_EPILOG (INTERRUPT_BASE) /* Return from interrupt.   */
 4:
-	L	r2,=A(sys_call_table)	/* load address of sys call table */
-	SLL	r1,2			/* 4 bytes per word ... */
-	L	r15,0(r2,r1)		/* load address of C routine */
-	STM	r5,r10,SAVED_R5(r13)	/* sys call args in regs */
-	STM	r5,r10,ARGP(r11)	/* args on stack */
-	LA	r1,ARGP(,r13)		/* pointer to returned value */
-	BASR	lr,r15			/* jump to C routine */
-	.using	.,lr;			/* use r14 for remainder of the show */
-	STNSM    INTERRUPT_BASE-16(0),0xfc;	/* disable interrupts */
-	EXCEPTION_UNCHAIN (INTERRUPT_BASE)	/* unstack pointer chain */
-	/* get old PSW, restore registers, return from interrupt */
-	/* Note r15 is not restored, but is returned 'as-is' from syscall */
-	MVC	INTERRUPT_BASE(8,0),SAVED_PSW(sp) /* restore old psw from stack */
-	LM	r0,r4,SAVED_R0(r13)	/* restore r0 thru r4         */
+	L	r2,=A(sys_call_table)	/* Address of sys call table. */
+	SLL	r1,2			/* 4 bytes per word ...       */
+	L	r15,0(r2,r1)		/* Load address of C routine. */
+	STM	r5,r10,SAVED_R5(r13)	/* Sys call args in regs.     */
+	STM	r5,r10,ARGP(r11)	/* Args on stack.             */
+	LA	r1,ARGP(,r13)		/* Pointer to returned value. */
+	BASR	lr,r15			/* Jump to C routine.         */
+	.using	.,lr;			/* Use r14 for remainder of the show */
+	STNSM    INTERRUPT_BASE-16(0),0xfc; /* sDdisable interrupts.  */
+#ifdef DO_RET_FROM_SYSCALL
+	/* ifdef'ed out, because it seems un-needed just right now.   */
+	LR	r5,r15			/* Cache for later.           */
+	L	r15,=A(ret_from_syscall)
+	BASR	lr,r15			/* Do bottom halves.          */
+	LR	r15,r5			/* Restore r15 from syscall.  */
+#endif
+	EXCEPTION_UNCHAIN (INTERRUPT_BASE) /* Unstack pointer chain.  */
+	/* Get old PSW, restore registers, return from interrupt.     */
+	/* r15 is not restored, but is returned 'as-is' from syscall. */
+	MVC	INTERRUPT_BASE(8,0),SAVED_PSW(sp) /* Restore old psw. */
+	LM	r0,r4,SAVED_R0(r13)	/* Restore r0 thru r4.        */
 	/* If returning to userland, then restore r5 thru r10, also.  */
-	/* We could do this conditionally, but it's hardly worth the effort. */
-	LM	r5,r10,SAVED_R5(r13)    /* restore r5 thru r10        */
-	LM	r11,r12,SAVED_R11(r13)	/* restore r11, r12           */
-	L	r14,SAVED_R14(r13)	/* restore r14 */
-	L	r13,SAVED_R13(r13)	/* restore r13 */
-	LPSW	INTERRUPT_BASE(0);	/* return from interrupt */
+	/* We could do this conditionally, but not worth the effort.  */
+	LM	r5,r10,SAVED_R5(r13)    /* Restore r5 thru r10.       */
+	LM	r11,r12,SAVED_R11(r13)	/* Restore r11, r12.          */
+	L	r14,SAVED_R14(r13)	/* Restore r14.               */
+	L	r13,SAVED_R13(r13)	/* Restore r13.               */
+	LPSW	INTERRUPT_BASE(0);	/* Return from interrupt.     */
 
 
 #ifdef DO_TRACING

@@ -151,7 +151,7 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* ucb)
 	rc = _ssch(ucb->unitsid, &orb); /* issue Start Subchannel */
 	spin_unlock_irqrestore(NULL,flags);
 
-	/* Hang out here, until the wrote completes.  Why? if we return
+	/* Hang out here, until the write completes.  Why? If we return
 	   before the write completes, the ebcstr buffer, which lives on
 	   stack, will disappear with the stack, and the write will
 		print whatever garbage is found on the stack. Ooops!  */
@@ -271,6 +271,8 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 	__copy_to_user(str, rdbuf, i);
 	return i;
 }
+
+/* ---------------------------------------------------------------- */
 
 void
 i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)

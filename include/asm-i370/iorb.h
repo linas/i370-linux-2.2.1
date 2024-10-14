@@ -114,7 +114,7 @@ typedef struct _scsw {		/* SUBCHANNEL Status Word Structure     */
 	unsigned fcntl   :3;    /* 	   bits 17-19 FCN control       */
 	unsigned actvty  :7;    /* 	   bits 20-26 Activity Control  */
 	unsigned status  :5;    /* 	   bits 27-31 Status Control    */
-	char	  *ccw;     	/* Word 1  bits 0-31 CCW Address        */
+	ccw_t	 *ccw;     	/* Word 1  bits 0-31 CCW Address        */
 	unsigned char devstat; 	/* Word 2  bits 0-7 Device Status       */
 	unsigned char schstat;  /*         bits 8-15 Subchannel Status  */
 	unsigned short residual; /*         bits 16-31 Residual Count   */

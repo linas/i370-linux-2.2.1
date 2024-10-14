@@ -49,13 +49,13 @@
 extern unitblk_t *unt_raw[NRAWTERM];
 extern unitblk_t *unt_con3215;
 
-/* FIXME. The IOCCW needs to stay unclobbered until the I/O operation
- * has completed, i.e. until after we get the secondary status interrupt.
- * Until then, we should be careful not to clobber this!
- * The current design is to just spin.
- */
-static int align_ccw[5];
-ccw_t *ioccw;
+/* Each ccw is 8 bytes (2 ints) and we want to chain two of them,
+   and we want to use different ones for the read and the write.
+   And we must align on a doubleword boundary. So 4+4+1=9. And,
+	well, we will pad with one more, for paranoia in the irb block. */
+static int align_ccw[13];
+ccw_t *rdccw;
+ccw_t *wrccw;
 
 #define SHOW_IRB_STATUS
 #ifdef SHOW_IRB_STATUS
@@ -66,6 +66,7 @@ ccw_t *ioccw;
 
 int i370_raw3215_open (struct inode *inode, struct file *filp)
 {
+	ccw_t *ioccw;
 	unitblk_t *ucb;
 	printk ("raw3215_open of /dev/%s (c %d %d)\n",
 	        filp->f_dentry->d_iname,
@@ -90,6 +91,9 @@ int i370_raw3215_open (struct inode *inode, struct file *filp)
 
 	/* double-word align the ccw array */
 	ioccw = (ccw_t *) (((((unsigned long) &align_ccw[0]) + 7) >>3) << 3);
+	rdccw = &ioccw[0];
+	wrccw = &ioccw[3];
+
 	return 0;
 }
 
@@ -115,14 +119,14 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	 *  Build the CCW for the 3215 Console I/O
 	 *  CCW = WRITE chained to NOP.
 	 */
-	ioccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
-	ioccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
-	ioccw[0].count   = len;
-	ioccw[0].dataptr = ebcstr;      /* address of 3215 buffer */
-	ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
-	ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
-	ioccw[1].dataptr = NULL;           /* buffer = 0 */
-	ioccw[1].count   = 1;              /* ?? */
+	wrccw[0].flags   = CCW_CC+CCW_SLI; /* Write chained to NOOP + SLI */
+	wrccw[0].cmd     = CMDCON_WRI;     /* CCW command is write */
+	wrccw[0].count   = len;
+	wrccw[0].dataptr = ebcstr;      /* address of 3215 buffer */
+	wrccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
+	wrccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
+	wrccw[1].dataptr = NULL;           /* buffer = 0 */
+	wrccw[1].count   = 1;              /* ?? */
 	/*
 	 *  Clear and format the ORB
 	 */
@@ -130,7 +134,7 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	orb.intparm = (int) unit;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;		/* Logical Path Mask */
-	orb.ptrccw = ioccw;		/* ccw addr to orb */
+	orb.ptrccw = wrccw;		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
 	spin_unlock_irqrestore(NULL,flags);
@@ -211,37 +215,18 @@ static int do_read(unitblk_t* unit)
 	memset(rdbuf, 0, RDBUFSZ);
 	spin_lock_irqsave(NULL,flags);
 
-#ifdef INEFFECTIVE
-	/* Well, the idea here was to play it safe, and not clobber the ioccw
-	 * until the device is in a happy state. But even when the device is
-	 * happy, behavior is flakey. So I don't get it. The TSCH loop at
-	 * the bottom fixes things. See similar block of code above, in
-	 * do_write()
-	 */
-#define NLOOP 1000
-	for (i=0; i<NLOOP; i++) {
-		rc = _tsch(unit->unitsid, &irb);
-		if ((irb.scsw.devstat & 0xfd) == 0xc) break;
-		udelay (25);   /* spin 25 microseconds */
-	}
-	if (NLOOP == i) {
-		// return -EIO;
-		printk("No! Watch out! Mr. Bill!\n");
-	}
-#endif
-
 	/*
 	 *  Build the CCW for the 3215 Console I/O
 	 *  CCW = READ chained to NOP.
 	 */
-	ioccw[0].flags   = CCW_CC;         /* Read chained to NOOP */
-	ioccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
-	ioccw[0].count   = RDBUFSZ;
-	ioccw[0].dataptr = rdbuf;          /* address of 3215 buffer */
-	ioccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
-	ioccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
-	ioccw[1].dataptr = NULL;           /* buffer = 0 */
-	ioccw[1].count   = 1;              /* ?? */
+	rdccw[0].flags   = CCW_CC;         /* Read chained to NOOP */
+	rdccw[0].cmd     = CMDCON_RD;      /* CCW command is read */
+	rdccw[0].count   = RDBUFSZ;
+	rdccw[0].dataptr = rdbuf;          /* address of 3215 buffer */
+	rdccw[1].cmd     = CCW_CMD_NOP;    /* ccw is NOOP */
+	rdccw[1].flags   = CCW_SLI;        /* Suppress Length Incorrect */
+	rdccw[1].dataptr = NULL;           /* buffer = 0 */
+	rdccw[1].count   = 1;              /* ?? */
 	/*
 	 *  Clear and format the ORB
 	 */
@@ -249,7 +234,7 @@ static int do_read(unitblk_t* unit)
 	orb.intparm = (int) unit;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;		/* Logical Path Mask */
-	orb.ptrccw = ioccw;		/* ccw addr to orb */
+	orb.ptrccw = rdccw;		/* ccw addr to orb */
 
 	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
 
@@ -318,9 +303,18 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 	DBGPRT("devstat=%x schstat=%x residual=%x\n",
 	       irb->scsw.devstat, irb->scsw.schstat, irb->scsw.residual);
 
-	// In the current implementation, we only get interrupts for reads.
-	i370_pending = 1;
-	wake_up_interruptible(&ucb->unitinq);
+	if (irb->scsw.ccw == &rdccw[2]) {
+		i370_pending = 1;
+		wake_up_interruptible(&ucb->unitinq);
+	}
+	else if (irb->scsw.ccw == &wrccw[2]) {
+		wake_up_interruptible(&ucb->unitoutq);
+	}
+	else {
+		printk("Unhandled 3215 interrupt status\n");
+		printk("ccw = %x\n", irb->scsw.ccw);
+		i370_halt();
+	}
 }
 
 /*===================== End of Mainline ====================*/

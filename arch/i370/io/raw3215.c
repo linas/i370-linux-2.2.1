@@ -57,7 +57,7 @@ static int align_ccw[13];
 ccw_t *rdccw;
 ccw_t *wrccw;
 
-#define SHOW_IRB_STATUS
+// #define SHOW_IRB_STATUS
 #ifdef SHOW_IRB_STATUS
 	#define DBGPRT(...) printk(__VA_ARGS__)
 #else
@@ -277,16 +277,15 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 {
 	unitblk_t* ucb = (unitblk_t*) dev_id;
 	irb_t* irb = &ucb->unitirb;
-
-if (irb->scsw.ccw != &wrccw[2]) {
 	DBGPRT("raw3215_flihw irb FCN=%x activity=%x status=%x\n",
 	       irb->scsw.fcntl, irb->scsw.actvty, irb->scsw.status);
 	DBGPRT("devstat=%x schstat=%x residual=%x\n",
 	       irb->scsw.devstat, irb->scsw.schstat, irb->scsw.residual);
 	DBGPRT("unit flags = %x\n", ucb->unitflg1);
-}
 
-	if (irb->scsw.ccw == &rdccw[2]) {
+	/* Empty ccw is an unsolicited interrupt. Basically, user
+	 * hit "enter" at the keyboard.  */
+	if (irb->scsw.ccw == 0) {
 		ucb->unitflg1 |= READ_PENDING;
 		wake_up_interruptible(&ucb->unitinq);
 	}
@@ -295,8 +294,8 @@ if (irb->scsw.ccw != &wrccw[2]) {
 		wake_up_interruptible(&ucb->unitoutq);
 	}
 	else {
-		printk("Unhandled 3215 interrupt status\n");
-		printk("ccw = %lx\n", (unsigned long) irb->scsw.ccw);
+		printk("Unhandled 3215 interrupt status ccw=%lx\n",
+		       (unsigned long) irb->scsw.ccw);
 		i370_halt();
 	}
 }

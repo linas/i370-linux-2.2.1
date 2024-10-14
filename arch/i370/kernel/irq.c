@@ -336,7 +336,7 @@ void
 free_irq(unsigned int irq, void *dev_id)
 {
 	struct irqaction * action, **p;
-	unitblk_t *ucb;
+	unitblk_t *ucb = (unitblk_t *) dev_id;
 
 	if (irq > NR_IRQS) {
 		printk("Trying to free IRQ%d\n",irq);
@@ -350,7 +350,6 @@ free_irq(unsigned int irq, void *dev_id)
 
 		/* Found it - now free it */
 		*p  = action->next;
-		ucb = (unitblk_t *) dev_id;
 		ucb->unitaction = NULL;
 		kfree(action);
 		return;

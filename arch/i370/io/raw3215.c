@@ -66,6 +66,7 @@ ccw_t *ioccw;
 
 int i370_raw3215_open (struct inode *inode, struct file *filp)
 {
+	unitblk_t *ucb;
 	printk ("raw3215_open of /dev/%s (c %d %d)\n",
 	        filp->f_dentry->d_iname,
 	        inode->i_rdev >> 8, inode->i_rdev & 0xff);
@@ -77,11 +78,15 @@ int i370_raw3215_open (struct inode *inode, struct file *filp)
 
 	int minor = inode->i_rdev & 0xff;
 	if ((RAWMINOR <= minor) && (minor < RAWMINOR+NRAWTERM))
-		filp->private_data = unt_raw[minor - RAWMINOR];
+		ucb = unt_raw[minor - RAWMINOR];
 	else if (1 == minor)
-		filp->private_data = unt_con3215;
+		ucb = unt_con3215;
 	else
 		return -ENODEV;
+
+	filp->private_data = ucb;
+
+	ucb->unitflg1 = 0;
 
 	/* double-word align the ccw array */
 	ioccw = (ccw_t *) (((((unsigned long) &align_ccw[0]) + 7) >>3) << 3);

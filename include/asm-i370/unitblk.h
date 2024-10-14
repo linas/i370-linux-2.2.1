@@ -52,7 +52,8 @@ typedef struct _unitblk {
 	unsigned char   unitcuid;	/* CUID from RDC */
 	unsigned char   unitvol[6];	/* volume Id */
 	unsigned char   unittype;	/* 1=charddev; 2=blockdev */
-	unsigned char   fill[3];	/* fill to next 16 byte boundary */
+	unsigned char   unitflg3;	/* One more flag byte */
+	unsigned short  fill;		/* fill to next 16 byte boundary */
 	struct _unitblk *unitnxt;       /* Next Unit Block */
 } unitblk_t;
 

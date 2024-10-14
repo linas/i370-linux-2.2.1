@@ -302,6 +302,7 @@ InputOutputException(i370_interrupt_state_t *saved_regs)
 		   This might be the wrong thing to do if we're getting a zillion
 		   exceptions, but right now, we're gonna punt. No one is using this
 		   anyway.  */
+printk("got irq rc=%d\n", rc);
 		/* if (!rc) Don't do this until above is fixed. */
 		{
 			rc = _stsch(pfx_subsys_id, &schib);

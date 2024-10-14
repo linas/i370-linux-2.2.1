@@ -261,9 +261,11 @@ i370_setup_devices(void)
 			printk("Bad device type for /dev/%s\n", devices->unitname);
 		}
 
-		// XXX FIXME, registering the console (5,1) gives
-		// -EBUSY == -16 as the return code. Because I guess
-		// we should do something else?
+		/* Assume drivers will use wait queues, so lets init now. */
+		init_waitqueue(&devices->unitinq);
+		init_waitqueue(&devices->unitoutq);
+		init_waitqueue(&devices->unitexpq);
+
 		if (rc)
 			printk("i370 register of /dev/%s failed, errno=%d\n",
 			       devices->unitname, rc);

@@ -45,10 +45,6 @@
 #include <linux/mm.h>
 #include <linux/wait.h>
 
-// TODO we should use the wait queue in the unit control block
-static struct wait_queue *con3215_waitq = NULL;
-static int wq_inited = 0;
-
 /* Mapping of minor devnos to units. */
 extern unitblk_t *unt_raw[NRAWTERM];
 extern unitblk_t *unt_con3215;
@@ -73,11 +69,6 @@ int i370_raw3215_open (struct inode *inode, struct file *filp)
 	printk ("raw3215_open of /dev/%s (c %d %d)\n",
 	        filp->f_dentry->d_iname,
 	        inode->i_rdev >> 8, inode->i_rdev & 0xff);
-
-	if (0 == wq_inited) {
-		init_waitqueue(&con3215_waitq);
-		wq_inited = 1;
-	}
 
 	/* private_data should be unused, unless someone cut-n-pasted
 	 * this code into a tty implementation of terminals. Ooops! */
@@ -318,7 +309,7 @@ static int do_read(unitblk_t* unit)
 
 /* ---------------------------------------------------------------- */
 
-/* Where we wait for input */
+/* XXX fixme, this should be in the unit block, for multiple devices */
 static int i370_pending=0;
 
 ssize_t i370_raw3215_read (struct file *filp, char *str,
@@ -335,7 +326,7 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 	if (signal_pending(current))
 		return -ERESTARTSYS;
 
-	interruptible_sleep_on(&con3215_waitq);
+	interruptible_sleep_on(&unit->unitinq);
 	i370_pending = 0;
 	nread = do_read(unit);
 
@@ -368,7 +359,7 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 
 	// In the current implementation, we only get interrupts for reads.
 	i370_pending = 1;
-	wake_up_interruptible(&con3215_waitq);
+	wake_up_interruptible(&unit->unitinq);
 }
 
 /*===================== End of Mainline ====================*/

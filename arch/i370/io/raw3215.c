@@ -16,7 +16,7 @@
  *
  * If you hit enter, with no chars beforehand, you get
  * HHCTE006A Enter input for console device 0009
- * If I wait long enough that the shell atttempts another read,
+ * If I wait long enough that the shell attempts another read,
  * I think the pending flag below remains set, these console
  * input requests pile up, and the input is lost. The only way to
  * clear this is to type, hit enter, fast, over and over, until
@@ -43,6 +43,11 @@
 
 #include <linux/fs.h>
 #include <linux/mm.h>
+#include <linux/wait.h>
+
+// TODO we should use the wait queue in the unit control block
+static struct wait_queue *con3215_waitq = NULL;
+static int wq_inited = 0;
 
 /* Mapping of minor devnos to units. */
 extern unitblk_t *unt_raw[NRAWTERM];
@@ -68,6 +73,11 @@ int i370_raw3215_open (struct inode *inode, struct file *filp)
 	printk ("raw3215_open of /dev/%s (c %d %d)\n",
 	        filp->f_dentry->d_iname,
 	        inode->i_rdev >> 8, inode->i_rdev & 0xff);
+
+	if (0 == wq_inited) {
+		init_waitqueue(&con3215_waitq);
+		wq_inited = 1;
+	}
 
 	/* private_data should be unused, unless someone cut-n-pasted
 	 * this code into a tty implementation of terminals. Ooops! */
@@ -306,6 +316,9 @@ static int do_read(unitblk_t* unit)
 	return 120 - irb.scsw.residual;
 }
 
+/* ---------------------------------------------------------------- */
+
+/* Where we wait for input */
 static int i370_pending=0;
 
 ssize_t i370_raw3215_read (struct file *filp, char *str,
@@ -315,9 +328,14 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 	int i;
 	unitblk_t* unit = (unitblk_t*) filp->private_data;
 
-	if (!i370_pending)
+	if ((0 == i370_pending) && (filp->f_flags & O_NONBLOCK))
 		return -EAGAIN;
 
+	/* Ensure reaction to signals */
+	if (signal_pending(current))
+		return -ERESTARTSYS;
+
+	interruptible_sleep_on(&con3215_waitq);
 	i370_pending = 0;
 	nread = do_read(unit);
 
@@ -340,9 +358,6 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 	irb_t irb;
 	unitblk_t* unit = (unitblk_t*) dev_id;
 
-	// In the current implementation, we only get interrupts for reads.
-	i370_pending = 1;
-
 	rc = _tsch(unit->unitsid, &irb);
 
 	DBGPRT("raw3215_flihw irb FCN=%x activity=%x status=%x\n",
@@ -350,6 +365,10 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 
 	DBGPRT("devstat=%x schstat=%x residual=%x\n", irb.scsw.devstat,
 		irb.scsw.schstat, irb.scsw.residual);
+
+	// In the current implementation, we only get interrupts for reads.
+	i370_pending = 1;
+	wake_up_interruptible(&con3215_waitq);
 }
 
 /*===================== End of Mainline ====================*/

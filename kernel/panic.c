@@ -48,8 +48,10 @@ NORET_TYPE void panic(const char * fmt, ...)
 		sys_sync();
 
 #ifdef CONFIG_I370
+	// regs might be insane, if we haven't left the sandbox, yet.
 	show_regs (current->tss.regs);
-	print_backtrace (current->tss.regs->irregs.r13);
+	// print_backtrace (current->tss.regs->irregs.r13);
+	print_backtrace (_get_SP());
 	i370_halt();
 #endif
 

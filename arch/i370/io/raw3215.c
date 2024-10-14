@@ -64,6 +64,11 @@ ccw_t *wrccw;
 	#define DBGPRT(...)
 #endif
 
+/* I/O status  flags */
+#define WRITE_PENDING 0x1
+
+/* ---------------------------------------------------------------- */
+
 int i370_raw3215_open (struct inode *inode, struct file *filp)
 {
 	ccw_t *ioccw;
@@ -105,16 +110,17 @@ int i370_raw3215_close (struct inode *inode, struct file *filp)
 
 /* ---------------------------------------------------------------- */
 
-static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
+static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* ucb)
 {
 	long  flags;
 	long rc;
 	orb_t orb;
 
-	spin_lock_irqsave(NULL,flags);
-
 	/* Can't start a new write, until the previous one has finished. */
+	if (ucb->unitflg1 & WRITE_PENDING)
+		interruptible_sleep_on(&ucb->unitoutq);
 
+	spin_lock_irqsave(NULL,flags);
 	/*
 	 *  Build the CCW for the 3215 Console I/O
 	 *  CCW = WRITE chained to NOP.
@@ -131,12 +137,13 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* unit)
 	 *  Clear and format the ORB
 	 */
 	memset(&orb, 0x00, sizeof(orb_t));
-	orb.intparm = (int) unit;
+	orb.intparm = (int) ucb;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;		/* Logical Path Mask */
 	orb.ptrccw = wrccw;		/* ccw addr to orb */
 
-	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
+	ucb->unitflg1 |= WRITE_PENDING;
+	rc = _ssch(ucb->unitsid, &orb); /* issue Start Subchannel */
 	spin_unlock_irqrestore(NULL,flags);
 }
 
@@ -302,17 +309,19 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 	       irb->scsw.fcntl, irb->scsw.actvty, irb->scsw.status);
 	DBGPRT("devstat=%x schstat=%x residual=%x\n",
 	       irb->scsw.devstat, irb->scsw.schstat, irb->scsw.residual);
+	DBGPRT("unit flags = %x\n", ucb->unitflg1);
 
 	if (irb->scsw.ccw == &rdccw[2]) {
 		i370_pending = 1;
 		wake_up_interruptible(&ucb->unitinq);
 	}
 	else if (irb->scsw.ccw == &wrccw[2]) {
+		ucb->unitflg1 &= ~WRITE_PENDING;
 		wake_up_interruptible(&ucb->unitoutq);
 	}
 	else {
 		printk("Unhandled 3215 interrupt status\n");
-		printk("ccw = %x\n", irb->scsw.ccw);
+		printk("ccw = %lx\n", (unsigned long) irb->scsw.ccw);
 		i370_halt();
 	}
 }

@@ -67,6 +67,7 @@ ccw_t *wrccw;
 /* I/O status  flags */
 #define WRITE_PENDING 0x1
 #define READ_PENDING 0x2
+#define READ_WANTED 0x4
 
 /* The reality of line devices */
 #define LINELEN 124
@@ -174,7 +175,6 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
 	return len;
 }
 
-
 /* ---------------------------------------------------------------- */
 /* XXX FIXME this is shared by all and gets clobbered.
  * we want a per-unit read buffer.
@@ -248,16 +248,16 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 	int i;
 	unitblk_t* ucb = (unitblk_t*) filp->private_data;
 
-	if ((0 == (ucb->unitflg1 & READ_PENDING)) && (filp->f_flags & O_NONBLOCK))
+	if ((0 == (ucb->unitflg1 & READ_WANTED)) && (filp->f_flags & O_NONBLOCK))
 		return -EAGAIN;
 
 	/* Ensure reaction to signals */
 	if (signal_pending(current))
 		return -ERESTARTSYS;
 
-	/* Wait for input. */
-	interruptible_sleep_on(&ucb->unitinq);
-	ucb->unitflg1 &= ~READ_PENDING;
+	/* Wait for unsolicited keyboard interrupt. */
+	interruptible_sleep_on(&ucb->unitexpq);
+	ucb->unitflg1 &= ~READ_WANTED;
 	nread = do_read(ucb);
 
 	/* Seems like nread == i always, on exit of loop. */
@@ -286,7 +286,11 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 	/* Empty ccw is an unsolicited interrupt. Basically, user
 	 * hit "enter" at the keyboard.  */
 	if (irb->scsw.ccw == 0) {
-		ucb->unitflg1 |= READ_PENDING;
+		ucb->unitflg1 |= READ_WANTED;
+		wake_up_interruptible(&ucb->unitexpq);
+	}
+	else if (irb->scsw.ccw == &rdccw[2]) {
+		ucb->unitflg1 &= ~READ_PENDING;
 		wake_up_interruptible(&ucb->unitinq);
 	}
 	else if (irb->scsw.ccw == &wrccw[2]) {

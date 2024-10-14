@@ -150,6 +150,12 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* ucb)
 	ucb->unitflg1 |= WRITE_PENDING;
 	rc = _ssch(ucb->unitsid, &orb); /* issue Start Subchannel */
 	spin_unlock_irqrestore(NULL,flags);
+
+	/* Hang out here, until the wrote completes.  Why? if we return
+	   before the write completes, the ebcstr buffer, which lives on
+	   stack, will disappear with the stack, and the write will
+		print whatever garbage is found on the stack. Ooops!  */
+	interruptible_sleep_on(&ucb->unitoutq);
 }
 
 ssize_t i370_raw3215_write (struct file *filp, const char *str,

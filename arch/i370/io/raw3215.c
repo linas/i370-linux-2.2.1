@@ -68,6 +68,9 @@ ccw_t *wrccw;
 #define WRITE_PENDING 0x1
 #define READ_PENDING 0x2
 
+/* The reality of line devices */
+#define LINELEN 124
+
 /* ---------------------------------------------------------------- */
 
 int i370_raw3215_open (struct inode *inode, struct file *filp)
@@ -148,60 +151,31 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* ucb)
 	spin_unlock_irqrestore(NULL,flags);
 }
 
-static long do_write (char* kstr, const char *str, size_t len, unitblk_t* unit)
+ssize_t i370_raw3215_write (struct file *filp, const char *str,
+                            size_t len, loff_t *ignore)
 {
 	long  rc;
-	long  i, j;
-#define EBCLEN 120
-	char  ebcstr[EBCLEN];
+	int  i;
+	unitblk_t* ucb = (unitblk_t*) filp->private_data;
+	char kstr[LINELEN];
+
+	/* Sorry. One line at a time. */
+	if (LINELEN <= len)
+		return -E2BIG;
 
 	rc = copy_from_user(kstr, str, len);
 	if (rc)
 		return -EIO;
 
-	j = 0;
-	for (i=0; i<len; i++) {
-		ebcstr[j] = ascii_to_ebcdic[(unsigned char)kstr[i]];
+	for (i=0; i<len; i++)
+		kstr[i] = ascii_to_ebcdic[(unsigned char)kstr[i]];
 
-		if ((ebcstr[j] == 0x0) || (j >= EBCLEN-2))
-		{
-			if (0 < j)
-				do_write_one_line(ebcstr, j, unit);
-			j = 0;
-		}
-		else
-			j++;
-	}
-
-	/* Anything left? */
-	if (0 < j)
-		do_write_one_line(ebcstr, j, unit);
-
+	do_write_one_line(kstr, len, ucb);
 	return len;
 }
 
-ssize_t i370_raw3215_write (struct file *filp, const char *str,
-                            size_t len, loff_t *ignore)
-{
-	long rc;
-	char * kstr;
 
-	unitblk_t* unit = (unitblk_t*) filp->private_data;
-
-	/* Avoid spew to console */
-	if (PAGE_SIZE <= len)
-		return -E2BIG;
-
-	kstr = (char *) __get_free_page(GFP_KERNEL);
-	if (!kstr)
-		return -ENOMEM;
-
-	rc = do_write(kstr, str, len, unit);
-
-	free_page((unsigned long)kstr);
-	return rc;
-}
-
+/* ---------------------------------------------------------------- */
 /* XXX FIXME this is shared by all and gets clobbered.
  * we want a per-unit read buffer.
  */
@@ -304,11 +278,13 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 	unitblk_t* ucb = (unitblk_t*) dev_id;
 	irb_t* irb = &ucb->unitirb;
 
+if (irb->scsw.ccw != &wrccw[2]) {
 	DBGPRT("raw3215_flihw irb FCN=%x activity=%x status=%x\n",
 	       irb->scsw.fcntl, irb->scsw.actvty, irb->scsw.status);
 	DBGPRT("devstat=%x schstat=%x residual=%x\n",
 	       irb->scsw.devstat, irb->scsw.schstat, irb->scsw.residual);
 	DBGPRT("unit flags = %x\n", ucb->unitflg1);
+}
 
 	if (irb->scsw.ccw == &rdccw[2]) {
 		ucb->unitflg1 |= READ_PENDING;

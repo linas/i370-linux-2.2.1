@@ -127,7 +127,8 @@ print_backtrace (unsigned long stackp)
 			stackp = sp->caller_sp;
 			if (stackp < STACK_TOP - I370_STACK_SIZE + sizeof(i370_elf_stack_t)) {
 				printk ("        ---------------- end of user stack -----------------\n");
-				stackp = current->tss.ksp;
+				// stackp = current->tss.ksp;
+				stackp = _get_SP();
 			}
 		} else {
 

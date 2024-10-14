@@ -66,6 +66,7 @@ ccw_t *wrccw;
 
 /* I/O status  flags */
 #define WRITE_PENDING 0x1
+#define READ_PENDING 0x2
 
 /* ---------------------------------------------------------------- */
 
@@ -266,26 +267,24 @@ static int do_read(unitblk_t* unit)
 
 /* ---------------------------------------------------------------- */
 
-/* XXX fixme, this should be in the unit block, for multiple devices */
-static int i370_pending=0;
-
 ssize_t i370_raw3215_read (struct file *filp, char *str,
                            size_t len, loff_t *ignore)
 {
 	int nread;
 	int i;
-	unitblk_t* unit = (unitblk_t*) filp->private_data;
+	unitblk_t* ucb = (unitblk_t*) filp->private_data;
 
-	if ((0 == i370_pending) && (filp->f_flags & O_NONBLOCK))
+	if ((0 == (ucb->unitflg1 & READ_PENDING)) && (filp->f_flags & O_NONBLOCK))
 		return -EAGAIN;
 
 	/* Ensure reaction to signals */
 	if (signal_pending(current))
 		return -ERESTARTSYS;
 
-	interruptible_sleep_on(&unit->unitinq);
-	i370_pending = 0;
-	nread = do_read(unit);
+	/* Wait for input. */
+	interruptible_sleep_on(&ucb->unitinq);
+	ucb->unitflg1 &= ~READ_PENDING;
+	nread = do_read(ucb);
 
 	/* Seems like nread == i always, on exit of loop. */
 	for (i=0; i<RDBUFSZ; i++) {
@@ -312,7 +311,7 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 	DBGPRT("unit flags = %x\n", ucb->unitflg1);
 
 	if (irb->scsw.ccw == &rdccw[2]) {
-		i370_pending = 1;
+		ucb->unitflg1 |= READ_PENDING;
 		wake_up_interruptible(&ucb->unitinq);
 	}
 	else if (irb->scsw.ccw == &wrccw[2]) {

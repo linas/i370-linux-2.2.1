@@ -459,6 +459,12 @@ ret_from_syscall (void)
 				do_it_again = 0;
 				continue;
 			}
+		} else {
+			if (current->need_resched) {
+				schedule ();
+				do_it_again = 1;
+				continue;
+			}
 		}
 	}
 

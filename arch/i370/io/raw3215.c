@@ -53,7 +53,7 @@ extern unitblk_t *unt_con3215;
    and we want to use different ones for the read and the write.
    And we must align on a doubleword boundary. So 4+4+1=9. And,
 	well, we will pad with one more, for paranoia in the irb block. */
-static int align_ccw[13];
+static int align_ccw[17];
 ccw_t *rdccw;
 ccw_t *wrccw;
 
@@ -102,7 +102,7 @@ int i370_raw3215_open (struct inode *inode, struct file *filp)
 	/* double-word align the ccw array */
 	ioccw = (ccw_t *) (((((unsigned long) &align_ccw[0]) + 7) >>3) << 3);
 	rdccw = &ioccw[0];
-	wrccw = &ioccw[3];
+	wrccw = &ioccw[4];
 
 	return 0;
 }
@@ -186,7 +186,7 @@ char rascii[RDBUFSZ];
 /* Return the number of characters read.
  * Max possible is 120.
  */
-static int do_read(unitblk_t* unit)
+static int do_read(unitblk_t* ucb)
 {
 	int flags;
 	int i;
@@ -194,9 +194,15 @@ static int do_read(unitblk_t* unit)
 	orb_t orb;
 	irb_t irb;
 
+	/* Can't start a new read, until the previous one has finished. */
+	if (ucb->unitflg1 & READ_PENDING)
+		interruptible_sleep_on(&ucb->unitinq);
+
 	memset(rdbuf, 0, RDBUFSZ);
 	spin_lock_irqsave(NULL,flags);
 
+	ucb->unitflg1 &= ~READ_WANTED;
+	ucb->unitflg1 |= READ_PENDING;
 	/*
 	 *  Build the CCW for the 3215 Console I/O
 	 *  CCW = READ chained to NOP.
@@ -213,18 +219,12 @@ static int do_read(unitblk_t* unit)
 	 *  Clear and format the ORB
 	 */
 	memset(&orb, 0x00, sizeof(orb_t));
-	orb.intparm = (int) unit;
+	orb.intparm = (unsigned long) ucb;
 	orb.fpiau  = 0x80;		/* format 1 ORB */
 	orb.lpm    = 0xff;		/* Logical Path Mask */
 	orb.ptrccw = rdccw;		/* ccw addr to orb */
 
-	rc = _ssch(unit->unitsid, &orb); /* issue Start Subchannel */
-
-	for (i=0; i<1000; i++) {
-		udelay (25);   /* spin 25 microseconds */
-		rc = _tsch(unit->unitsid, &irb);
-		if (irb.scsw.status & 0x1) break;
-	}
+	rc = _ssch(ucb->unitsid, &orb); /* issue Start Subchannel */
 
 	DBGPRT("raw3215_read spin for %d\n", i);
 	DBGPRT("raw3215_read irb FCN=%x activity=%x status=%x\n",
@@ -257,7 +257,6 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 
 	/* Wait for unsolicited keyboard interrupt. */
 	interruptible_sleep_on(&ucb->unitexpq);
-	ucb->unitflg1 &= ~READ_WANTED;
 	nread = do_read(ucb);
 
 	/* Seems like nread == i always, on exit of loop. */
@@ -289,7 +288,7 @@ i370_raw3215_flih(int irq, void *dev_id, struct pt_regs *regs)
 		ucb->unitflg1 |= READ_WANTED;
 		wake_up_interruptible(&ucb->unitexpq);
 	}
-	else if (irb->scsw.ccw == &rdccw[2]) {
+	else if (irb->scsw.ccw == &rdccw[1]) {
 		ucb->unitflg1 &= ~READ_PENDING;
 		wake_up_interruptible(&ucb->unitinq);
 	}

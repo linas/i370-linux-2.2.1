@@ -162,22 +162,42 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
                             size_t len, loff_t *ignore)
 {
 	long  rc;
-	int  i;
+	int i;
+	char *p;
+	size_t nc, nleft;
 	unitblk_t* ucb = (unitblk_t*) filp->private_data;
 	char kstr[LINELEN];
 
-	/* Sorry. One line at a time. */
-	if (LINELEN <= len)
+#define MAXWRI (10*PAGE_SIZE)
+	/* Don't spam the console. */
+	if (MAXWRI <= len)
 		return -E2BIG;
 
-	rc = copy_from_user(kstr, str, len);
-	if (rc)
-		return -EIO;
+	/* Don't go past end of memory. STACK_TOP == 0x80000000 */
+	if (STACK_TOP - MAXWRI <= (unsigned long) str)
+		return -E2BIG;
 
-	for (i=0; i<len; i++)
-		kstr[i] = ascii_to_ebcdic[(unsigned char)kstr[i]];
+	/* Loop. One line at a time. */
+	/* Why? Because uClibc can't deal with it, if we return -E2BIG for
+	 * writes longer than 120 chars. So we approximate a normal tty. */
+	p = str;
+	nleft = len;
+	while (p < str+len) {
+		nc = nleft;
+		if (LINELEN < nc)
+			nc = LINELEN;
 
-	do_write_one_line(kstr, len, ucb);
+		rc = copy_from_user(kstr, p, nc);
+		if (rc)
+			return -EIO;
+
+		for (i=0; i<len; i++)
+			kstr[i] = ascii_to_ebcdic[(unsigned char)kstr[i]];
+		do_write_one_line(kstr, nc, ucb);
+
+		p += nc;
+		nleft -= nc;
+	}
 	return len;
 }
 

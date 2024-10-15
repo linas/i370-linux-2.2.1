@@ -270,7 +270,7 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 	int nread;
 	int i;
 	unitblk_t* ucb = (unitblk_t*) filp->private_data;
-	char rdbuf[LINELEN];
+	char rdbuf[LINELEN+2];
 
 	if ((0 == (ucb->unitflg1 & READ_WANTED)) && (filp->f_flags & O_NONBLOCK))
 		return -EAGAIN;
@@ -287,6 +287,11 @@ ssize_t i370_raw3215_read (struct file *filp, char *str,
 	for (i=0; i<nread; i++)
 		rdbuf[i] = ebcdic_to_ascii[(unsigned char)rdbuf[i]];
 
+	/* Whelp. Pretened to be a tty, and just stick a newline at the end.
+	 * Conventional C libs like uClic have no idea we are not a tty, and
+	 * so we are going to fake it. */
+	rdbuf[i] = '\n';
+	i++;
 	rdbuf[i] = 0;
 	__copy_to_user(str, rdbuf, i);
 	return i;

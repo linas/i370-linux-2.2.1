@@ -1,7 +1,7 @@
 #ifndef _LINUX_SOCKET_H
 #define _LINUX_SOCKET_H
 
-#if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
+#if defined(__KERNEL__)
 
 #include <asm/socket.h>			/* arch-dependent defines	*/
 #include <linux/sockios.h>		/* the SIOCxxx I/O controls	*/

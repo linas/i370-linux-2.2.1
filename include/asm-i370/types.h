@@ -1,6 +1,11 @@
 #ifndef _I370_TYPES_H
 #define _I370_TYPES_H
 
+/* Avoid namespace pollution for C libraries */
+#ifndef __KERNEL__
+#define __KERNEL_STRICT_NAMES 1
+#endif
+
 /*
  * __xx is ok: it doesn't pollute the POSIX namespace. Use these in the
  * header files exported to user space

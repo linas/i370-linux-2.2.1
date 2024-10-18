@@ -185,7 +185,7 @@ _cinit:
 	N	r1,=X'00010000';	/* is in problem state?      */	\
 	BZ	1f;			/* sp is already ok if kern  */	\
 	/* Interrupted user proc, so need to find a kernel stack.    */	\
-	LA	r13,TASK_STRUCT_SIZE(,r12); /* framep is stack bot   */	\
+	L	r13,OFFSET_KSP(,r12);   /* framep is stack bot       */	\
 	B	2f;                     /*                           */	\
 1:					/* branch here if kernel     */	\
 	/* We have valid top-of-stack ptr (r11). Make room,          */	\

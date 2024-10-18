@@ -327,7 +327,8 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 // A non-zero return value indicates an error.
 
 // #define SHOW_TASK_SWITCHES
-#ifdef SHOW_TASK_SWITCHES
+// #define DEBUG
+#ifdef DEBUG
 	#define DBGPRT(...) printk(__VA_ARGS__)
 #else
 	#define DBGPRT(...)
@@ -426,6 +427,7 @@ void exit_thread(void)
 	 * want to clobber/save or restore these. But right now, we
 	 * unconditionally save/restore float pt regs in swtich_to()
 	 * so this doesn't matter. */
+	DBGPRT("Call exit_thread\n");
 }
 
 void flush_thread(void)
@@ -440,6 +442,7 @@ void flush_thread(void)
 void
 release_thread(struct task_struct *t)
 {
+	DBGPRT("Call release_thread\n");
 }
 
 /* =================================================================== */
@@ -473,9 +476,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
             struct task_struct * p, struct pt_regs * regs)
 {
 	unsigned long srctop, dsttop;
-	i370_elf_stack_t *srcsp, *dstsp;
+	i370_elf_stack_t *srcsp, *dstsp, *lastdst;
 	i370_elf_stack_t *this_frame, *this_frame_top;
-	i370_elf_stack_t *lastsrc, *lastdst;
 	void *srcbase, *dstbase;
 	unsigned long delta;
 	i370_interrupt_state_t *srcregs, **dstregs;
@@ -512,12 +514,14 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	do {
 		dstsp -> caller_sp = srcsp->caller_sp - delta;
 		dstsp -> callee_sp = srcsp->callee_sp - delta;
-		lastsrc = srcsp;
-		lastdst = dstsp;
 		srcsp = (i370_elf_stack_t *) (srcsp -> caller_sp);
 		dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
-	} while (srcsp);
-	lastdst -> caller_sp = 0;
+	} while (srcsp && ((unsigned long)regs < (unsigned long)srcsp));
+	/* The last frame is an exception frame */
+	dstsp -> caller_sp = srcsp->caller_sp - delta;
+	dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
+	dstsp -> caller_sp = 0;
+	DBGPRT("i370_copy_thread done copying stack; -delta=%x\n", -delta);
 
 	/* An exception frame (_i370_interrupt_state_t) is stored on stack.
 	 * That frame holds r13 and r11 that were put there by the SVC
@@ -548,16 +552,18 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	do {
 		*dstregs = (i370_interrupt_state_t *)
 			(((unsigned long) srcregs) - delta);
+		DBGPRT("Thunk dstregs %p from src %p\n", *dstregs, srcregs);
 		(*dstregs)->caller_sp = 0;
 		(*dstregs)->psw = srcregs->psw;
 		(*dstregs)->irregs.r13 = srcregs->irregs.r13 - delta;
 		(*dstregs)->irregs.r11 = srcregs->irregs.r11 - delta;
 		(*dstregs)->oldregs =  (i370_interrupt_state_t *)
-			(((unsigned long) (srcregs->oldregs)));
+			(((unsigned long) (srcregs->oldregs)) - delta);
 		srcregs = srcregs->oldregs;
 		dstregs = &((*dstregs)->oldregs);
 	} while (srcregs);
 	*dstregs = (i370_interrupt_state_t *) 0;
+	DBGPRT("i370_copy_thread done copying regs\n");
 
 	/* Now copy the 'far side' of the stack, the part that lies
 	 * on the other side of the SVC that got us here.  There are
@@ -570,10 +576,10 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		i370_halt();
 	} else {
 		/* validate expected location of the stack */
-		if ((usp > (unsigned long) lastsrc)) {
+		if ((usp > (unsigned long) srcsp)) {
 			printk("i370_copy_thread, bad usp=0x%lx, "
 				"lastsrc=%p, stcktop=0x%lx \n",
-				usp, lastsrc, srctop);
+				usp, srcsp, srctop);
 			i370_halt();
 		}
 
@@ -602,12 +608,9 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 }
 
 /* =================================================================== */
-
 /*
- * note:
- * do_fork will call copy_thread, passing sp and regs to it
+ * do_fork will call copy_thread, passing sp and regs to it.
  */
-
 asmlinkage int
 i370_sys_fork (void)
 {
@@ -639,8 +642,10 @@ i370_sys_clone (unsigned long clone_flags)
 	struct pt_regs *regs;
 	int res = 0;
 
-	DBGPRT ("i370_sys_clone of %s/%d regs=%p flags=0x%lx\n",
-	        current->comm, current->pid, current->tss.regs, clone_flags);
+	DBGPRT ("i370_sys_clone of %s/%d regs=%p flags=0x%lx ksp=%lx sp=%lx\n",
+	        current->comm, current->pid, current->tss.regs,
+	        clone_flags, current->tss.ksp, _get_SP());
+
 	lock_kernel();
 	regs = current->tss.regs;
 
@@ -664,7 +669,7 @@ i370_sys_clone (unsigned long clone_flags)
 #endif /* __SMP__ */
 	unlock_kernel();
 
-	DBGPRT ("i370_sys_clone(): after do_fork, %s/%d regs=0x%lx res=%d\n",
+	DBGPRT ("i370_sys_clone(): after do_fork, %s/%d regs=%p res=%d\n",
 	        current->comm, current->pid, current->tss.regs, res);
 
 	return res;
@@ -691,12 +696,13 @@ long
 i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
 	long pid;
-	DBGPRT ("i370_kernel_thread %s/%d regs=%p\n",
-	        current->comm, current->pid, current->tss.regs);
+	DBGPRT ("i370_kernel_thread %s/%d regs=%p ksp=%lx sp=%lx\n",
+	        current->comm, current->pid, current->tss.regs,
+	        current->tss.ksp, _get_SP());
 
 	pid = clone (flags); /* Goes through SVC */
 	DBGPRT ("i370_kernel_thread(): return from clone, new pid=%ld\n",pid);
-	DBGPRT ("i370_kernel_thread(): I still am %s/%d regs=0x%lx\n",
+	DBGPRT ("i370_kernel_thread(): I still am %s/%d regs=%p\n",
 	        current->comm, current->pid, current->tss.regs);
 	if (pid) return pid;
 	fn (args);

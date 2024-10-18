@@ -567,13 +567,11 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	 * kernel, then in fact we are on the same stack frame.
 	 */
 	if (regs->psw.flags & PSW_PROB) {
-		/* Return to user with thier new stack pointer set.
-		   This assumes the ELF format, where r11 points at top of stack.
-		   This may break MVS apps that assume r13?? (I'm confused.) */
-		usp = current->tss.regs->irregs.r11;
-		regs->irregs.r11 = usp;
-		DBGPRT("i370_copy_thread user r11: %lx r13: %lx\n",
-		       current->tss.regs->irregs.r11, current->tss.regs->irregs.r13);
+		/* Nothing to do here. */
+#ifdef DEBUG
+		DBGPRT("i370_copy_thread return to user with regs\n");
+		show_regs(regs);
+#endif
 	} else {
 		/* Validate expected location of the stack. */
 		if ((usp > (unsigned long) srcsp)) {

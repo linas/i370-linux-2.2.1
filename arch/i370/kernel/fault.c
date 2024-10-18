@@ -193,9 +193,10 @@ bad_area:
           i370_halt();
        }
 
-printk("sending SEGV to user proc: bad access to 0x%lx pic=%x\n", address, pic_code);
-show_regs(regs);
-print_backtrace (regs->irregs.r13);
+       printk("do_page_fault: send SEGV to %s/%d: bad access 0x%lx pic=%x\n",
+               current->comm, current->pid, address, pic_code);
+       show_regs(regs);
+       print_backtrace (regs->irregs.r13);
 
        info.si_signo = SIGSEGV;
        info.si_code  = SEGV_MAPERR;

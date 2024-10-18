@@ -196,8 +196,8 @@ i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 	frame = regs->irregs.r13;
 	newsp = regs->irregs.r11;
 
-printk("Debug: enter i370_do_signal oldset=%p sp=%lx fr=%lx\n",
-       oldset, newsp, frame);
+	printk("i370_do_signal %s/%d oldset=%p sp=%lx fr=%lx\n",
+	       current->comm, current->pid, oldset, newsp, frame);
 
 	while (1) {
 		unsigned long signr;

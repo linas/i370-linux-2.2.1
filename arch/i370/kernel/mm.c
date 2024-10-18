@@ -269,8 +269,8 @@ i370_flush_tlb_mm(struct mm_struct *mm)
 void
 i370_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
 {
-	printk ("i370_flush_tlb_page\n");
-	/* should be doing a IPTE here ... */
+	// printk ("i370_flush_tlb_page\n");
+	/* Should be doing a IPTE here ...!? */
 	_ptlb();
 }
 

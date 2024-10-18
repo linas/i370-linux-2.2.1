@@ -58,6 +58,10 @@ asmlinkage int i370_sys_execve(unsigned long fname, unsigned long argv,
 	if (IS_ERR(filename)) {
 		printk("EXECVE Error: name = %s\n", (char *) fname);
 	} else {
+		/* Strange hack for pid 1, it comes up "init" instead of what
+		   was given on the cmd_line. Bug somewhere I guess.  */
+		if (1 == current->pid)
+			((char **) argv)[0] = filename;
 		error = do_execve(filename, (char **) argv, (char **) envp, regs);
 		putname(filename);
 	}

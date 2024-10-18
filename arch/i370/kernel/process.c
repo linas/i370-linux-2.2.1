@@ -448,27 +448,20 @@ release_thread(struct task_struct *t)
 /* =================================================================== */
 
 /*
- * Copy a thread..
+ * Copy a thread.
  *
- * What this function does/needs to do:
- * -- Copy architecture-dependent parts of the task structure.
- * -- Set up the user stack pointer
- * -- Load CR1 with page table origin ??!!
+ * -- Copy i370 parts of the task structure (struct thread_struct).
+ * -- Thunk stack points in normal frames and exception frames.
+ * -- If coming from user, set up the user stack pointer
+ * -- Load CR1 with page table origin ??!! (Not done??)
  * -- Copy PSW flags (in particular, the DAT flag) ???
  *
- * argument p is the copy_to_proc;  copy_from is "current"
+ * The copy is from 'current' to mem location at 'p'.
  * usp and regs are exactly what was passed to do_fork.
  * It is assumed that usp is the stack pointer before
  * the svc took place.
  *
- * Return 0 if success, non-zero if not
- *
- * XXX we gotta copy the user-space thread, as well ...
- *
- * XXX we need to check to see if usp is indeed a user-space
- * stack pointer, and if so, set irregs.r13 to it.  We do not
- * need to actually copy the user-land stack, that happens
- * "automagically".
+ * Return 0 if success, errno if not.
  */
 
 int
@@ -501,6 +494,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 
 	/* switch_to() grabs the current ksp out of tss.ksp */
 	p->tss.ksp = ((unsigned long) this_frame) - delta;
+	DBGPRT("i370_copy_thread srctop=%lx frtop=%p frame=%p delta=%lx\n",
+	       srctop, this_frame_top, this_frame, -delta);
 
 #ifdef CHECK_STACK
 	check_stack(current);
@@ -521,7 +516,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	dstsp -> caller_sp = srcsp->caller_sp - delta;
 	dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
 	dstsp -> caller_sp = 0;
-	DBGPRT("i370_copy_thread done copying stack; -delta=%x\n", -delta);
+	DBGPRT("i370_copy_thread done copying stack\n");
 
 	/* An exception frame (_i370_interrupt_state_t) is stored on stack.
 	 * That frame holds r13 and r11 that were put there by the SVC
@@ -572,10 +567,15 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	 * kernel, then in fact we are on the same stack frame.
 	 */
 	if (regs->psw.flags & PSW_PROB) {
-		printk("i370_copy_thread, copy of user stack not yet supported\n");
-		i370_halt();
+		/* Return to user with thier new stack pointer set.
+		   This assumes the ELF format, where r11 points at top of stack.
+		   This may break MVS apps that assume r13?? (I'm confused.) */
+		usp = current->tss.regs->irregs.r11;
+		regs->irregs.r11 = usp;
+		DBGPRT("i370_copy_thread user r11: %lx r13: %lx\n",
+		       current->tss.regs->irregs.r11, current->tss.regs->irregs.r13);
 	} else {
-		/* validate expected location of the stack */
+		/* Validate expected location of the stack. */
 		if ((usp > (unsigned long) srcsp)) {
 			printk("i370_copy_thread, bad usp=0x%lx, "
 				"lastsrc=%p, stcktop=0x%lx \n",

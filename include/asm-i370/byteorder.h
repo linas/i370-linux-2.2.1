@@ -3,7 +3,7 @@
 
 /* The I370 has no special instructions for rotating or swapping bytes
  * and so the defaults in include/linux/byteorder/big_endian.h get used.
- * Of course, maybe you can tune the perofrmance of this ...
+ * Of course, maybe you can tune the performance of this ...
  */
 
 #include <asm/types.h>

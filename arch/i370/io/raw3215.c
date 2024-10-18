@@ -70,7 +70,7 @@ ccw_t *wrccw;
 #define READ_WANTED 0x4
 
 /* The reality of line devices */
-#define LINELEN 124
+#define LINELEN 120
 
 /* ---------------------------------------------------------------- */
 
@@ -191,7 +191,7 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
 		if (rc)
 			return -EIO;
 
-		for (i=0; i<len; i++)
+		for (i=0; i<nc; i++)
 			kstr[i] = ascii_to_ebcdic[(unsigned char)kstr[i]];
 		do_write_one_line(kstr, nc, ucb);
 

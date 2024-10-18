@@ -138,12 +138,15 @@ __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))
 	/* Interrupt vectors can't have the keys to the kingdom either */
 	i370_trap_init (KDATA_STORAGE_KEY);
 
-	/* Do allow kernel to access key-9 storage --
-	   by setting the storage protection override bit in cr0 .
+	/* Do allow kernel to access key-9 storage (USER_PSW) --
+	   by setting the storage protection override bit in cr0.
+	   What about fpoc (fetch protection) ???
+	   Maybe we should do this only during copyin/out ??
+	   This is, we still want to keep kernel text read-only...
 	   Protect addresses in 0-512 from accidental storage.  */
 	cr0.raw = _stctl_r0();
-	cr0.bits.spoc = 1;
-	cr0.bits.lapc = 1;
+	cr0.bits.spoc = 1;  /* storage protection override control */
+	cr0.bits.lapc = 1;  /* low address protection control */
 	_lctl_r0(cr0.raw);
 
 	printk("Memory: %luk available (%dk code, %dk data, %dk init)\n",
@@ -269,7 +272,7 @@ i370_flush_tlb_mm(struct mm_struct *mm)
 void
 i370_flush_tlb_page(struct vm_area_struct *vma, unsigned long vmaddr)
 {
-	// printk ("i370_flush_tlb_page\n");
+	// printk ("i370_flush_tlb_page for %lx\n", vmaddr);
 	/* Should be doing a IPTE here ...!? */
 	_ptlb();
 }

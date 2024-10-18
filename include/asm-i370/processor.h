@@ -86,7 +86,7 @@
 #define PSW_PER		0x40000000	/* Program Event Record Mask */
 #define PSW_DAT		0x04000000	/* Address Translation Mode  */
 #define PSW_IO		0x02000000	/* Input/Output Mask         */
-#define	PSW_EXTERN	0x01000000	/* External Mask             */
+#define PSW_EXTERN	0x01000000	/* External Mask             */
 #define PSW_KEY_MASK	0x00f00000	/* PSW Protection Key Mask   */
 #define PSW_KEY(key)	((key&0xf)<<(31-11))   /* PSW Protection Key */
 #define PSW_VALID	0x00080000	/* Must be set to one always */
@@ -106,12 +106,15 @@
 /* DISAB_PSW sets up flags for the kernel w/ interrupts disabled     */
 /* HALT_PSW loads a disabled wait state (cpu halt)                   */
 /*-------------------------------------------------------------------*/
+#define KDATA_KEY 6
+#define USER_KEY 9
+// Maybe later. Also something for non-executable stack.
+// #define UDATA_KEY 9
+// #define UTEXT_KEY 10
 #define EN_PSW		PSW_VALID | PSW_IO | PSW_EXTERN | PSW_MACH
-/* XXX disable key 9 until the pte's are fixed up XXX */
-/* #define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(9) */
-#define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(6)
-#define KERN_PSW	EN_PSW | PSW_KEY(6)
-#define DISAB_PSW	PSW_VALID | PSW_KEY(6)
+#define USER_PSW	EN_PSW | PSW_DAT | PSW_PROB | PSW_KEY(USER_KEY)
+#define KERN_PSW	EN_PSW | PSW_KEY(KDATA_KEY)
+#define DISAB_PSW	PSW_VALID | PSW_KEY(KDATA_KEY)
 #define HALT_PSW	PSW_VALID | PSW_WAIT
 
 

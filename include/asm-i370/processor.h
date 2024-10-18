@@ -297,14 +297,15 @@ struct thread_struct {
 
 #define init_task	(init_task_union.task)
 
-/* the initial stack pointer is just above the top of the task struct */
-#define init_stack	(((unsigned long)(&init_task_union.stack)) + TASK_STRUCT_SIZE)
-
-#define INIT_SP		init_stack
+/* Just above the task is one exception frame, and the kernel stack
+   starts above that. That initial exception frame gives us a place
+   to store the initial PSW.  */
+#define init_regs (((unsigned long)(&init_task_union.stack)) + TASK_STRUCT_SIZE)
+#define init_stack (init_regs + sizeof (i370_interrupt_state_t))
 
 #define INIT_TSS  { 						\
-	INIT_SP, /* ksp */ 					\
-	0, /* regs */ 						\
+	init_stack, /* ksp */ 					\
+	init_regs, /* regs */ 						\
 	(unsigned long *) swapper_pg_dir, /* pg_tables */ 	\
 	{0}, /* cr0 */ 						\
 	{0}, /* cr1 */ 						\

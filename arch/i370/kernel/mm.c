@@ -249,8 +249,6 @@ i370_flush_tlb_all(void)
 	_ptlb();
 }
 
-
-
 /*
  * Flush all the (user) entries for the address space described
  * by mm.  We can't rely on mm->mmap describing all the entries

@@ -120,8 +120,6 @@ __initfunc(void setup_arch(char **cmdline_p,
 
 	setup_psa();		/*  */
 
-	init_task.tss.ksp = (unsigned long) &init_task;
-
 	/* reboot on panic */	
 	panic_timeout = 180;
 	
@@ -185,24 +183,20 @@ __initfunc(void setup_arch(char **cmdline_p,
 	/* Just search the hardware for devices. */
 	i370_find_devices(memory_start_p,memory_end_p);
 
-	/* init_task ksp hasn't been set & its bogus; set it */
-	init_task.tss.ksp += TASK_STRUCT_SIZE;
-
-	/* Give ourselves a place to store the PSW, so that we
-	 * can pretend we got here after an exception. */
-	init_task.tss.regs = (void *) init_task.tss.ksp;
-	init_task.tss.ksp += sizeof (i370_interrupt_state_t);
+	/* There's an exception frame as the first thing above the
+	   task struct. It will store the PSW. This allows us to
+	   pretend we got here after an exception.  The kernel
+	   stack starts right after this (and was already set).  */
 	init_task.tss.regs->psw = _PSA_.ipl_psw_new;
 	init_task.tss.regs->oldregs = 0;
 	init_task.tss.regs->caller_sp = 0;
 
 	setup_trace(memory_start_p);
 
-	/*
-	 *	Hack Hack. Initialize the page_hash_table to zeros
-	 */
-	
-	memset(&page_hash_table,0x0,(PAGE_HASH_SIZE * sizeof(void *)));
+	/* Initialize the page_hash_table to zeros. Failure to do so
+	   creates issues when rebooting on VM/Hercules, which give
+	   us some left-over junk in this area.  */
+	memset(&page_hash_table, 0x0, (PAGE_HASH_SIZE * sizeof(void *)));
 
 #ifdef CONFIG_VT
 	conswitchp = &video3270_con;

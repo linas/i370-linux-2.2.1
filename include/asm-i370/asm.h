@@ -283,7 +283,7 @@ extern inline void i370_halt (void)
 }
 
 /* -------------------------------------------------------- */
-/* Enabled wait will yield the CPU but keep the interrupts hot */
+/* Enabled wait will yield the CPU but keep the interrupts hot. */
 
 extern inline void i370_enabled_wait (void)
 {
@@ -296,12 +296,12 @@ extern inline void i370_enabled_wait (void)
 	psw = (unsigned long long *) ptr;
 
 	// The flags should be set for:
-	// DAT off,  real mode, supervisor state
+	// DAT on,   virtual mode, supervisor state
 	// external, i/o and machine check enabled
 	// PER ??
-	// key 6 storage (as defined in processor.h
+	// key 6 storage (as defined in processor.h)
 	asm volatile (
-	"	L	r1,=X'036e0000';	\n"
+	"	L	r1,=X'076e0000';	\n"
 	"	ST	r1,%0;			\n"
 	"	L	r1,=A(1f);		\n"
 	"	O	r1,=X'80000000';	\n"

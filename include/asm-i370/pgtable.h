@@ -64,7 +64,7 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 #define PGDIR_MASK	(~(PGDIR_SIZE-1))
 
 /*
- * entries per page directory level: our page-table tree is two-level, so
+ * Entries per page directory level: our page-table tree is two-level, so
  * we don't really have any PMD directory.
  */
 #define PTRS_PER_PTE	256
@@ -94,7 +94,6 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
  *
  * The vmalloc() routines leaves a hole of 4kB between each vmalloced
  * area for the same reason. ;)
- *
  */
 #define VMALLOC_OFFSET	(0x40000000) /* 1GB */
 #define VMALLOC_START ((VMALLOC_OFFSET & ~(VMALLOC_OFFSET-1)))
@@ -109,7 +108,7 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 #define _PAGE_INVALID	0x400	/* hardware pte: I bit is set */
 #define _PAGE_RO	0x200	/* hardware pte: P bit (write protect) */
 
-/* hardware segment table entry */
+/* Hardware segment table entry. */
 #define _SEG_INVALID    0x20	/* segment invalid bit */
 #define _SEG_COMMON     0x10	/* segment common bit */
 
@@ -196,7 +195,7 @@ extern unsigned long empty_zero_page[1024];
 	(tsk)->tss.pg_tables = (unsigned long *)(pgdir);	\
 	(tsk)->tss.cr1.raw = 0;					\
 	(tsk)->tss.cr1.bits.psto = ((unsigned long) pgdir) >>12;\
-	(tsk)->tss.cr1.bits.pstl = 127;				\
+	(tsk)->tss.cr1.bits.pstl = 0x7f;			\
 	_lctl_r1 ((tsk)->tss.cr1.raw);				\
 }
 

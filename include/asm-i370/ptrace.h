@@ -66,7 +66,7 @@ struct _i370_cr1_s {
 	unsigned long psgc:1;	/* primary subspace group control */
 	unsigned long ppsc:1;	/* primary private space control */
 	unsigned long psaec:1;	/* primary storage alteration event control */
-	unsigned long pstl:7;	/* primary segment table length */
+	unsigned long pstl:7;	/* combo of X,R,unused,DT,TL bits. */
 	/* LSB */
 };
 typedef struct _i370_cr1_s i370_cr1_t;

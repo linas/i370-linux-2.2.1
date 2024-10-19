@@ -77,23 +77,22 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) {
 void
 show_regs(struct pt_regs * regs)
 {
-	printk("PSW flags: %08lX PSW addr: %08lX \n",
+	printk("PSW flags: %08lX PSW addr: %08lX\n",
 		regs->psw.flags, regs->psw.addr);
 	// printk (" cr0: %08lX  cr1: %08lX \n", regs->cr0.raw, regs->cr1.raw);
 
 	/* Note: if debugging disabled, r5-r10 may not be valid */
-	printk ("  r0: %08lX   r1: %08lX   r2: %08lX   r3: %08lX \n",
+	printk ("  r0: %08lX   r1: %08lX   r2: %08lX   r3: %08lX\n",
 		regs->irregs.r0, regs->irregs.r1, regs->irregs.r2, regs->irregs.r3);
 
-	printk ("  r4: %08lX   r5: %08lX   r6: %08lX   r7: %08lX \n",
+	printk ("  r4: %08lX   r5: %08lX   r6: %08lX   r7: %08lX\n",
 		regs->irregs.r4, regs->irregs.r5, regs->irregs.r6, regs->irregs.r7);
 
-	printk ("  r8: %08lX   r9: %08lX  r10: %08lX  r11: %08lX \n",
+	printk ("  r8: %08lX   r9: %08lX  r10: %08lX  r11: %08lX\n",
 		regs->irregs.r8, regs->irregs.r9, regs->irregs.r10, regs->irregs.r11);
 
-	printk (" r12: %08lX  r13: %08lX  r14: %08lX  r15: %08lX \n",
+	printk (" r12: %08lX  r13: %08lX  r14: %08lX  r15: %08lX\n",
 		regs->irregs.r12, regs->irregs.r13, regs->irregs.r14, regs->irregs.r15);
-
 }
 
 void

@@ -107,7 +107,9 @@
 /* HALT_PSW loads a disabled wait state (cpu halt)                   */
 /*-------------------------------------------------------------------*/
 #define KDATA_KEY 6
-#define USER_KEY 9
+// Avoid fancy keying for now.
+// #define USER_KEY 9
+#define USER_KEY 6
 // Maybe later. Also something for non-executable stack.
 // #define UDATA_KEY 9
 // #define UTEXT_KEY 10

@@ -512,18 +512,22 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
 	} while (srcsp && ((unsigned long)regs < (unsigned long)srcsp));
 
-	/* Sanity check. This is triggered by strange stack corruption. */
-	if (0 == srcsp->caller_sp) {
-		printk("copy_thread: Error: expecting exception frame\n");
+	/* Hang on... I thought there was one more, the exception frame ??? */
+	/* But now there isn't? I'm confused. I thought I fixed this once.  */
+#if 0
+	/* The last frame is an exception frame. */
+	dstsp -> caller_sp = srcsp->caller_sp - delta;
+	dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
+#else
+	if (0 != srcsp->caller_sp) {
+		printk("copy_thread: unexpected unterminated stack\n");
 		show_regs(current->tss.regs);
 		print_backtrace(_get_SP());
 		i370_halt();
 	}
-
-	/* The last frame is an exception frame. */
-	dstsp -> caller_sp = srcsp->caller_sp - delta;
-	dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
+#endif
 	dstsp -> caller_sp = 0;
+
 	DBGPRT("i370_copy_thread done copying stack\n");
 
 	/* An exception frame (_i370_interrupt_state_t) is stored on stack.

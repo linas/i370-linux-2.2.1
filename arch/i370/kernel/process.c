@@ -297,7 +297,7 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	regs->irregs.r14 = 0xaceb0ff0;
 
 	cr0.raw = _stctl_r0();
-	cr0.bits.tf = 0x16;
+	cr0.bits.tf = 0x16; /* Translation Format. Only valid value. */
 	_lctl_r0(cr0.raw);
 }
 
@@ -511,7 +511,16 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		srcsp = (i370_elf_stack_t *) (srcsp -> caller_sp);
 		dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
 	} while (srcsp && ((unsigned long)regs < (unsigned long)srcsp));
-	/* The last frame is an exception frame */
+
+	/* Sanity check. This is triggered by strange stack corruption. */
+	if (0 == srcsp->caller_sp) {
+		printk("copy_thread: Error: expecting exception frame\n");
+		show_regs(current->tss.regs);
+		print_backtrace(_get_SP());
+		i370_halt();
+	}
+
+	/* The last frame is an exception frame. */
 	dstsp -> caller_sp = srcsp->caller_sp - delta;
 	dstsp = (i370_elf_stack_t *) (dstsp -> caller_sp);
 	dstsp -> caller_sp = 0;

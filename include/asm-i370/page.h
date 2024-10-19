@@ -22,6 +22,7 @@
  * to protect the text segment from accidental corruption.
  * Kernel executes in key 6.
  * User segment runs in key 9.
+ * Must match keys in processor.h
  * The four-bit key is stored in bits 24-28 of sske.
  */
 #define KTEXT_STORAGE_KEY	0x00

@@ -178,7 +178,6 @@
 #define PIC_PER			0x80
 
 #define MASK_TRXADDR  0x7ffff000
-#define MASK_TRXVALID 0x00000004
 
 #ifndef __ASSEMBLY__
 

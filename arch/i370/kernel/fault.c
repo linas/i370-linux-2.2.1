@@ -77,7 +77,7 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
 {
   struct mm_struct *mm = current->mm;
   struct vm_area_struct * vma;
-  unsigned long fixup, valid_addr;
+  unsigned long fixup;
   int write;
   unsigned short *ilc;
 
@@ -91,7 +91,6 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
 
   lock_kernel();
   down(&mm->mmap_sem);
-  valid_addr = address & MASK_TRXVALID;
   address &= MASK_TRXADDR;
   vma = find_vma(mm, address);
   if (!vma)
@@ -144,11 +143,16 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
   /*----------------------------------------------------------*/
 good_area:
   write = 0;
+
+  /* Protection might be because page is read-only, or because
+   * the key is wrong.  */
   if (pic_code == PIC_PROTECTION) {
+     if (user_mode(regs))
+        goto bad_area;
+
      if (!(vma->vm_flags & VM_WRITE))
         goto bad_area;
-     if (!valid_addr)
-        goto bad_area;
+
      write = 1;
      ilc   = (unsigned short *) PFX_PRG_CODE;
      regs->psw.addr -= *ilc;  /* Adjust the instruction ptr    */
@@ -159,7 +163,9 @@ good_area:
      if (vma->vm_flags & VM_WRITE)
         write = 1;
   }
-  /* printk(" handling mm fault on good page \n"); */
+  /* printk("Fault %s/%d good page addr=%x PSW flags: %08lX PSW addr: %08lX\n",
+         current->comm, current->pid,
+         address, regs->psw.flags, regs->psw.addr); */
 
   /*----------------------------------------------------------*/
   /* If for any reason at all we couldn't handle the fault,   */

@@ -109,12 +109,9 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 #define _PAGE_RO	0x200	/* hardware pte: P bit (write protect) */
 
 /* Hardware segment table entry. */
-#define _SEG_RO         0x200	/* DAT-protection: all pages are read-only. */
-#define _SEG_RESERVED   0x100	/* Reserved bit; must be one. */
-#define _SEG_INVALID    0x020	/* Segment invalid bit. */
-#define _SEG_COMMON     0x010	/* Segment common bit. */
-#define _SEG_UNUSED1    0x002	/* Available for software. */
-#define _SEG_UNUSED2    0x001	/* Available for software. */
+#define _SEG_INVALID    0x20	/* Segment invalid bit. */
+#define _SEG_COMMON     0x10	/* Segment common bit. */
+#define _SEG_PTL_MASK   0x0f	/* Segment page-table length. */
 
 #define _PAGE_DIRTY	0x002	/* storage key C: page changed */
 #define _PAGE_ACCESSED	0x004	/* storage key R: page referenced */

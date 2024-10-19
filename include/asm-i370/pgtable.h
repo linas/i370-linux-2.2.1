@@ -109,8 +109,12 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 #define _PAGE_RO	0x200	/* hardware pte: P bit (write protect) */
 
 /* Hardware segment table entry. */
-#define _SEG_INVALID    0x20	/* segment invalid bit */
-#define _SEG_COMMON     0x10	/* segment common bit */
+#define _SEG_RO         0x200	/* DAT-protection: all pages are read-only. */
+#define _SEG_RESERVED   0x100	/* Reserved bit; must be one. */
+#define _SEG_INVALID    0x020	/* Segment invalid bit. */
+#define _SEG_COMMON     0x010	/* Segment common bit. */
+#define _SEG_UNUSED1    0x002	/* Available for software. */
+#define _SEG_UNUSED2    0x001	/* Available for software. */
 
 #define _PAGE_DIRTY	0x002	/* storage key C: page changed */
 #define _PAGE_ACCESSED	0x004	/* storage key R: page referenced */
@@ -195,7 +199,7 @@ extern unsigned long empty_zero_page[1024];
 	(tsk)->tss.pg_tables = (unsigned long *)(pgdir);	\
 	(tsk)->tss.cr1.raw = 0;					\
 	(tsk)->tss.cr1.bits.psto = ((unsigned long) pgdir) >>12;\
-	(tsk)->tss.cr1.bits.pstl = 0x7f;			\
+	(tsk)->tss.cr1.bits.pstl = 127;				\
 	_lctl_r1 ((tsk)->tss.cr1.raw);				\
 }
 
@@ -334,24 +338,23 @@ extern inline unsigned long pte_page(pte_t pte)
 extern inline unsigned long pmd_page(pmd_t pmd)
 { return pmd_val(pmd) & SEG_PTO_MASK; }
 
-
-/* to find an entry in a kernel segment-table-directory */
+/* To find an entry in a kernel segment-table-directory.  */
 #define pgd_offset_k(address) pgd_offset(&init_mm, address)
 
-/* to find an entry in a segment-table-directory */
+/* To find an entry in a segment-table-directory.  */
 extern inline pgd_t * pgd_offset(struct mm_struct * mm, unsigned long address)
 {
-	/* addend should be between 0 and 2048 */
+	/* Addend should be between 0 and 2048. */
 	return mm->pgd + ((address & ADDR_MASK) >> PGDIR_SHIFT);
 }
 
-/* Find an entry in the second-level page table.. */
+/* Find an entry in the second-level page table. But we have none such.  */
 extern inline pmd_t * pmd_offset(pgd_t * dir, unsigned long address)
 {
 	return (pmd_t *) dir;
 }
 
-/* Find an entry in the third-level page table.. */
+/* Find an entry in the third-level page table.  */
 extern inline pte_t * pte_offset(pmd_t * dir, unsigned long address)
 {
 	pte_t * ppp = (pte_t *) pmd_page(*dir);

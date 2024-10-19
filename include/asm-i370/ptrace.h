@@ -58,6 +58,8 @@ typedef union _i370_cr0_u cr0_t;
 
 /* ---------------------------------------------------------------- */
 /* Control register one bit definitions */
+/* Attention: this is the ESA/390 defintion. The z/Architecture changes
+   this in sublte ways. In particular, the pstl gets a different meaning.  */
 struct _i370_cr1_s {
 	/* MSB */
 	unsigned long pssec:1;	/* primary space-switch event control */
@@ -66,7 +68,7 @@ struct _i370_cr1_s {
 	unsigned long psgc:1;	/* primary subspace group control */
 	unsigned long ppsc:1;	/* primary private space control */
 	unsigned long psaec:1;	/* primary storage alteration event control */
-	unsigned long pstl:7;	/* combo of X,R,unused,DT,TL bits. */
+	unsigned long pstl:7;	/* primary segment-table length */
 	/* LSB */
 };
 typedef struct _i370_cr1_s i370_cr1_t;

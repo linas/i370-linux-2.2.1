@@ -216,7 +216,7 @@ extern inline int
 extern inline int
 	pte_present(pte_t pte)	{
 		return !pte_none(pte) &&
-			((pte_val(pte) & _PAGE_SWAPPED) != _PAGE_SWAPPED);
+			((pte_val(pte) & _PAGE_SWAPPED) != _PAGE_SWAPPED); }
 extern inline void
 	pte_clear(pte_t *ptep)	{ pte_val(*ptep) = _PAGE_INVALID; }
 

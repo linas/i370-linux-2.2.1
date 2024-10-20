@@ -154,6 +154,8 @@ good_area:
      pte_t * ptep = find_pte(mm, address);
      printk("PTE location=%lx PTE entry=%lx\n", ptep, pte_val(*ptep));
      printk("Protection key=%lx\n", _iske(pte_page(*ptep)));
+     printk("Control reg cr0=%lx\n", _stctl_r0());
+     printk("Control reg cr1=%lx\n", _stctl_r1());
      printk("-------------------\n");
 
      retry++;

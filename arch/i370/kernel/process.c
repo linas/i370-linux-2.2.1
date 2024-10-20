@@ -77,12 +77,9 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) {
 void
 show_regs(struct pt_regs * regs)
 {
-	unsigned long cr0, cr1;
 	printk("PSW flags: %08lX PSW addr: %08lX\n",
 		regs->psw.flags, regs->psw.addr);
-	cr0 =  _stctl_r0();
-	cr1 =  _stctl_r1();
-	printk (" cr0: %08lX  cr1: %08lX \n", cr0, cr1);
+	// printk (" cr0: %08lX  cr1: %08lX \n", regs->cr0.raw, regs->cr1.raw);
 
 	/* Note: if debugging disabled, r5-r10 may not be valid */
 	printk ("  r0: %08lX   r1: %08lX   r2: %08lX   r3: %08lX\n",
@@ -238,6 +235,8 @@ int check_stack(struct task_struct *tsk)
 void
 i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 {
+	cr0_t cr0;
+
 	printk ("i370_start_thread(): setup for user-space thread\n");
 	set_fs(USER_DS);
 
@@ -296,6 +295,10 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	regs->irregs.r10 = 0xaceb0ff0;
 	regs->irregs.r12 = 0xaceb0ff0;
 	regs->irregs.r14 = 0xaceb0ff0;
+
+	cr0.raw = _stctl_r0();
+	cr0.bits.tf = 0x16; /* Translation Format. Only valid value. */
+	_lctl_r0(cr0.raw);
 }
 
 /* =================================================================== */
@@ -702,22 +705,10 @@ i370_sys_clone (unsigned long clone_flags)
 long
 i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 {
-	cr0_t cr0;
 	long pid;
 	DBGPRT ("i370_kernel_thread %s/%d regs=%p ksp=%lx sp=%lx\n",
 	        current->comm, current->pid, current->tss.regs,
 	        current->tss.ksp, _get_SP());
-
-	/* If this is the first clone ever, of pid0, then enable address
-	   translation. From here on out, we're running in virtual memory.  */
-	if (0 == current->pid) {
-		cr0.raw = _stctl_r0();
-		cr0.bits.tf = 0x16; /* Translation Format. Only valid value. */
-		_lctl_r0(cr0.raw);
-
-		/* Record the value for posterity. Not sure why. */
-		current->tss.cr0 = cr0;
-	}
 
 	pid = clone (flags); /* Goes through SVC */
 	DBGPRT ("i370_kernel_thread(): return from clone, new pid=%ld\n",pid);

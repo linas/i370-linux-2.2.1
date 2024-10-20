@@ -310,7 +310,7 @@ SupervisorCall:
 	LA	r1,ARGP(,r13)		/* Pointer to returned value. */
 	BASR	lr,r15			/* Jump to C routine.         */
 	.using	.,lr;			/* Use r14 for remainder of the show */
-	STNSM    INTERRUPT_BASE-16(0),0xfc; /* sDdisable interrupts.  */
+	STNSM    INTERRUPT_BASE-16(0),0xfc; /* Disable interrupts.    */
 #ifdef DO_RET_FROM_SYSCALL
 	/* ifdef'ed out, because it seems un-needed just right now.   */
 	LR	r5,r15			/* Cache for later.           */

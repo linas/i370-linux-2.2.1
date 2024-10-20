@@ -78,23 +78,23 @@ void
 show_regs(struct pt_regs * regs)
 {
 	unsigned long cr0, cr1;
-	printk("PSW flags: %08lX PSW addr: %08lX\n",
-		regs->psw.flags, regs->psw.addr);
+	printk("PSW flags: %08lx PSW addr: %08lx ex frame: %p\n",
+		regs->psw.flags, regs->psw.addr, regs);
 	cr0 =  _stctl_r0();
 	cr1 =  _stctl_r1();
-	printk (" control regs cr0: %08lX  cr1: %08lX \n", cr0, cr1);
+	printk (" control regs cr0: %08lx  cr1: %08lx \n", cr0, cr1);
 
 	/* Note: if debugging disabled, r5-r10 may not be valid */
-	printk ("  r0: %08lX   r1: %08lX   r2: %08lX   r3: %08lX\n",
+	printk ("  r0: %08lx   r1: %08lx   r2: %08lx   r3: %08lx\n",
 		regs->irregs.r0, regs->irregs.r1, regs->irregs.r2, regs->irregs.r3);
 
-	printk ("  r4: %08lX   r5: %08lX   r6: %08lX   r7: %08lX\n",
+	printk ("  r4: %08lx   r5: %08lx   r6: %08lx   r7: %08lx\n",
 		regs->irregs.r4, regs->irregs.r5, regs->irregs.r6, regs->irregs.r7);
 
-	printk ("  r8: %08lX   r9: %08lX  r10: %08lX  r11: %08lX\n",
+	printk ("  r8: %08lx   r9: %08lx  r10: %08lx  r11: %08lx\n",
 		regs->irregs.r8, regs->irregs.r9, regs->irregs.r10, regs->irregs.r11);
 
-	printk (" r12: %08lX  r13: %08lX  r14: %08lX  r15: %08lX\n",
+	printk (" r12: %08lx  r13: %08lx  r14: %08lx  r15: %08lx\n",
 		regs->irregs.r12, regs->irregs.r13, regs->irregs.r14, regs->irregs.r15);
 }
 
@@ -346,8 +346,8 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	#define DBGPRT(...)
 #endif
 
-int
-switch_to(struct task_struct *prev, struct task_struct *next)
+void
+i370_switch_to(struct task_struct *prev, struct task_struct *next)
 {
 	struct thread_struct *new_tss, *old_tss;
 	unsigned long thunk;
@@ -429,9 +429,6 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 
 	/* Enable interrupts.  */
 	__sti ();
-
-	/* Return as if from do_fork().  */
-	return 0;
 }
 
 /* =================================================================== */
@@ -598,8 +595,8 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	if (regs->psw.flags & PSW_PROB) {
 		/* Nothing to do here. */
 #ifdef DEBUG
-		DBGPRT("i370_copy_thread return to user with regs\n");
-		show_regs(regs);
+		DBGPRT("i370_copy_thread return to user with child regs\n");
+		show_regs(p->tss.regs);
 #endif
 	} else {
 		/* Validate expected location of the stack. */
@@ -647,8 +644,8 @@ i370_sys_fork (void)
 	lock_kernel();
 	regs = current->tss.regs;
 	res = do_fork(SIGCHLD, regs->irregs.r13, regs);
+	_lctl_r1(current->tss.cr1.raw);
 
-	/* only parent returns here */
 #ifdef __SMP__
 	/* When we clone the idle task we keep the same pid but
 	 * the return value of 0 for both causes problems.
@@ -676,8 +673,9 @@ i370_sys_clone (unsigned long clone_flags)
 	lock_kernel();
 	regs = current->tss.regs;
 
-	/* all args pass to copy_thread */
+	/* All args pass to copy_thread.  */
 	res = do_fork(clone_flags, regs->irregs.r13, regs);
+	_lctl_r1(current->tss.cr1.raw);
 
 	if ((res < 0) && (0 == user_mode(current->tss.regs))) {
 		printk("Error: i370_sys_clone failed for %s/%d\n",

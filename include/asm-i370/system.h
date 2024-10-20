@@ -117,7 +117,7 @@ extern void i370_setup_devices(void);
 
 
 struct task_struct;
-extern int i370_switch_to(struct task_struct *prev, struct task_struct *next);
+extern void i370_switch_to(struct task_struct *prev, struct task_struct *next);
 #define switch_to i370_switch_to
 
 extern void dump_regs(struct pt_regs *);

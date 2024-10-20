@@ -80,9 +80,9 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
 {
   struct mm_struct *mm = current->mm;
   struct vm_area_struct * vma;
-  unsigned long fixup;
   int write;
   unsigned short *ilc;
+  cr1_t curr_cr1;
 
   /* printk ("do_page_fault addr=0x%lx, pic=%x\n", address, pic_code); */
   /*------------------------------------------------------------*/
@@ -95,9 +95,13 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
   lock_kernel();
   down(&mm->mmap_sem);
 
-  /* XXX Why doesn't cr1 have the appropriate value?
-     Why didn't switch-to take care of this for us ??? BUG */
-  _lctl_r1(current->tss.cr1.raw);
+  /* Sanity check: cr1 should be set by fork, clone and switch_to */
+  curr_cr1.raw = _stctl_r1();
+  if (curr_cr1.raw != current->tss.cr1.raw) {
+     printk("BUG: do_page_fault unexpected cr1. Have: %lx  Want: %lx\n",
+            curr_cr1.raw, current->tss.cr1.raw);
+     _lctl_r1(current->tss.cr1.raw);
+  }
 
   address &= MASK_TRXADDR;
   vma = find_vma(mm, address);

@@ -82,7 +82,7 @@ show_regs(struct pt_regs * regs)
 		regs->psw.flags, regs->psw.addr);
 	cr0 =  _stctl_r0();
 	cr1 =  _stctl_r1();
-	printk (" cr0: %08lX  cr1: %08lX \n", cr0, cr1);
+	printk (" control regs cr0: %08lX  cr1: %08lX \n", cr0, cr1);
 
 	/* Note: if debugging disabled, r5-r10 may not be valid */
 	printk ("  r0: %08lX   r1: %08lX   r2: %08lX   r3: %08lX\n",
@@ -299,8 +299,18 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	regs->irregs.r12 = 0xaceb0ff0;
 	regs->irregs.r14 = 0xaceb0ff0;
 
+	if (current->tss.regs != regs) {
+		printk("i370_start_thread: we really want the correct task!\n");
+		show_regs(regs);
+		print_backtrace(_get_SP());
+		i370_halt();
+	}
+
+	/* Enable address translation (virtual memory) for user-space.  */
 	cr0.raw = _stctl_r0();
 	cr0.bits.tf = 0x16; /* Translation Format. Only valid value. */
+	current->tss.cr0 = cr0;
+	/* Value in cr0 does not take effect until PSW enables translation. */
 	_lctl_r0(cr0.raw);
 }
 
@@ -398,25 +408,29 @@ switch_to(struct task_struct *prev, struct task_struct *next)
 
 	current = next;
 
-	/* Switch control registers */
-	/* cr1 contains the segment table origin */
+	/* Switch control registers.
+	   cr0 enables/disables address translation, and
+	   cr1 contains the segment table origin.
+	   The new values do not take effect until the PSW is set.
+	 */
+	old_tss->cr0.raw = _stctl_r0();
+	old_tss->cr1.raw = _stctl_r1();
 	_lctl_r1 (new_tss->cr1.raw);
+	_lctl_r0 (new_tss->cr0.raw);
 
-	/* Switch kernel stack pointers. Note that as soon as we enable
-	 * interrupts below, we'll probably get hit by one, so make sure
-	 * the stack-top is valid as well. */
+	/* Switch kernel stack pointers.  */
 	old_tss->ksp = _get_SP();
 	thunk = _get_STP() - _get_SP();
 	_set_STP (new_tss->ksp + thunk);
 	_set_SP (new_tss->ksp);
 
-	/* purge TLB (XXX is this really needed here ???) */
+	/* Purge TLB; the segment table origin changed in cr1.  */
 	_ptlb();
 
-	/* enable intrerupts */
+	/* Enable interrupts.  */
 	__sti ();
 
-	/* return as if from do_fork() */
+	/* Return as if from do_fork().  */
 	return 0;
 }
 
@@ -712,6 +726,10 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 	DBGPRT ("i370_kernel_thread %s/%d regs=%p ksp=%lx sp=%lx\n",
 	        current->comm, current->pid, current->tss.regs,
 	        current->tss.ksp, _get_SP());
+
+	/* Record the control registers. We'll need them later.  */
+	current->tss.cr0.raw = _stctl_r0();
+	current->tss.cr1.raw = _stctl_r1();
 
 	pid = clone (flags); /* Goes through SVC */
 	DBGPRT ("i370_kernel_thread(): return from clone, new pid=%ld\n",pid);

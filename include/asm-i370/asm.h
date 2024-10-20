@@ -132,10 +132,16 @@ extern inline void _sske (unsigned int key, unsigned int realaddr)
    asm volatile ("SSKE	%0,%1" : : "r" (key), "r" (realaddr) : "memory");
 }
 
-/* Examine Storage Key Extended */
-extern inline unsigned int _iske (unsigned int realaddr)
+/* Insert Storage Key Extended */
+/* Returned bit 31 is zero; then seven bits of the storage key.
+   Top 4 bits are the key, then F,R,C:
+   F = Fetch-protection bit
+   R = Reference bit
+   C = Chaange bit
+ */
+extern inline unsigned int _iske (unsigned long realaddr)
 {
-   unsigned int key;
+   unsigned int key = 0;
    asm volatile ("ISKE	%0,%1" : "=r" (key) : "r" (realaddr) );
    return key;
 }
@@ -250,12 +256,15 @@ extern inline void _ptlb (void)
 }
 
 /* Invalidate Page Table Entry */
-extern inline void _ipte (void *sto, void *pfx)
+/* ste == segment table entry, which points at pto page table origin.
+   pfx == virtual addr. Only the page index, in bits 12-19, is used;
+   higher and lower bits ignored.  */
+extern inline unsigned long _ipte (unsigned long ste, unsigned long pfx)
 {
 	asm volatile (
 		"IPTE %0,%1\n"
 		:
-		: "r" (sto), "r" (pfx)
+		: "r" (ste), "r" (pfx)
 		: "memory");
 }
 

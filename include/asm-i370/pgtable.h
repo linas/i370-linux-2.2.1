@@ -211,12 +211,14 @@ extern unsigned long empty_zero_page[1024];
  */
 
 extern inline int
-	pte_none(pte_t pte)	{ return (pte_val(pte) == _PAGE_SWAPPED); }
+	pte_none(pte_t pte)	{ return pte_val(pte) == _PAGE_INVALID; }
 
 extern inline int
-	pte_present(pte_t pte)	{ return !((pte_val(pte) & _PAGE_INVALID)); }
+	pte_present(pte_t pte)	{
+		return !pte_none(pte) &&
+			((pte_val(pte) & _PAGE_SWAPPED) != _PAGE_SWAPPED);
 extern inline void
-	pte_clear(pte_t *ptep)	{ pte_val(*ptep) = _PAGE_SWAPPED; }
+	pte_clear(pte_t *ptep)	{ pte_val(*ptep) = _PAGE_INVALID; }
 
 
 /* Unused segment table entries must have the invalid bit set.

@@ -77,9 +77,12 @@ int dump_fpu(struct pt_regs *regs, elf_fpregset_t *fpregs) {
 void
 show_regs(struct pt_regs * regs)
 {
+	unsigned long cr0, cr1;
 	printk("PSW flags: %08lX PSW addr: %08lX\n",
 		regs->psw.flags, regs->psw.addr);
-	// printk (" cr0: %08lX  cr1: %08lX \n", regs->cr0.raw, regs->cr1.raw);
+	cr0 =  _stctl_r0();
+	cr1 =  _stctl_r1();
+	printk (" cr0: %08lX  cr1: %08lX \n", cr0, cr1);
 
 	/* Note: if debugging disabled, r5-r10 may not be valid */
 	printk ("  r0: %08lX   r1: %08lX   r2: %08lX   r3: %08lX\n",

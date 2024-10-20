@@ -70,6 +70,7 @@
 /* If this routine detects a bad access, it returns 1,      */
 /* otherwise it returns 0.                                  */
 /************************************************************/
+static int retry = 0; /* temporary debugging hack to avoid inf recursion. */
 
 int
 do_page_fault(struct pt_regs *regs, unsigned long address,
@@ -107,7 +108,7 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
 
   /* If we are here, then the address was below the vma start.
    * Three ways this happens; a wild pointer in the kernel, a
-   * null-pointer deref in userland, or a  user-space stack touch.
+   * null-pointer deref in userland, or a user-space stack touch.
    */
   if (!user_mode(regs)) {
        printk ("do_page_fault addr=0x%lx is below vma start=0x%lx\n",
@@ -147,8 +148,16 @@ good_area:
   /* Protection might be because page is read-only, or because
    * the key is wrong.  */
   if (pic_code == PIC_PROTECTION) {
-     if (user_mode(regs))
-        goto bad_area;
+     printk("Protection fault on %lx  VM_WRITE=%x user=%x\n",
+            address, (vma->vm_flags & VM_WRITE), user_mode(regs));
+     printk("Segment table at %lx\n", mm->pgd);
+     pte_t * ptep = find_pte(mm, address);
+     printk("PTE location=%lx PTE entry=%lx\n", ptep, pte_val(*ptep));
+     printk("Protection key=%lx\n", _iske(pte_page(*ptep)));
+     printk("-------------------\n");
+
+     retry++;
+     if (6 < retry) goto bad_area;
 
      if (!(vma->vm_flags & VM_WRITE))
         goto bad_area;

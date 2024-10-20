@@ -460,6 +460,72 @@ release_thread(struct task_struct *t)
 
 /* =================================================================== */
 
+/* Copy the standard i370 elf stack, thunking the stack and frame
+   pointers in each stackframe. This would all be much easier if
+   the stack did not actually contain any stack or frame pointers,
+   but only the frame size. However, the i370 elf stack cloned the
+   basic MVS stack design, which does store such things.
+ */
+int copy_user_stack(unsigned long dstsp, unsigned long srcsp,
+                    unsigned long delta)
+{
+	unsigned long or11, or13;
+	unsigned long bot, top;
+	unsigned long frsize;
+#define MAXUFRSZ 120
+	unsigned long frame[MAXUFRSZ];
+
+	/* Offset to frame and stack pointers in standard elf frame.  */
+	or11 = ((unsigned long) &((i370_elf_stack_t*)0)->callee_sp) >> 2;
+	or13 = ((unsigned long) &((i370_elf_stack_t*)0)->caller_sp) >> 2;
+
+	/* Standard frame size. We assume this for the top-most frame,
+	   which should be the fork() frame which has no args to copy.  */
+	frsize = sizeof(i370_elf_stack_t);
+
+	/* Walk down the stack, thunk the pointers. */
+	do {
+		DBGPRT("Copy user stackframe from %lx to %lx size 0x%lx\n",
+		        srcsp, dstsp, frsize);
+
+		/* Copy in one stackframe. */
+		if (!access_ok(VERIFY_READ, (void *) srcsp, frsize))
+			return -EFAULT;
+		__copy_from_user(frame, (void *) srcsp, frsize);
+
+		bot = frame[or13];
+		top = frame[or11];
+
+		/* Sanity check.  */
+		if (srcsp != top)
+			return -EFAULT;
+
+		/* Thunk the pointers. */
+		frame[or13] -= delta;
+		frame[or11] -= delta;
+
+		if (!access_ok(VERIFY_WRITE, (void *) dstsp, frsize))
+			return -EFAULT;
+
+		__copy_to_user(dstsp, (void *) frame, frsize);
+
+		frsize = srcsp - bot;
+		srcsp = bot;
+		dstsp = bot - delta;
+
+		if (4*MAXUFRSZ < frsize)
+			return -EFAULT;
+
+		/* Last frame points at zero, or itself. */
+	} while (frsize && srcsp);
+
+	DBGPRT("Done copying user regs\n");
+
+	return 0;
+}
+
+/* =================================================================== */
+
 /*
  * Copy a thread.
  *
@@ -487,6 +553,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	void *srcbase, *dstbase;
 	unsigned long delta;
 	i370_interrupt_state_t *srcregs, **dstregs;
+	int rc;
 
 	DBGPRT("i370_copy_thread, %s/%d regs=%p usp=0x%lx\n",
 	        current->comm, current->pid, current->tss.regs, usp);
@@ -590,10 +657,11 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	 * on the other side of the SVC that got us here.  There are
 	 * two possibilities here: that we came from user-land,
 	 * or that we came from the kernel. If we came from the
-	 * kernel, then in fact we are on the same stack frame.
+	 * kernel, then we are still on the same stack. Copy that, too.
 	 */
 	if (regs->psw.flags & PSW_PROB) {
-		/* Nothing to do here. */
+		rc = copy_user_stack(usp-delta, usp, delta);
+		if (rc < 0) return rc;
 #ifdef DEBUG
 		DBGPRT("i370_copy_thread return to user with child regs\n");
 		show_regs(p->tss.regs);

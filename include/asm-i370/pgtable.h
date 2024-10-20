@@ -469,7 +469,7 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
 	pgd_t *dir;
 	pmd_t *pmd;
 	pte_t *pte = NULL;
-	pte_t sav;
+	/* pte_t sav; */
 
 	/* For current i370, there is no pmd; its same as pgd. Thus, we
 	   have the following structure:

@@ -466,9 +466,10 @@ release_thread(struct task_struct *t)
    but only the frame size. However, the i370 elf stack cloned the
    basic MVS stack design, which does store such things.
  */
-int copy_user_stack(unsigned long dstsp, unsigned long srcsp,
-                    unsigned long delta)
+int do_copy_user_stack(unsigned long dstsp, unsigned long srcsp,
+                       unsigned long delta, struct task_struct * p)
 {
+	struct mm_struct *srcmm, *dstmm;
 	unsigned long or11, or13;
 	unsigned long bot, top;
 	unsigned long frsize;
@@ -483,12 +484,16 @@ int copy_user_stack(unsigned long dstsp, unsigned long srcsp,
 	   which should be the fork() frame which has no args to copy.  */
 	frsize = sizeof(i370_elf_stack_t);
 
+	srcmm = current->mm;
+	dstmm = p->mm;
+
 	/* Walk down the stack, thunk the pointers. */
 	do {
 		DBGPRT("Copy user stackframe from %lx to %lx size 0x%lx\n",
 		        srcsp, dstsp, frsize);
 
 		/* Copy in one stackframe. */
+		current->mm = srcmm;
 		if (!access_ok(VERIFY_READ, (void *) srcsp, frsize))
 			return -EFAULT;
 		__copy_from_user(frame, (void *) srcsp, frsize);
@@ -504,10 +509,11 @@ int copy_user_stack(unsigned long dstsp, unsigned long srcsp,
 		frame[or13] -= delta;
 		frame[or11] -= delta;
 
+		current->mm = dstmm;
 		if (!access_ok(VERIFY_WRITE, (void *) dstsp, frsize))
 			return -EFAULT;
 
-		__copy_to_user(dstsp, (void *) frame, frsize);
+		__copy_to_user((void *) dstsp, frame, frsize);
 
 		frsize = srcsp - bot;
 		srcsp = bot;
@@ -522,6 +528,19 @@ int copy_user_stack(unsigned long dstsp, unsigned long srcsp,
 	DBGPRT("Done copying user regs\n");
 
 	return 0;
+}
+
+int copy_user_stack(unsigned long dstsp, unsigned long srcsp,
+                    unsigned long delta, struct task_struct * p)
+{
+	int rc;
+	struct mm_struct *save;
+	save = current->mm;
+	set_fs(USER_DS);
+	rc = do_copy_user_stack(dstsp, srcsp, delta, p);
+	set_fs(KERNEL_DS);
+	current->mm = save;
+	return rc;
 }
 
 /* =================================================================== */
@@ -660,7 +679,7 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	 * kernel, then we are still on the same stack. Copy that, too.
 	 */
 	if (regs->psw.flags & PSW_PROB) {
-		rc = copy_user_stack(usp-delta, usp, delta);
+		rc = copy_user_stack(usp-delta, usp, delta, p);
 		if (rc < 0) return rc;
 #ifdef DEBUG
 		DBGPRT("i370_copy_thread return to user with child regs\n");

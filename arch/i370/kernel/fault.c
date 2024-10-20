@@ -70,7 +70,9 @@
 /* If this routine detects a bad access, it returns 1,      */
 /* otherwise it returns 0.                                  */
 /************************************************************/
+#if DEBUG
 static int retry = 0; /* temporary debugging hack to avoid inf recursion. */
+#endif
 
 int
 do_page_fault(struct pt_regs *regs, unsigned long address,
@@ -92,6 +94,11 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
 
   lock_kernel();
   down(&mm->mmap_sem);
+
+  /* XXX Why doesn't cr1 have the appropriate value?
+     Why didn't switch-to take care of this for us ??? BUG */
+  _lctl_r1(current->tss.cr1.raw);
+
   address &= MASK_TRXADDR;
   vma = find_vma(mm, address);
   if (!vma)
@@ -148,6 +155,7 @@ good_area:
   /* Protection might be because page is read-only, or because
    * the key is wrong.  */
   if (pic_code == PIC_PROTECTION) {
+#if DEBUG
      printk("Protection fault on %lx  VM_WRITE=%x user=%x\n",
             address, (vma->vm_flags & VM_WRITE), user_mode(regs));
      printk("Segment table at %lx\n", mm->pgd);
@@ -160,6 +168,7 @@ good_area:
 
      retry++;
      if (6 < retry) goto bad_area;
+#endif
 
      if (!(vma->vm_flags & VM_WRITE))
         goto bad_area;

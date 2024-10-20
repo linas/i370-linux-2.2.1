@@ -100,18 +100,23 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
 #define VMALLOC_VMADDR(x) ((unsigned long)(x))
 #define VMALLOC_END	0x7fffe000
 
-/*
- * Bits in a linux-style PTE.  Two bits match the hardware
- * PTE, the other bits are software-only thingies that inhabit
- * low byte of the pte and hopefull won't hurt anybody.
- */
-#define _PAGE_INVALID	0x400	/* hardware pte: I bit is set */
-#define _PAGE_RO	0x200	/* hardware pte: P bit (write protect) */
-
 /* Hardware segment table entry. */
 #define _SEG_INVALID    0x20	/* Segment invalid bit. */
 #define _SEG_COMMON     0x10	/* Segment common bit. */
 #define _SEG_PTL_MASK   0x0f	/* Segment page-table length. */
+
+/*
+ * Bits in a linux-style PTE.  Two bits match the hardware PTE.
+ * The hardware allows the low byte to be used by software.
+ * We place the linux pte bits there. FWIW, the hardware keeps
+ * track of the reference & change bits in the storage key
+ * (use _iske() to get these). But we also track these in software.
+ */
+#define _PAGE_INVALID	0x400	/* hardware pte: I bit is set */
+#define _PAGE_RO	0x200	/* hardware pte: P bit (write protect) */
+
+/* Software: page is swapped out. */
+#define _PAGE_SWAPPED (_PAGE_INVALID | _PAGE_RO)
 
 #define _PAGE_DIRTY	0x002	/* storage key C: page changed */
 #define _PAGE_ACCESSED	0x004	/* storage key R: page referenced */
@@ -200,34 +205,28 @@ extern unsigned long empty_zero_page[1024];
 	_lctl_r1 ((tsk)->tss.cr1.raw);				\
 }
 
-
-/* Unused pte's must have the invalid bit set ...
- * Cleared PTE's must be marked invalid, and have zeros in all other bit
- * positions.  This distinguishes them from swaped-out pte's, which don't
- * contain 'true' ptes, but instead contain swapfile info.
+/*
+ * Cleared PTE's are marked invalid, and all other bits are zero.
+ * Swapped out PTE's are marked  _PAGE_INVALID | _PAGE_RO | swap-info
  */
 
-/*
- * Note this version was once hobbled by a compiler bug ...
- * extern inline int
- * 	pte_none(pte_t pte)	{ return !((pte_val(pte) & ~(_PAGE_INVALID |_PAGE_RO))); }
-*/
 extern inline int
-	pte_none(pte_t pte)	{ return ((pte_val(pte) == (_PAGE_INVALID |_PAGE_RO))); }
+	pte_none(pte_t pte)	{ return (pte_val(pte) == _PAGE_SWAPPED); }
 
 extern inline int
 	pte_present(pte_t pte)	{ return !((pte_val(pte) & _PAGE_INVALID)); }
 extern inline void
-	pte_clear(pte_t *ptep)	{ pte_val(*ptep) = _PAGE_INVALID | _PAGE_RO; }
+	pte_clear(pte_t *ptep)	{ pte_val(*ptep) = _PAGE_SWAPPED; }
 
 
-/* unused segment table entries must have the invalid bit set.
- * XXX what's pmd_bad supposed to mean ????
+/* Unused segment table entries must have the invalid bit set.
+ * If i370_get_pte fails to allocate a page table, then the
+ * pmd (aka segment table entry) is marked pmd_bad()
  */
 extern inline int
 	pmd_none(pmd_t pmd)	{ return pmd_val(pmd) & _SEG_INVALID; }
 extern inline int
-	pmd_bad(pmd_t pmd)	{ return 0; }
+	pmd_bad(pmd_t pmd)	{ return pmd_val(pmd) == BAD_PAGETABLE; }
 extern inline int
 	pmd_present(pmd_t pmd)	{ return (pmd_val(pmd) & _SEG_INVALID) == 0; }
 extern inline void
@@ -462,7 +461,7 @@ extern inline void set_pgdir(unsigned long address, pgd_t entry)
 #endif
 }
 
-/* the pgdir consists of *TWO* pages (address 2GB of storage) */
+/* The pgdir consists of *TWO* pages (address 2GB of storage). */
 extern pgd_t swapper_pg_dir[2048];
 
 extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
@@ -507,7 +506,7 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
 
 #define SWP_TYPE(entry) ((entry) & 0xff)
 #define SWP_OFFSET(entry) ((entry) >> 12)
-#define SWP_ENTRY(type,offset) (((offset) << 12) | _PAGE_INVALID | _PAGE_RO | (type))
+#define SWP_ENTRY(type,offset) (((offset) << 12) | _PAGE_SWAPPED | (type))
 
 #define module_map      vmalloc
 #define module_unmap    vfree

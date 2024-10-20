@@ -519,8 +519,10 @@ int do_copy_user_stack(unsigned long dstsp, unsigned long srcsp,
 		srcsp = bot;
 		dstsp = bot - delta;
 
-		if (4*MAXUFRSZ < frsize)
+		if (4*MAXUFRSZ < frsize) {
+			printk("copy_user_stack: unable to copy large frames\n");
 			return -EFAULT;
+		}
 
 		/* Last frame points at zero, or itself. */
 	} while (frsize && srcsp);

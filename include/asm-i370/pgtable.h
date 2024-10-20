@@ -220,7 +220,6 @@ extern inline int
 extern inline void
 	pte_clear(pte_t *ptep)	{ pte_val(*ptep) = _PAGE_INVALID; }
 
-
 /* Unused segment table entries must have the invalid bit set.
  * If i370_get_pte fails to allocate a page table, then the
  * pmd (aka segment table entry) is marked pmd_bad()
@@ -233,7 +232,6 @@ extern inline int
 	pmd_present(pmd_t pmd)	{ return (pmd_val(pmd) & _SEG_INVALID) == 0; }
 extern inline void
 	pmd_clear(pmd_t * pmdp)	{ pmd_val(*pmdp) = _SEG_INVALID; }
-
 
 /*
  * The "pgd_xxx()" functions here are trivial for a folded two-level
@@ -471,20 +469,42 @@ extern __inline__ pte_t *find_pte(struct mm_struct *mm, unsigned long va)
 	pgd_t *dir;
 	pmd_t *pmd;
 	pte_t *pte = NULL;
+	pte_t sav;
 
+	/* For current i370, there is no pmd; its same as pgd. Thus, we
+	   have the following structure:
+	   -- mm->pgd points at the S/390 segment table.
+	   -- dir == pmd points at a segment table entry. That entry is either
+	      marked invalid, or it contains a valid PTO page table origin.
+	   -- If valid, then it is used both by the kernel, and by the
+	      hardware, to look up a PTE for the virtual address.
+	   -- The hardware will perform this walk only once, and then cache
+	      the results in the TLB.
+
+	   Under normal operation, the kernel fiddles with PTE entries all
+	   the time, marking them shared or not, writable or not. A typical
+	   usage is during fork, when all pages are marked copy-on-write,
+	   i.e. shared and read-only. To make these changes visible to the
+	   hardware, a TLB invalidate must be issued. This is the place
+	   where this is done: the kernel calls this only after it finishes
+	   fiddling with the PTE entries. Failure to TLB invalidate will
+	   result in inf-loops of page faults on the same page, over and
+	   over.
+	 */
 	va &= ADDR_MASK;
-	/* printk ("find_pte for va=0x%lx\n", va); */
-
-	dir = pgd_offset( mm, va );
+	dir = pgd_offset(mm, va);
 	if (dir)
 	{
-		/* printk ("find_pte got pgd for dir=%p\n", dir); */
 		pmd = pmd_offset(dir, va);
 		if (pmd && pmd_present(*pmd))
 		{
 			pte = pte_offset(pmd, va);
-			/* printk ("find_pte got pmd for va=%lx pte=%p\n", va, pte); */
-/* XXX the PowerPC implementation flushes the  tlb here, should we ?? */
+#if 0
+			/* _ptlb(); Brute force kick. */
+			sav = *pte;
+			_ipte(pmd_page(*pmd), va);
+			set_pte(pte, sav);
+#endif
 		}
 	}
 	return pte;

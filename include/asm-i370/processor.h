@@ -290,13 +290,10 @@ struct thread_struct {
 	cr0_t 		cr0;		/* control register 0               */
 	cr1_t 		cr1;		/* control register 1               */
 	double		fpr[16];	/* Complete floating point set      */
-	int   		in_slih;	/* set if we are in bottom half     */
+	int   		in_slih;	/* Set if we are in bottom half     */
 
-	/* XXX what the stuff below???? why do we needed it ??? see PowerPC */
-	unsigned long	wchan;		/* Event task is sleeping on        */
+	/* I'm not sure we need this... !? But everyone else got one, so ... */
 	mm_segment_t	fs;		/* for get_fs() validation          */
-	signed long 	last_syscall;
-	unsigned long	smp_fork_ret;
 };
 
 #define init_task	(init_task_union.task)
@@ -319,10 +316,7 @@ struct thread_struct {
 	 0.0, 0.0, 0.0, 0.0,}, /* FPR's */ 			\
 	0, /* in_slih */ 					\
 								\
-	0, /* wchan */ 						\
-	KERNEL_DS, /*fs*/ 					\
-	0, /* last_syscall */ 					\
-	0 							\
+	KERNEL_DS /*fs*/ 					\
 }
 
 /*

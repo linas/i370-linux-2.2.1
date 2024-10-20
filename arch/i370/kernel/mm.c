@@ -33,7 +33,7 @@ extern unsigned char *CPUID;
 /* mem_init() will put the kernel text pages into a different
  * storage key than the data pages, effectively rendering them read-only.
  * It then changes the key under which the kernel executes.  Remaining
- * area is marked as available for allocatin by the Linux kernel.
+ * area is marked as available for allocation by the Linux kernel.
  */
 
 __initfunc(void mem_init(unsigned long start_mem, unsigned long end_mem))

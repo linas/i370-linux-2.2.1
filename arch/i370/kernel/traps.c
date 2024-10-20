@@ -186,13 +186,17 @@ pc_monitor(i370_interrupt_state_t *saved_regs,
 	return(0);
 }
 
+/* Most of these are fatal, because we should not be getting them. */
 static int
 pc_unsupported(i370_interrupt_state_t *saved_regs,
                unsigned long  trans,
                unsigned short code)
 {
-	printk ("Program Check Unsupported code=0x%x trans=0x%lx\n",
-	        code, trans);
+	if (code == PIC_TRANSLATION)
+		printk ("Error: Unexpected Translation-Specification Exception\n");
+	else
+		printk ("Program Check Unsupported code=0x%x trans=0x%lx\n",
+		        code, trans);
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
 	i370_halt();

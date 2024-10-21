@@ -23,7 +23,6 @@
 extern unsigned long free_area_init(unsigned long, unsigned long);
 extern __initfunc(void i370_trap_init(int key));
 
-atomic_t next_mmu_context;
 extern char __init_text_begin[], __init_text_end[];
 extern char __init_data_begin[], __init_data_end[];
 extern char _text[], _etext[];
@@ -203,35 +202,6 @@ void show_mem(void)
 
 
 /*
- * The context counter has overflowed.
- * We set mm->context to NO_CONTEXT for all mm's in the system.
- * We assume we can get to all mm's by looking as tsk->mm for
- * all tasks in the system.
- */
-void
-mmu_context_overflow(void)
-{
-	// struct task_struct *tsk;
-
-	printk("mmu_context_overflow\n");
-
-#ifdef JUNK
-	read_lock(&tasklist_lock);
-	for_each_task(tsk) {
-		if (tsk->mm)
-			tsk->mm->context = NO_CONTEXT;
-	}
-	read_unlock(&tasklist_lock);
-	flush_hash_segments(0x10, 0xffffff);
-	atomic_set(&next_mmu_context, 0);
-	/* make sure current always has a context */
-	current->mm->context = MUNGE_CONTEXT(atomic_inc_return(&next_mmu_context));
-	set_context(current->mm->context);
-#endif
-}
-
-
-/*
  * TLB flushing:
  *
  *  - flush_tlb_all() flushes all processes TLBs
@@ -249,6 +219,14 @@ mmu_context_overflow(void)
 void
 i370_flush_tlb_all(void)
 {
+#ifdef LATER
+	read_lock(&tasklist_lock);
+	for_each_task(tsk) {
+		if (tsk->mm)
+			_lctl_r1(...) /* set cr1 and then ?? */
+	}
+	read_unlock(&tasklist_lock);
+#endif
 	_ptlb();
 }
 
@@ -260,13 +238,8 @@ i370_flush_tlb_all(void)
 void
 i370_flush_tlb_mm(struct mm_struct *mm)
 {
-	printk ("i370_flush_tlb_mm\n");
+	printk ("i370_flush_tlb_mm pgd=%x\n", mm->pgd);
 	_ptlb();
-/*
-	mm->context = NO_CONTEXT;
-	if (mm == current->mm)
-		activate_context(current);
-*/
 }
 
 void
@@ -281,7 +254,7 @@ void
 i370_flush_tlb_range(struct mm_struct *mm, unsigned long start, unsigned
 long end)
 {
-	printk ("i370_flush_tlb_range\n");
+	printk ("i370_flush_tlb_range pgd=%x\n", mm->pgd);
 	_ptlb();
 }
 
@@ -394,8 +367,6 @@ __initfunc(unsigned long paging_init(unsigned long start_mem,
 
 	return start_mem;
 }
-
-void set_context(int context) {}
 
 /* ========================================================== */
 /* copy in/out routines of various sorts */

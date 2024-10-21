@@ -473,7 +473,7 @@ int do_copy_user_stack(unsigned long dstsp, unsigned long srcsp,
 	unsigned long or11, or13;
 	unsigned long bot, top;
 	unsigned long frsize;
-#define MAXUFRSZ 120
+#define MAXUFRSZ 240
 	unsigned long frame[MAXUFRSZ];
 
 	/* Offset to frame and stack pointers in standard elf frame.  */
@@ -520,7 +520,7 @@ int do_copy_user_stack(unsigned long dstsp, unsigned long srcsp,
 		dstsp = bot - delta;
 
 		if (4*MAXUFRSZ < frsize) {
-			printk("copy_user_stack: unable to copy large frames\n");
+			printk("copy_user_stack: unable to copy large frames. frsize=%d bytes\n", frsize);
 			return -EFAULT;
 		}
 

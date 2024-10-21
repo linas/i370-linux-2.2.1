@@ -764,6 +764,11 @@ i370_sys_clone (unsigned long clone_flags)
 
 	/* All args pass to copy_thread.  */
 	res = do_fork(clone_flags, regs->irregs.r13, regs);
+
+	/* Somehow during init we managed to skip this. Get it now. */
+	if (0 == current->pid)
+		current->tss.cr1.raw = _stctl_r1();
+
 	_lctl_r1(current->tss.cr1.raw);
 
 	if ((res < 0) && (0 == user_mode(current->tss.regs))) {

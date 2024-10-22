@@ -97,9 +97,10 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
 
   /* Sanity check: cr1 should be set by fork, clone and switch_to */
   curr_cr1.raw = _stctl_r1();
-  if (curr_cr1.raw != current->tss.cr1.raw) {
-     printk("BUG: do_page_fault unexpected cr1. Have: %lx  Want: %lx\n",
-            curr_cr1.raw, current->tss.cr1.raw);
+  if (curr_cr1.raw != current->tss.cr1.raw ||
+      (curr_cr1.raw & MASK_TRXADDR) != mm->pgd) {
+     printk("BUG: do_page_fault unexpected cr1. Have: %lx  Want: %lx pgd=%lx\n",
+            curr_cr1.raw, current->tss.cr1.raw, mm->pgd);
      _lctl_r1(current->tss.cr1.raw);
   }
 
@@ -249,11 +250,15 @@ no_context:
   /* have to terminate things "with extreme prejudice".       */
   /*----------------------------------------------------------*/
   if ((unsigned long) address < PAGE_SIZE) {
-       printk(KERN_ALERT "Unable to handle kernel NULL pointer dereference");
+    printk(KERN_ALERT
+        "Kernel NULL pointer dereference at address %08lx\n", address);
+     show_regs(regs);
+     print_backtrace (_get_SP());
+     i370_halt();
   }
-  else
-       printk(KERN_ALERT "Unable to handle kernel access");
-  printk(" at virtual address %08lx\n",address);
+
+  printk(KERN_ALERT
+     "Unable to handle kernel access at address %08lx\n", address);
   show_regs(regs);
   print_backtrace (regs->irregs.r13);
   i370_halt();

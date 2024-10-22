@@ -203,15 +203,14 @@ pc_unsupported(i370_interrupt_state_t *saved_regs,
 	return(1);
 }
 
-/* This is hit by translation exceptions.
+/* This is hit by translation exceptions. Usually some access of a
+ * wild pointer by the kernel. e.g. printk(%s instead of %x. Heh.
  *
- * Examples include unmapped virtual addresses accessed by
- * kernel code. Typical cause is access through a wild pointer
- * in the kernel. Unclear to me why wild pointers don't go
- * through 0x10 or 0x11. Perhaps this should be wired to
- * do_page_fault(), instead?
+ * Unclear to me why wild pointers don't go through 0x10 or 0x11.
+ * Currently, we don't expect faults in the kernel. So this is not
+ * attached to do_page_fault().
  *
- * Principles of Operation give other reasons:
+ * Principles of Operation gives an assortment of reasons:
  * The dispatchable-unit-control table,
  * the primary ASN-second-table entry,
  * entries in the access list, region first table,
@@ -229,8 +228,9 @@ static int pc_addressing(i370_interrupt_state_t *saved_regs,
                           unsigned short code)
 {
 	printk ("\nUnexpected Addressing Exception trans=0x%lx\n", trans);
+	printk ("Probably due to a wild kernel pointer.\n");
 	show_regs (saved_regs);
-	print_backtrace (saved_regs->irregs.r13);
+	print_backtrace (_get_SP());
 	i370_halt();
 	return(1);
 }

@@ -116,8 +116,9 @@ print_backtrace (unsigned long stackp)
 			unsigned long ksp;
 			pte_t *pte = find_pte (current->mm, stackp);
 			if (!pte || pte_none(*pte)) {
+				/* Ummm. Translation might break if not set.  Or something. ??? */
+				_lctl_r1(current->tss.cr1.raw);
 				make_pages_present (stackp, stackp+4096);
-				// make_pages_present (stackp, 0x7fffffff);
 				pte = find_pte (current->mm, stackp);
 			}
 			ksp = pte_page (*pte) | (stackp & ~PAGE_MASK);
@@ -142,7 +143,10 @@ print_backtrace (unsigned long stackp)
 			stackp = sp->caller_sp;
 
 			/* Exception handlers intentionally cut the stack. But we want
-			   to set the rest of it. We cheat, cause we know where it is */
+			   to see the rest of it. We cheat, cause we know where it is.
+			   Well, this sort of works, up to where we get to user-space,
+			   which might take an addressing exception on make_pages_present
+			 */
 			if (0 == stackp) {
 				i370_interrupt_state_t *exframe = (i370_interrupt_state_t *) sp;
 				if (exframe) {
@@ -152,7 +156,7 @@ print_backtrace (unsigned long stackp)
 			}
 		}
 		cnt ++;
-	} while (stackp &&  (cnt < 10)) ;
+	} while (stackp &&  (cnt < 20)) ;
 	printk("\n");
 }
 
@@ -175,8 +179,8 @@ int check_stack(struct task_struct *tsk)
 		return 1;
 	}
 
-	/* check if stored ksp is bad */
-	if ( (tsk->tss.ksp > stack_top) || (tsk->tss.ksp < stack_bot) )
+	/* Check if stored ksp is bad.  */
+	if ((tsk->tss.ksp > stack_top) || (tsk->tss.ksp < stack_bot))
 	{
 		printk("stack pointer out of bounds: %s/%d\n"
 		       "    stack_bot %08lx ksp %08lx stack_top %08lx\n",
@@ -185,8 +189,8 @@ int check_stack(struct task_struct *tsk)
 		ret |= 2;
 	}
 
-	/* check if stack ptr RIGHT NOW is bad */
-	if ( (tsk == current) && ((_get_SP() > stack_top ) || (_get_SP() < stack_bot)) )
+	/* Check if stack ptr RIGHT NOW is bad.  */
+	if ((tsk == current) && ((_get_SP() > stack_top ) || (_get_SP() < stack_bot)))
 	{
 		printk("current stack ptr out of bounds: %s/%d\n"
 		       "    stack_bot %08lx sp %08lx stack_top %08lx\n",
@@ -195,8 +199,8 @@ int check_stack(struct task_struct *tsk)
 		ret |= 4;
 	}
 
-	/* check if top-of-stack ptr RIGHT NOW is bad */
-	if ( (tsk == current) && ((_get_STP() > stack_top ) || (_get_STP() < stack_bot)) )
+	/* Check if top-of-stack ptr RIGHT NOW is bad. */
+	if ((tsk == current) && ((_get_STP() > stack_top ) || (_get_STP() < stack_bot)))
 	{
 		printk("current stack top ptr out of bounds: %s/%d\n"
 		       "    stack_bot %08lx r11 %08lx stack_top %08lx\n",
@@ -205,8 +209,8 @@ int check_stack(struct task_struct *tsk)
 		ret |= 0x8;
 	}
 
-	/* check amount of free stack */
-	if ( 3000 > (stack_top - tsk->tss.ksp) )
+	/* Check amount of free stack. */
+	if (2000 > (stack_top - tsk->tss.ksp))
 	{
 		printk("low on stack space: %s/%d\n"
 		       "    stack_bot %08lx ksp %08lx stack_top %08lx\n",
@@ -217,9 +221,9 @@ int check_stack(struct task_struct *tsk)
 
 	if (ret)
 	{
-		printk("bad stack, halting\n");
+		printk("bad stack, halting irregs.r13=%lx\n", tsk->tss.regs->irregs.r13);
 		show_regs (tsk->tss.regs);
-		print_backtrace (tsk->tss.regs->irregs.r13);
+		print_backtrace (tsk->tss.ksp);
 		i370_halt();
 	}
 	return(ret);
@@ -779,6 +783,9 @@ i370_sys_clone (unsigned long clone_flags)
 		i370_halt();
 	}
 
+	DBGPRT ("i370_sys_clone(): after do_fork, %s/%d regs=%p res=%d\n",
+	        current->comm, current->pid, current->tss.regs, res);
+
 #ifdef __SMP__
 	/* When we clone the idle task we keep the same pid but
 	 * the return value of 0 for both causes problems.
@@ -787,9 +794,6 @@ i370_sys_clone (unsigned long clone_flags)
 		res = 1;
 #endif /* __SMP__ */
 	unlock_kernel();
-
-	DBGPRT ("i370_sys_clone(): after do_fork, %s/%d regs=%p res=%d\n",
-	        current->comm, current->pid, current->tss.regs, res);
 
 	return res;
 }
@@ -830,7 +834,9 @@ i370_kernel_thread(unsigned long flags, int (*fn)(void *), void *args)
 	if (pid) return pid;
 	fn (args);
 	printk ("i370_kernel_thread(): Unexpected return from fn\n");
-	while (1) {_exit (1); }
+	show_regs(current->tss.regs);
+	print_backtrace(_get_SP());
+	i370_halt();
 	return 0;
 }
 

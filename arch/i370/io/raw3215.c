@@ -127,31 +127,38 @@ static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
 {
 	unsigned long slags;
 	struct wait_queue wait;
+	unsigned long timeout = MAX_SCHEDULE_TIMEOUT;
 
-	if (PENDING == WRITE_PENDING) {
-		/* Sigh. Due to console hackology, we are allowing multiple
-		   processes to write to the console.(!) That means that wait
-		   queues don't cut it; different processes stomp on each-others
-		   status flags. We could fack it for writing by using a semaphore
-		   not a queue, but we also have readers sharing wand we don't
-		   know which task to route a read to. That's unfixable, except
-		   by forcing each new process to open it's own /dev/3215/rawNN
-		   and disallow sharing of console for I/O. But that's for some
-		   future date. (It doesn't help that con3270.c is doing _tsch
-		   and is resetting our channel status.) For now,  we'll brute
-			for this, and just wait and cross our fingers.
-		   Two millisecs should be enough.  */
-		udelay (2000);
-		return;
-	}
+	/* Sigh. Due to console hackology, we are allowing multiple
+	   processes to write to the console.(!) That means that wait
+	   queues don't cut it; different processes stomp on each-others
+	   status flags. We could fack it for writing by using a semaphore
+	   not a queue, but we also have readers sharing wand we don't
+	   know which task to route a read to. That's unfixable, except
+	   by forcing each new process to open it's own /dev/3215/rawNN
+	   and disallow sharing of console for I/O. But that's for some
+	   future date. (It doesn't help that con3270.c is doing _tsch
+	   and is resetting our channel status.) For now,  we'll brute
+	   for this, and just wait and cross our fingers.
+	   Two millisecs should be enough.  */
+	/* Timeouts are in jiffies, which happen at HZ. One jiffy should
+	 * be about 10 to 50 millisecs on current settings. */
+	if (PENDING == WRITE_PENDING)
+		timeout = 1;
 
+	/* Whelp, this is still broken, and I can't figure out how to hac
+	 * around it. We can either _tsch like in con3270.c or just disable
+	 * more than one user using a console. I dunno. At any rate, busybox
+	 * is broken because of this feat of mis-engineering.
+	 */
 	while (ucb->unitflg1 & PENDING) {
 		current->state = TASK_INTERRUPTIBLE;
 		wait.task = current;
 		add_wait_queue(que, &wait);
 
 		spin_unlock_irqrestore(NULL, *irqf);
-		schedule();
+		/* schedule(); */
+		schedule_timeout(timeout);
 		spin_lock_irqsave(NULL, *irqf);
 
 		remove_wait_queue(que, &wait);

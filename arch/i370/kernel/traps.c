@@ -57,7 +57,7 @@ void (*debugger_fault_handler)(struct pt_regs *regs);
 #endif
 #endif
 
-void ret_from_syscall(void);
+void reschedule(void);
 
 /*----------------------------------------------------------------*/
 /* Machine Check Handling                                         */
@@ -331,7 +331,7 @@ InputOutputException(i370_interrupt_state_t *saved_regs)
 
 	/* Well, the do_IRQ probably gave someone something to do.
 	   So go schedule whomever needs something to be done. */
-	ret_from_syscall();
+	reschedule();
 }
 
 /*----------------------------------------------------------------*/
@@ -419,7 +419,7 @@ ei_time_slice(i370_interrupt_state_t *saved_regs,
 	do_timer (saved_regs);
 
 	/* timer interrupts are a great time to reschedule */
-	ret_from_syscall();
+	reschedule();
 }
 
 /* ================================================================ */
@@ -428,7 +428,7 @@ int check_stack(struct task_struct *tsk);
 int do_signal(sigset_t *oldset, struct pt_regs *regs);
 
 void
-ret_from_syscall (void)
+reschedule (void)
 {
 	int do_it_again = 1;
 

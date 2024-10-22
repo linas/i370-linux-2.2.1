@@ -318,8 +318,9 @@ SupervisorCall:
 	BASR	lr,r15			/* Do bottom halves.          */
 	LR	r15,r5			/* Restore r15 from syscall.  */
 #else
-	L	r5,INTERRUPT_BASE-4(0)	/* Get location of ksp        */
-	ST	r13,0(r5)		/* Want a pristine ksp        */
+	L	r5,_psa_current(,0)	/* Get current task           */
+	L	r6,OFFSET_KSP(,r5)	/* Get location of kernel sp  */
+	ST	r13,0(r6)		/* Update ksp                 */
 #endif
 	EXCEPTION_UNCHAIN (INTERRUPT_BASE) /* Unstack pointer chain.  */
 	/* Get old PSW, restore registers, return from interrupt.     */

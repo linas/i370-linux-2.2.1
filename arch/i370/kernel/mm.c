@@ -238,7 +238,7 @@ i370_flush_tlb_all(void)
 void
 i370_flush_tlb_mm(struct mm_struct *mm)
 {
-	printk ("i370_flush_tlb_mm pgd=%x\n", mm->pgd);
+	// printk ("i370_flush_tlb_mm pgd=%x\n", mm->pgd);
 	_ptlb();
 }
 

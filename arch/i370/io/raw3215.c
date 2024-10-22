@@ -115,17 +115,45 @@ int i370_raw3215_close (struct inode *inode, struct file *filp)
 
 /* ---------------------------------------------------------------- */
 
+/* Can't do stuff, until the previous one has finished.
+	This is almost identical to interruptible_sleep_on()
+	except that it is meant to be used with interrupts disabled
+	so that the status falg doesn't get trashed by an I/O interrupt.
+	Must enter with irq's disabled, and we return with them still
+   disabled.
+ */
+static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
+                            struct wait_queue *que, long *irqf)
+{
+	unsigned long slags;
+	struct wait_queue wait;
+
+	while (ucb->unitflg1 & PENDING) {
+		current->state = TASK_INTERRUPTIBLE;
+		wait.task = current;
+		add_wait_queue(que, &wait);
+
+		spin_unlock_irqrestore(NULL, *irqf);
+		schedule();
+		spin_lock_irqsave(NULL, *irqf);
+
+		remove_wait_queue(que, &wait);
+	}
+}
+
+/* ---------------------------------------------------------------- */
+
 static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* ucb)
 {
 	long  flags;
 	long rc;
 	orb_t orb;
 
-	/* Can't start a new write, until the previous one has finished. */
-	if (ucb->unitflg1 & WRITE_PENDING)
-		interruptible_sleep_on(&ucb->unitoutq);
-
 	spin_lock_irqsave(NULL,flags);
+
+	/* Can't start a new write, until the previous one has finished. */
+	wait_for_status(ucb, WRITE_PENDING, &ucb->unitoutq, &flags);
+
 	/*
 	 *  Build the CCW for the 3215 Console I/O
 	 *  CCW = WRITE chained to NOP.
@@ -149,13 +177,14 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* ucb)
 
 	ucb->unitflg1 |= WRITE_PENDING;
 	rc = _ssch(ucb->unitsid, &orb); /* issue Start Subchannel */
-	spin_unlock_irqrestore(NULL,flags);
 
 	/* Hang out here, until the write completes.  Why? If we return
 	   before the write completes, the ebcstr buffer, which lives on
 	   stack, will disappear with the stack, and the write will
 		print whatever garbage is found on the stack. Ooops!  */
-	interruptible_sleep_on(&ucb->unitoutq);
+	wait_for_status(ucb, WRITE_PENDING, &ucb->unitoutq, &flags);
+
+	spin_unlock_irqrestore(NULL,flags);
 }
 
 ssize_t i370_raw3215_write (struct file *filp, const char *str,
@@ -214,11 +243,11 @@ static int do_read(unitblk_t* ucb, char* rdbuf)
 	orb_t orb;
 	irb_t *irb;
 
-	/* Can't start a new read, until the previous one has finished. */
-	if (ucb->unitflg1 & READ_PENDING)
-		interruptible_sleep_on(&ucb->unitinq);
-
 	spin_lock_irqsave(NULL,flags);
+
+	/* Can't start a new read, until the previous one has finished. */
+	wait_for_status(ucb, READ_PENDING, &ucb->unitinq, &flags);
+
 	ucb->unitflg1 &= ~READ_WANTED;
 	memset(rdbuf, 0, LINELEN);
 
@@ -246,10 +275,12 @@ static int do_read(unitblk_t* ucb, char* rdbuf)
 	ucb->unitflg1 |= READ_PENDING;
 	rc = _ssch(ucb->unitsid, &orb); /* issue Start Subchannel */
 	DBGPRT("raw3215_read ssch=%d\n", rc);
-	spin_unlock_irqrestore(NULL,flags);
 
 	/* Wait for the read-completed interrupt */
-	interruptible_sleep_on(&ucb->unitinq);
+	wait_for_status(ucb, READ_PENDING, &ucb->unitinq, &flags);
+
+	spin_unlock_irqrestore(NULL,flags);
+
 	irb = &ucb->unitirb;
 
 	DBGPRT("raw3215_read irb FCN=%x activity=%x status=%x\n",

@@ -311,15 +311,15 @@ SupervisorCall:
 	BASR	lr,r15			/* Jump to C routine.         */
 	.using	.,lr			/* Use r14 for remainder of the show */
 	STNSM	INTERRUPT_BASE-16(0),0xfc /* Disable interrupts.      */
-#if 1
-	/* Brutish version of below, but both are broken somewhow.    */
+#if 0
+	/* Brutish version of below, but both are broken somehow.     */
 	LR	r5,r15			/* Cache for later.           */
 	L	r15,=A(ret_from_syscall)
 	BASR	lr,r15			/* Do bottom halves.          */
 	LR	r15,r5			/* Restore r15 from syscall.  */
 #else
 	L	r5,_psa_current(,0)	/* Get current task           */
-	L	r6,OFFSET_KSP(,r5)	/* Get location of kernel sp  */
+	LA	r6,OFFSET_KSP(,r5)	/* Get location of kernel sp  */
 	ST	r13,0(r6)		/* Update ksp                 */
 #endif
 	EXCEPTION_UNCHAIN (INTERRUPT_BASE) /* Unstack pointer chain.  */

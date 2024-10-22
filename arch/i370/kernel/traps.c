@@ -510,6 +510,7 @@ StackOverflow(struct pt_regs *regs)
 /* Reset a pristine stack pointer. */
 void ret_from_syscall (void)
 {
+	reschedule();
 	i370_elf_stack_t * sp = (i370_elf_stack_t *) _get_SP();
 	current->tss.ksp = sp->caller_sp;
 }
@@ -532,7 +533,6 @@ extern void ProgramCheck (void);
 __initfunc(void i370_trap_init (int key))
 {
 	unsigned long long clock_reset;
-	unsigned long *sz;
 	psw_t psw;
 
 	key >>= 4;

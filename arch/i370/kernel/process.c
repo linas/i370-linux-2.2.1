@@ -497,12 +497,15 @@ int copy_user_stack(struct task_struct * tsk)
 {
 	int rc;
 	struct mm_struct *save = current->mm;
-	char *page = __get_free_page(GFP_KERNEL);
+	char *page = (char *) __get_free_page(GFP_KERNEL);
+	if (!page)
+		return -ENOMEM;
+
 	set_fs(USER_DS);
 	rc = do_copy_user_stack(tsk, page);
 	set_fs(KERNEL_DS);
 	current->mm = save;
-	kfree(page);
+	free_page(page);
 	return rc;
 }
 

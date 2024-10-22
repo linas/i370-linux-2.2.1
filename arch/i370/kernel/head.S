@@ -309,14 +309,17 @@ SupervisorCall:
 	STM	r5,r10,ARGP(r11)	/* Args on stack.             */
 	LA	r1,ARGP(,r13)		/* Pointer to returned value. */
 	BASR	lr,r15			/* Jump to C routine.         */
-	.using	.,lr;			/* Use r14 for remainder of the show */
-	STNSM    INTERRUPT_BASE-16(0),0xfc; /* Disable interrupts.    */
-#ifdef DO_RET_FROM_SYSCALL
-	/* ifdef'ed out, because it seems un-needed just right now.   */
+	.using	.,lr			/* Use r14 for remainder of the show */
+	STNSM	INTERRUPT_BASE-16(0),0xfc /* Disable interrupts.      */
+#if 1
+	/* Brutish version of below, but both are broken somewhow.    */
 	LR	r5,r15			/* Cache for later.           */
 	L	r15,=A(ret_from_syscall)
 	BASR	lr,r15			/* Do bottom halves.          */
 	LR	r15,r5			/* Restore r15 from syscall.  */
+#else
+	L	r5,INTERRUPT_BASE-4(0)	/* Get location of ksp        */
+	ST	r13,0(r5)		/* Want a pristine ksp        */
 #endif
 	EXCEPTION_UNCHAIN (INTERRUPT_BASE) /* Unstack pointer chain.  */
 	/* Get old PSW, restore registers, return from interrupt.     */

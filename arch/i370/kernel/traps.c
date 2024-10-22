@@ -507,6 +507,13 @@ StackOverflow(struct pt_regs *regs)
 	i370_halt();
 }
 
+/* Reset a pristine stack pointer. */
+void ret_from_syscall (void)
+{
+	i370_elf_stack_t * sp = (i370_elf_stack_t *) _get_SP();
+	current->tss.ksp = sp->caller_sp;
+}
+
 /* ================================================================ */
 /* wire in the interrupt vectors */
 

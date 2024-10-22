@@ -112,7 +112,7 @@ print_backtrace (unsigned long stackp)
 		 * that its a user-space stack pointer and that
 		 * it needs address translation.
 		 */
-		if (STACK_TOP - I370_STACK_SIZE <= stackp) {
+		if (I370_STACK_BASE <= stackp) {
 			unsigned long ksp;
 			pte_t *pte = find_pte (current->mm, stackp);
 			if (!pte || pte_none(*pte)) {
@@ -128,7 +128,7 @@ print_backtrace (unsigned long stackp)
 
 			/* Try walking user stack. Assume it's not insane. */
 			stackp = sp->caller_sp;
-			if (stackp < STACK_TOP - I370_STACK_SIZE + sizeof(i370_elf_stack_t)) {
+			if (stackp < I370_STACK_BASE + sizeof(i370_elf_stack_t)) {
 				printk ("        ---------------- end of user stack -----------------\n");
 				// stackp = current->tss.ksp;
 				stackp = _get_SP();
@@ -248,7 +248,7 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	set_fs(USER_DS);
 
 	/* The i370 ELF ABI stack grows up. Thus, the first frame is at
-	 * the frame base, which is STACK_TOP - I370_STACK_SIZE.
+	 * the frame base, which is I370_STACK_BASE.
 	 * The I370_STACK_SIZE should be same as _STK_LIM. Currently 8MB.
 	 * Per ABI, r11 is the frame pointer. The stack top is just the
 	 * frame pointer, plus the size of the frame; which is
@@ -258,7 +258,7 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 	 * find it.
 	 * Pass argc in r2, argv in r3 and envp in r4.
 	 */
-	unsigned long frame_base = STACK_TOP - I370_STACK_SIZE;
+	unsigned long frame_base = I370_STACK_BASE;
 
 	/* Set up the registers we will hand over to the user. */
 	regs->psw.flags &= (PSW_SPACE_MASK | PSW_WAIT);
@@ -470,7 +470,7 @@ int do_copy_user_stack(struct task_struct * tsk, char *page)
 	struct mm_struct *srcmm = current->mm;
 	struct mm_struct *dstmm = tsk->mm;
 	unsigned long usp = tsk->tss.regs->irregs.r11;
-	unsigned long bot = STACK_TOP - I370_STACK_SIZE;
+	unsigned long bot = I370_STACK_BASE;
 	unsigned long len = usp - bot;
 
 	do {
@@ -628,8 +628,11 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 		DBGPRT("Thunk dstregs %p from src %p\n", *dstregs, srcregs);
 		(*dstregs)->caller_sp = 0;
 		(*dstregs)->psw = srcregs->psw;
-		(*dstregs)->irregs.r13 = srcregs->irregs.r13 - delta;
-		(*dstregs)->irregs.r11 = srcregs->irregs.r11 - delta;
+		/* Thunk only kernel pointers. */
+		if (srcregs->irregs.r13 < I370_STACK_BASE) {
+			(*dstregs)->irregs.r13 = srcregs->irregs.r13 - delta;
+			(*dstregs)->irregs.r11 = srcregs->irregs.r11 - delta;
+		}
 		(*dstregs)->oldregs =  (i370_interrupt_state_t *)
 			(((unsigned long) (srcregs->oldregs)) - delta);
 		srcregs = srcregs->oldregs;

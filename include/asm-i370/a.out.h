@@ -11,8 +11,12 @@
 
 /* Max stack that a user can get. Currently set to 8 MBytes,
    because this is identical to _STK_LIM set in sched.h.
-   These shoul be kept in sync. */
+   These must be kept in sync (by hand). */
 #define I370_STACK_SIZE 0x800000  /* = _STK_LIM */
+
+/* All user stacks start here. Anything above this is always a user
+ * stack. Currently equals 0x7f800000 */
+#define I370_STACK_BASE (STACK_TOP - I370_STACK_SIZE)
 
 struct exec
 {

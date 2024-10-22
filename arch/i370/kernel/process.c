@@ -464,88 +464,45 @@ release_thread(struct task_struct *t)
 
 /* =================================================================== */
 
-/* Copy the standard i370 elf stack, thunking the stack and frame
-   pointers in each stackframe. This would all be much easier if
-   the stack did not actually contain any stack or frame pointers,
-   but only the frame size. However, the i370 elf stack cloned the
-   basic MVS stack design, which does store such things.
- */
-int do_copy_user_stack(unsigned long dstsp, unsigned long srcsp,
-                       unsigned long delta, struct task_struct * p)
+/* Copy the stack area, from bottom to top. */
+int do_copy_user_stack(struct task_struct * tsk, char *page)
 {
-	struct mm_struct *srcmm, *dstmm;
-	unsigned long or11, or13;
-	unsigned long bot, top;
-	unsigned long frsize;
-#define MAXUFRSZ 240
-	unsigned long frame[MAXUFRSZ];
+	struct mm_struct *srcmm = current->mm;
+	struct mm_struct *dstmm = tsk->mm;
+	unsigned long usp = tsk->tss.regs->irregs.r11;
+	unsigned long bot = STACK_TOP - I370_STACK_SIZE;
+	unsigned long len = usp - bot;
 
-	/* Offset to frame and stack pointers in standard elf frame.  */
-	or11 = ((unsigned long) &((i370_elf_stack_t*)0)->callee_sp) >> 2;
-	or13 = ((unsigned long) &((i370_elf_stack_t*)0)->caller_sp) >> 2;
-
-	/* Standard frame size. We assume this for the top-most frame,
-	   which should be the fork() frame which has no args to copy.  */
-	frsize = sizeof(i370_elf_stack_t);
-
-	srcmm = current->mm;
-	dstmm = p->mm;
-
-	/* Walk down the stack, thunk the pointers. */
 	do {
-		DBGPRT("Copy user stackframe from %lx to %lx size 0x%lx\n",
-		        srcsp, dstsp, frsize);
+		if (PAGE_SIZE < len) len = PAGE_SIZE;
 
-		/* Copy in one stackframe. */
 		current->mm = srcmm;
-		if (!access_ok(VERIFY_READ, (void *) srcsp, frsize))
+		if (!access_ok(VERIFY_READ, (void *) bot, len))
 			return -EFAULT;
-		__copy_from_user(frame, (void *) srcsp, frsize);
-
-		bot = frame[or13];
-		top = frame[or11];
-
-		/* Sanity check.  */
-		if (srcsp != top)
-			return -EFAULT;
-
-		/* Thunk the pointers. */
-		frame[or13] -= delta;
-		frame[or11] -= delta;
+		__copy_from_user(page, (void *) bot, len);
 
 		current->mm = dstmm;
-		if (!access_ok(VERIFY_WRITE, (void *) dstsp, frsize))
+		if (!access_ok(VERIFY_WRITE, (void *) bot, len))
 			return -EFAULT;
+		__copy_to_user((void *) bot, page, len);
 
-		__copy_to_user((void *) dstsp, frame, frsize);
-
-		frsize = srcsp - bot;
-		srcsp = bot;
-		dstsp = bot - delta;
-
-		if (4*MAXUFRSZ < frsize) {
-			printk("copy_user_stack: unable to copy large frames. frsize=%d bytes\n", frsize);
-			return -EFAULT;
-		}
-
-		/* Last frame points at zero, or itself. */
-	} while (frsize && srcsp);
-
-	DBGPRT("Done copying user regs\n");
+		bot += len;
+		len = usp - bot;
+	} while (len);
 
 	return 0;
 }
 
-int copy_user_stack(unsigned long dstsp, unsigned long srcsp,
-                    unsigned long delta, struct task_struct * p)
+int copy_user_stack(struct task_struct * tsk)
 {
 	int rc;
-	struct mm_struct *save;
-	save = current->mm;
+	struct mm_struct *save = current->mm;
+	char *page = __get_free_page(GFP_KERNEL);
 	set_fs(USER_DS);
-	rc = do_copy_user_stack(dstsp, srcsp, delta, p);
+	rc = do_copy_user_stack(tsk, page);
 	set_fs(KERNEL_DS);
 	current->mm = save;
+	kfree(page);
 	return rc;
 }
 
@@ -685,14 +642,11 @@ copy_thread(int nr, unsigned long clone_flags, unsigned long usp,
 	 * kernel, then we are still on the same stack. Copy that, too.
 	 */
 	if (regs->psw.flags & PSW_PROB) {
-		rc = copy_user_stack(usp-delta, usp, delta, p);
+		rc = copy_user_stack(p);
 		if (rc < 0) return rc;
-#ifdef DEBUG
-		DBGPRT("i370_copy_thread return to user with child regs\n");
-		show_regs(p->tss.regs);
-#endif
 	} else {
 		/* Validate expected location of the stack. */
+		/* Should be below exception frame. */
 		if ((usp > (unsigned long) srcsp)) {
 			printk("i370_copy_thread, bad usp=0x%lx, "
 				"lastsrc=%p, stcktop=0x%lx \n",

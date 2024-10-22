@@ -540,6 +540,13 @@ __initfunc(void i370_trap_init (int key))
 		 */
 		clock_reset = 0xffffffffffffffffLL;
 		_sckc (clock_reset);
+
+		/* Store the offset between the task struct and the kernel stack
+		 * pointer in low memory where we can get at it for calculation.
+		 */
+		sz = (unsigned long *) INTERRUPT_BASE;
+		*(sz-1) = (unsigned long) &(((struct task_struct *) 0) ->tss.ksp);
+		*(sz-2) = (unsigned long) &(((struct task_struct *) 0) ->tss.regs);
 	}
 
 	/* All interrupts will (eventually) run in execution key 6 ... */

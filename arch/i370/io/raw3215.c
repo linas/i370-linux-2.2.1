@@ -128,6 +128,23 @@ static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
 	unsigned long slags;
 	struct wait_queue wait;
 
+	if (PENDING == WRITE_PENDING) {
+		/* Sigh. Due to console hackology, we are allowing multiple
+		   processes to write to the console.(!) That means that wait
+		   queues don't cut it; different processes stomp on each-others
+		   status flags. We could fack it for writing by using a semaphore
+		   not a queue, but we also have readers sharing wand we don't
+		   know which task to route a read to. That's unfixable, except
+		   by forcing each new process to open it's own /dev/3215/rawNN
+		   and disallow sharing of console for I/O. But that's for some
+		   future date. (It doesn't help that con3270.c is doing _tsch
+		   and is resetting our channel status.) For now,  we'll brute
+			for this, and just wait and cross our fingers.
+		   Two millisecs should be enough.  */
+		udelay (2000);
+		return;
+	}
+
 	while (ucb->unitflg1 & PENDING) {
 		current->state = TASK_INTERRUPTIBLE;
 		wait.task = current;

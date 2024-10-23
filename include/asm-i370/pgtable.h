@@ -173,7 +173,7 @@ extern pte_t *va_to_pte(struct task_struct *tsk, unsigned long address);
  */
 #ifndef __ASSEMBLY__
 extern pte_t __bad_page(void);
-extern pte_t * __bad_pagetable(void);
+extern pmd_t * __bad_pagetable(void);
 
 extern unsigned long empty_zero_page[1024];
 #endif /* __ASSEMBLY__ */
@@ -227,7 +227,7 @@ extern inline void
 extern inline int
 	pmd_none(pmd_t pmd)	{ return pmd_val(pmd) & _SEG_INVALID; }
 extern inline int
-	pmd_bad(pmd_t pmd)	{ return pmd_val(pmd) == BAD_PAGETABLE; }
+	pmd_bad(pmd_t pmd)	{ return pmd_val(pmd) == pmd_val(*BAD_PAGETABLE); }
 extern inline int
 	pmd_present(pmd_t pmd)	{ return (pmd_val(pmd) & _SEG_INVALID) == 0; }
 extern inline void

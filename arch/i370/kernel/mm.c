@@ -323,9 +323,9 @@ unsigned long empty_bad_page_table;
 unsigned long empty_bad_page;
 pte_t  bad_pte;
 
-pte_t * __bad_pagetable(void)
+pmd_t * __bad_pagetable(void)
 {
-	return (pte_t *) empty_bad_page_table;
+	return (pmd_t *) empty_bad_page_table;
 }
 
 

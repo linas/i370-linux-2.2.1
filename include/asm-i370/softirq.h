@@ -83,6 +83,8 @@ static inline void softirq_endlock(int cpu)
 #ifdef __SMP__
 /* XXX move this #define to smp.h */
 #define smp_processor_id() (current->processor)
+#else
+#define smp_processor_id() 0
 #endif
 
 extern inline void start_bh_atomic(void)

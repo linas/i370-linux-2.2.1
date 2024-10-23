@@ -505,7 +505,7 @@ int copy_user_stack(struct task_struct * tsk)
 	rc = do_copy_user_stack(tsk, page);
 	set_fs(KERNEL_DS);
 	current->mm = save;
-	free_page(page);
+	free_page((unsigned long)page);
 	return rc;
 }
 

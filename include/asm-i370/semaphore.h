@@ -2,13 +2,12 @@
 #define _I370_SEMAPHORE_H
 
 /*
- * SMP- and interrupt-safe semaphores..
+ * SMP-safe and interrupt-safe semaphores..
  *
  * (C) Copyright 1996 Linus Torvalds
  * Adapted for PowerPC by Gary Thomas and Paul Mackerras
  */
 
-/* XXX totally wrong */
 #include <asm/atomic.h>
 
 struct semaphore {
@@ -27,10 +26,17 @@ extern void __up(struct semaphore * sem);
 #define sema_init(sem, val)	atomic_set(&((sem)->count), (val))
 
 /*
- * These two _must_ execute atomically wrt each other.
+ * For most semaphore operations, we can just use atomic_inc and
+ * atomic_dec and everything just works. Except for one case: the
+ * wake_one_more() and waking_non_zero() must be atomic w.r.t each
+ * other.
+ * -- wake_one_more() is easy; just atomic increment.
+ * -- waking_non_zero() must decrement but only if the count is > 0
+ *    That is, it needs to implement an atomic version of
  *
- * This is trivially done with load_locked/store_cond,
- * i.e. load with reservation and store conditional on the ppc.
+ *    inline int atomic_dec_if_positive(atomic_t *cnt) {
+ *       int ret=0; if (*cnt > 0 ) { (*cnt)--; ret = 1; }  return ret; }
+ *
  */
 
 static inline void wake_one_more(struct semaphore * sem)
@@ -38,27 +44,49 @@ static inline void wake_one_more(struct semaphore * sem)
 	atomic_inc(&sem->waking);
 }
 
-static inline int waking_non_zero(struct semaphore *sem, struct task_struct *tsk)
+/* Decrement count, but only if positive. That is, an atomic version
+ * of int ret=0; if (*cnt > 0 ) { (*cnt)--; ret = 1; }  return ret;
+ * Since compare-n-swap doesn't do that, the implementation below
+ * does this:
+ *
+ * retry:
+ *    oldval= *cnt;
+ *    newval = (*cnt)--;
+ *    // At the (atomic) time that we looked, it wasn't positive. Bail.
+ *    if (oldval <= 0) return 0;
+ *    // If nothing changed, its safe to update.
+ *    if (*cnt == oldval) { *cnt = newval; } else goto retry;
+ *    return 1;
+ *
+ * I think this is correct.
+ */
+extern inline int atomic_dec_if_positive(atomic_t *cnt)
 {
-/*
-	int ret, tmp;
+	int ret = 0;
+	int inc = 1;
+	int oldval, newval;
 
 	__asm__ __volatile__(
-		"1:	lwarx %1,0,%2\n"
-		"	cmpwi 0,%1,0\n"
-		"	addic %1,%1,-1\n"
-		"	ble- 2f\n"
-		"	stwcx. %1,0,%2\n"
-		"	bne- 1b\n"
-		"	li %0,1\n"
-		"2:"
-		: "=r" (ret), "=&r" (tmp)
-		: "r" (&sem->waking), "0" (0)
-		: "cr0", "memory");
+"1:   L       %0,%2;"
+"     LTR     %0,%0;"
+"     BNH     2f;"
+"     L       %1,%2;"
+"     SR      %1,%4;"
+"     CS      %0,%1,%2;"
+"     BNE     1b;"
+"     LA      %3,1(,0);"
+"2:   ;"
+   : "+r" (oldval), "+r" (newval), "+m" (*cnt), "+r" (ret)
+   : "r" (inc)
+   : "memory");
 
 	return ret;
-*/
-return 0;
+}
+
+static inline int waking_non_zero(struct semaphore *sem,
+                                  struct task_struct *tsk)
+{
+	return atomic_dec_if_positive(&sem->waking);
 }
 
 extern inline void down(struct semaphore * sem)

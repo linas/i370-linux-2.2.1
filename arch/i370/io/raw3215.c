@@ -76,6 +76,7 @@ ccw_t *wrccw;
 
 int i370_raw3215_open (struct inode *inode, struct file *filp)
 {
+	int rc;
 	ccw_t *ioccw;
 	unitblk_t *ucb;
 	printk ("raw3215_open of /dev/%s (c %d %d)\n",
@@ -103,6 +104,22 @@ int i370_raw3215_open (struct inode *inode, struct file *filp)
 	ioccw = (ccw_t *) (((((unsigned long) &align_ccw[0]) + 7) >>3) << 3);
 	rdccw = &ioccw[0];
 	wrccw = &ioccw[4];
+
+	/* Turn on interrupts */
+	if (ucb->unitstat != UNIT_READY) {
+		printk ("Device /dev/%s not ready\n", filp->f_dentry->d_iname);
+		filp->private_data = NULL;
+		return -ENODEV;
+	}
+
+	rc = request_irq(ucb->unitisc, ucb->unitirqh,
+	                 SA_INTERRUPT, ucb->unitname, (void *) ucb);
+
+	if (rc != 0) {
+		printk("Unable to request IRQ %d for device /dev/%s. rc: %d\n",
+		       ucb->unitisc, ucb->unitname, rc);
+		return rc;
+	}
 
 	return 0;
 }

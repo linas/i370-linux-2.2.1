@@ -189,9 +189,6 @@ __initfunc(void free_initmem(void))
 
 	printk ("freed initmem from %p to %p  (%lu pages total)\n",
 		__init_text_begin, __init_data_end, num_freed_pages);
-
-	/* XXX hack alert I don't think init_irq belongs here */
-	irq_init();
 }
 
 void si_meminfo(struct sysinfo *val)
@@ -254,7 +251,7 @@ void
 i370_flush_tlb_range(struct mm_struct *mm, unsigned long start, unsigned
 long end)
 {
-	printk ("i370_flush_tlb_range pgd=%x\n", mm->pgd);
+	printk ("i370_flush_tlb_range pgd=%p\n", mm->pgd);
 	_ptlb();
 }
 

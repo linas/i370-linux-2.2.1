@@ -191,6 +191,9 @@ static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
 			}
 		}
 #endif
+		/* Brute-force clear the flag. */
+		if ((PENDING == WRITE_PENDING) && (ucb->unitflg1 & PENDING))
+			ucb->unitflg1 &= ~WRITE_PENDING;
 	}
 }
 

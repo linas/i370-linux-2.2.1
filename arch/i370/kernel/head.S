@@ -215,13 +215,10 @@ _cinit:
 
 
 #define EXCEPTION_UNCHAIN(sav)	 					\
-	/* Chain the interrupt state pointer into thread_struct      */	\
+	/* Set struct task_struct * current->tss.regs = saved regs   */	\
 	L	r12,_psa_current(,0);	/* struct task * current     */	\
-	LA	r2,OFFSET_KSP(,r12);	/* Location of tsk->tss.ksp  */ \
-	ST	r13,0(r2);		/* current->tss.ksp = r13    */ \
-	LA	r12,OFFSET_KREGS(,r12);	/* current->tss.regs ptr     */ \
-	L	r2,SAVED_OLDREGS(,r13);	/* Old regs ptr on stack     */	\
-	ST	r2,0(,r12);		/* current->tss.regs = saved */
+	ST	r13,OFFSET_KSP(r12);	/* current->tss.ksp = r13    */ \
+	MVC	OFFSET_KREGS(4,r12),SAVED_OLDREGS(r13);
 
 
 #define EXCEPTION_RETURN(sav)  						\

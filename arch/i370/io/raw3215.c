@@ -163,11 +163,6 @@ static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
 	if (PENDING == WRITE_PENDING)
 		timeout = 4;
 
-	/* Whelp, this is still broken, and I can't figure out how to hac
-	 * around it. We can either _tsch like in con3270.c or just disable
-	 * more than one user using a console. I dunno. At any rate, busybox
-	 * is broken because of this feat of mis-engineering.
-	 */
 	if (ucb->unitflg1 & PENDING) {
 		current->state = TASK_INTERRUPTIBLE;
 		wait.task = current;
@@ -180,11 +175,19 @@ static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
 
 		remove_wait_queue(que, &wait);
 
+		/* Whelp, writing is still broken, and I can't figure out how
+		 * to hack around it. This attempts to _tsch until it unsticks.
+		 * The alternative is to just disable more than one user using
+		 * a console. Which is kind of the right thing, anyway. I dunno.
+		 * At any rate, busybox is broken because of this feat of
+		 *  mis-engineering.
+		 */
 // #define BRUTE_FORCE
 #ifdef BRUTE_FORCE
 		if ((PENDING == WRITE_PENDING) && (ucb->unitflg1 & PENDING)) {
+			int i;
 			irb_t irb;
-			while (1) {
+			for (i=0; i<20; i++) {
 				_tsch(ucb->unitsid, &irb);
 				if (irb.scsw.status & 0x1) break;
 				udelay (100);  /* spin 100 microseconds */

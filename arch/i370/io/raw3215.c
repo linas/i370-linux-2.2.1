@@ -162,6 +162,18 @@ static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
 		spin_lock_irqsave(NULL, *irqf);
 
 		remove_wait_queue(que, &wait);
+
+// #define BRUTE_FORCE
+#ifdef BRUTE_FORCE
+		if ((PENDING == WRITE_PENDING) && (ucb->unitflg1 & PENDING)) {
+			irb_t irb;
+			while (1) {
+				_tsch(ucb->unitsid, &irb);
+				if (irb.scsw.status & 0x1) break;
+				udelay (100);  /* spin 100 microseconds */
+			}
+		}
+#endif
 	}
 }
 

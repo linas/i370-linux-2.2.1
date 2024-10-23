@@ -17,7 +17,8 @@
 extern unsigned int csum_partial(const unsigned char * buff, int len,
 				 unsigned int sum);
 
-#define csum_partial_copy_fromuser csum_partial_copy
+extern unsigned int csum_partial_copy_from_user(const char *src,
+             char *dst, int len, unsigned int sum, int *errp);
 
 /*
  * the same as csum_partial, but copies from src while it

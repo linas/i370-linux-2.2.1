@@ -26,8 +26,7 @@
 #include <linux/console_struct.h>
 #include <linux/vt_kern.h>
 
-
-static unsigned long vid3270_uni_pagedir[2] = {0,0};
+/* static unsigned long vid3270_uni_pagedir[2] = {0,0}; */
 
 /* ================================================================ */
 
@@ -41,8 +40,6 @@ __initfunc(static const char *vid3270_startup(void))
 static void
 vid3270_init(struct vc_data *conp, int init)
 {
-	unsigned long p;
-
 	conp->vc_can_do_color = 0;
 	if (init) {
 		conp->vc_cols = 80;

@@ -111,6 +111,7 @@ int i370_raw3215_close (struct inode *inode, struct file *filp)
 {
 	printk ("raw3215_close of /dev/%s\n",
 	        filp->f_dentry->d_iname);
+	return 0;
 }
 
 /* ---------------------------------------------------------------- */
@@ -123,9 +124,8 @@ int i370_raw3215_close (struct inode *inode, struct file *filp)
    disabled.
  */
 static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
-                            struct wait_queue *que, long *irqf)
+                            struct wait_queue **que, long *irqf)
 {
-	unsigned long slags;
 	struct wait_queue wait;
 	unsigned long timeout = MAX_SCHEDULE_TIMEOUT;
 
@@ -144,14 +144,14 @@ static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
 	/* Timeouts are in jiffies, which happen at HZ. One jiffy should
 	 * be about 10 to 50 millisecs on current settings. */
 	if (PENDING == WRITE_PENDING)
-		timeout = 1;
+		timeout = 4;
 
 	/* Whelp, this is still broken, and I can't figure out how to hac
 	 * around it. We can either _tsch like in con3270.c or just disable
 	 * more than one user using a console. I dunno. At any rate, busybox
 	 * is broken because of this feat of mis-engineering.
 	 */
-	while (ucb->unitflg1 & PENDING) {
+	if (ucb->unitflg1 & PENDING) {
 		current->state = TASK_INTERRUPTIBLE;
 		wait.task = current;
 		add_wait_queue(que, &wait);
@@ -176,7 +176,7 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* ucb)
 	spin_lock_irqsave(NULL,flags);
 
 	/* Can't start a new write, until the previous one has finished. */
-	wait_for_status(ucb, WRITE_PENDING, &ucb->unitoutq, &flags);
+	wait_for_status(ucb, WRITE_PENDING, &(ucb->unitoutq), &flags);
 
 	/*
 	 *  Build the CCW for the 3215 Console I/O
@@ -206,7 +206,7 @@ static void do_write_one_line(char *ebcstr, size_t len, unitblk_t* ucb)
 	   before the write completes, the ebcstr buffer, which lives on
 	   stack, will disappear with the stack, and the write will
 		print whatever garbage is found on the stack. Ooops!  */
-	wait_for_status(ucb, WRITE_PENDING, &ucb->unitoutq, &flags);
+	wait_for_status(ucb, WRITE_PENDING, &(ucb->unitoutq), &flags);
 
 	spin_unlock_irqrestore(NULL,flags);
 }
@@ -216,7 +216,7 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
 {
 	long  rc;
 	int i;
-	char *p;
+	const char *p;
 	size_t nc, nleft;
 	unitblk_t* ucb = (unitblk_t*) filp->private_data;
 	char kstr[LINELEN];
@@ -262,7 +262,7 @@ ssize_t i370_raw3215_write (struct file *filp, const char *str,
  */
 static int do_read(unitblk_t* ucb, char* rdbuf)
 {
-	int flags;
+	long flags;
 	long rc;
 	orb_t orb;
 	irb_t *irb;
@@ -270,7 +270,7 @@ static int do_read(unitblk_t* ucb, char* rdbuf)
 	spin_lock_irqsave(NULL,flags);
 
 	/* Can't start a new read, until the previous one has finished. */
-	wait_for_status(ucb, READ_PENDING, &ucb->unitinq, &flags);
+	wait_for_status(ucb, READ_PENDING, &(ucb->unitinq), &flags);
 
 	ucb->unitflg1 &= ~READ_WANTED;
 	memset(rdbuf, 0, LINELEN);
@@ -301,7 +301,7 @@ static int do_read(unitblk_t* ucb, char* rdbuf)
 	DBGPRT("raw3215_read ssch=%d\n", rc);
 
 	/* Wait for the read-completed interrupt */
-	wait_for_status(ucb, READ_PENDING, &ucb->unitinq, &flags);
+	wait_for_status(ucb, READ_PENDING, &(ucb->unitinq), &flags);
 
 	spin_unlock_irqrestore(NULL,flags);
 

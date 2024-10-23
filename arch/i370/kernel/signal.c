@@ -122,7 +122,7 @@ setup_frame(struct pt_regs *regs, struct sigframe* frame,
 		goto badframe;
 	/* XXX also get_user of &sc->signal to somewhere on stack. */
 
-	printk("Setting up signal context frame. frame=%p sp=0xlx\n",
+	printk("Setting up signal context frame. frame=%p sp=0x%lx\n",
 	       frame, newsp);
 
 	/* XXX FIXME. Wild guess. I probably did this wrong. */
@@ -163,9 +163,9 @@ handle_signal(unsigned long sig, struct k_sigaction *ka,
 	 */
 
 	if (ka->sa.sa_flags & SA_SIGINFO)
-		setup_rt_frame(regs, (struct sigregs *) frame, newsp, info);
+		setup_rt_frame(regs, (struct sigframe *) frame, newsp, info);
 	else
-		setup_frame(regs, (struct sigregs *) frame, newsp);
+		setup_frame(regs, (struct sigframe *) frame, newsp);
 
 	if (ka->sa.sa_flags & SA_ONESHOT)
 		ka->sa.sa_handler = SIG_DFL;

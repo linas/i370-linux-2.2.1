@@ -52,7 +52,10 @@ extern unitblk_t *unt_con3215;
 /* Each ccw is 8 bytes (2 ints) and we want to chain two of them,
    and we want to use different ones for the read and the write.
    And we must align on a doubleword boundary. So 4+4+1=9. And,
-	well, we will pad with one more, for paranoia in the irb block. */
+	well, we will pad with one more, for paranoia in the irb block.
+
+   TODO: This needs to go into the unit block.
+ */
 static int align_ccw[17];
 ccw_t *rdccw;
 ccw_t *wrccw;
@@ -136,7 +139,7 @@ int i370_raw3215_close (struct inode *inode, struct file *filp)
 /* Can't do stuff, until the previous one has finished.
 	This is almost identical to interruptible_sleep_on()
 	except that it is meant to be used with interrupts disabled
-	so that the status falg doesn't get trashed by an I/O interrupt.
+	so that the status flag doesn't get trashed by an I/O interrupt.
 	Must enter with irq's disabled, and we return with them still
    disabled.
  */
@@ -145,23 +148,6 @@ static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
 {
 	struct wait_queue wait;
 	unsigned long timeout = MAX_SCHEDULE_TIMEOUT;
-
-	/* Sigh. Due to console hackology, we are allowing multiple
-	   processes to write to the console.(!) That means that wait
-	   queues don't cut it; different processes stomp on each-others
-	   status flags. We could fack it for writing by using a semaphore
-	   not a queue, but we also have readers sharing wand we don't
-	   know which task to route a read to. That's unfixable, except
-	   by forcing each new process to open it's own /dev/3215/rawNN
-	   and disallow sharing of console for I/O. But that's for some
-	   future date. (It doesn't help that con3270.c is doing _tsch
-	   and is resetting our channel status.) For now,  we'll brute
-	   for this, and just wait and cross our fingers.
-	   Two millisecs should be enough.  */
-	/* Timeouts are in jiffies, which happen at HZ. One jiffy should
-	 * be about 10 to 50 millisecs on current settings. */
-	if (PENDING == WRITE_PENDING)
-		timeout = 4;
 
 	if (ucb->unitflg1 & PENDING) {
 		current->state = TASK_INTERRUPTIBLE;
@@ -174,29 +160,6 @@ static void wait_for_status(unitblk_t* ucb, unsigned long PENDING,
 		spin_lock_irqsave(NULL, *irqf);
 
 		remove_wait_queue(que, &wait);
-
-		/* Whelp, writing is still broken, and I can't figure out how
-		 * to hack around it. This attempts to _tsch until it unsticks.
-		 * The alternative is to just disable more than one user using
-		 * a console. Which is kind of the right thing, anyway. I dunno.
-		 * At any rate, busybox is broken because of this feat of
-		 *  mis-engineering.
-		 */
-// #define BRUTE_FORCE
-#ifdef BRUTE_FORCE
-		if ((PENDING == WRITE_PENDING) && (ucb->unitflg1 & PENDING)) {
-			int i;
-			irb_t irb;
-			for (i=0; i<20; i++) {
-				_tsch(ucb->unitsid, &irb);
-				if (irb.scsw.status & 0x1) break;
-				udelay (100);  /* spin 100 microseconds */
-			}
-		}
-#endif
-		/* Brute-force clear the flag. */
-		if ((PENDING == WRITE_PENDING) && (ucb->unitflg1 & PENDING))
-			ucb->unitflg1 &= ~WRITE_PENDING;
 	}
 }
 

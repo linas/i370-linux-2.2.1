@@ -98,10 +98,20 @@ do_page_fault(struct pt_regs *regs, unsigned long address,
   /* Sanity check: cr1 should be set by fork, clone and switch_to */
   curr_cr1.raw = _stctl_r1();
   if (curr_cr1.raw != current->tss.cr1.raw ||
-      (curr_cr1.raw & MASK_TRXADDR) != mm->pgd) {
-     printk("BUG: do_page_fault unexpected cr1. Have: %lx  Want: %lx pgd=%lx\n",
-            curr_cr1.raw, current->tss.cr1.raw, mm->pgd);
+      (curr_cr1.raw & MASK_TRXADDR) != ((unsigned long) mm->pgd) ||
+      (void *) mm->pgd != (void *) current->tss.pg_tables) {
+     printk("BUG: unexpected cr1. Have: %lx  Want: %lx pgd=%p tables=%p\n",
+            curr_cr1.raw, current->tss.cr1.raw,
+            mm->pgd, current->tss.pg_tables);
+
+     current->tss.cr1.bits.psto = ((unsigned long) mm->pgd) >> 12;
+     current->tss.cr1.bits.pstl = 127;
      _lctl_r1(current->tss.cr1.raw);
+
+     /* Well, lets try to figure out whose fault this is. */
+     show_regs(current->tss.regs);
+     print_backtrace(_get_SP());
+     i370_halt();
   }
 
   address &= MASK_TRXADDR;

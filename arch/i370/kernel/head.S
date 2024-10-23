@@ -168,8 +168,8 @@ _cinit:
  *
  * If we don't STM r5,r10 here, then do it below, near the MVC.
  * Like this, except this blows up. Why ???
- *	MVC	SAVED_R11(40,r13),sav+IR_R11(0); /* 10 regs=40 bytes */
- *	STM	r5,r10,SAVED_R5(r13);	/* those we didn't touch */
+ *	MVC	SAVED_R11(40,r13),sav+IR_R11(0);  / * 10 regs=40 bytes * /
+ *	STM	r5,r10,SAVED_R5(r13);	/ * those we didn't touch * /
  */
 #define SAVE_REGS(sav) 							\
 	STM	r11,r4,sav+IR_R11(0);	/* save gprs to PSA scratch */	\
@@ -215,11 +215,13 @@ _cinit:
 
 
 #define EXCEPTION_UNCHAIN(sav)	 					\
-	/* chain the interrupt state pointer into thread_struct      */	\
-	L	r12,_psa_current(,0);	/* addr of current process   */	\
-	LA	r12,OFFSET_KREGS(,r12);	/* add offset to regs ptr    */ \
-	L	r2,SAVED_OLDREGS(,r13);	/* get old ptr from stack    */	\
-	ST	r2,0(,r12);		/* restore regs ptr in proc  */
+	/* Chain the interrupt state pointer into thread_struct      */	\
+	L	r12,_psa_current(,0);	/* struct task * current     */	\
+	LA	r2,OFFSET_KSP(,r12);	/* Location of tsk->tss.ksp  */ \
+	ST	r13,0(r2);		/* current->tss.ksp = r13    */ \
+	LA	r12,OFFSET_KREGS(,r12);	/* current->tss.regs ptr     */ \
+	L	r2,SAVED_OLDREGS(,r13);	/* Old regs ptr on stack     */	\
+	ST	r2,0(,r12);		/* current->tss.regs = saved */
 
 
 #define EXCEPTION_RETURN(sav)  						\
@@ -312,15 +314,11 @@ SupervisorCall:
 	.using	.,lr			/* Use r14 for remainder of the show */
 	STNSM	INTERRUPT_BASE-16(0),0xfc /* Disable interrupts.      */
 #if 0
-	/* Brutish version of below, but both are broken somehow.     */
+	/* Return from syscall. Handy for rescheduling, debugging.    */
 	LR	r5,r15			/* Cache for later.           */
 	L	r15,=A(ret_from_syscall)
 	BASR	lr,r15			/* Do bottom halves.          */
 	LR	r15,r5			/* Restore r15 from syscall.  */
-#else
-	L	r5,_psa_current(,0)	/* Get current task           */
-	LA	r6,OFFSET_KSP(,r5)	/* Get location of kernel sp  */
-	ST	r13,0(r6)		/* Update ksp                 */
 #endif
 	EXCEPTION_UNCHAIN (INTERRUPT_BASE) /* Unstack pointer chain.  */
 	/* Get old PSW, restore registers, return from interrupt.     */

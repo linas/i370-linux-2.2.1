@@ -230,7 +230,7 @@ static int pc_addressing(i370_interrupt_state_t *saved_regs,
 	printk ("\nUnexpected Addressing Exception trans=0x%lx\n", trans);
 	printk ("Probably due to a wild kernel pointer.\n");
 	show_regs (saved_regs);
-	print_backtrace (_get_SP());
+	print_backtrace (saved_regs->irregs.r13);
 	i370_halt();
 	return(1);
 }

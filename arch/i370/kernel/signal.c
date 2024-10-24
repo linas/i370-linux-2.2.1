@@ -44,13 +44,24 @@ int i370_sys_rt_sigsuspend (sigset_t *unewset, size_t sigsetsize,
 	return 1;
 }
 
-int i370_sys_sigreturn (struct pt_regs *regs)
+int i370_sys_sigreturn (i370_interrupt_state_t *istate)
 {
-	printk("i370_sys_sigreturn: not yet implemented\n");
-	show_regs (current->tss.regs);
-	print_backtrace (current->tss.regs->irregs.r13);
-	i370_halt();
-	return 1;
+	printk("i370_sys_sigreturn: regs=%p\n", istate);
+
+	if (verify_area(VERIFY_READ, istate, sizeof(i370_interrupt_state_t)))
+		goto badframe;
+	if (__copy_from_user(&current->tss.regs->irregs, &istate->irregs, sizeof(irregs_t)))
+		goto badframe;
+	if (__copy_from_user(&current->tss.regs->psw.addr,
+	                     &istate->psw.addr, sizeof(unsigned long)))
+		goto badframe;
+
+	/* Our work here is done */
+	return -EINTR;
+
+badframe:
+	lock_kernel();
+	do_exit(SIGSEGV);
 }
 
 int i370_sys_rt_sigreturn (void)
@@ -76,25 +87,35 @@ int i370_sys_sigaltstack (const stack_t *uss, stack_t *uoss)
  * layout is defined by struct sigframe below.
  */
 struct sigframe {
-	i370_elf_stack_t elf_abi_frame;
-	unsigned long args; /* only one, the signo. At 88(r11) */
-	unsigned char  tramp[8];
-
-	i370_interrupt_state_t istate;
+	i370_elf_stack_t frame;   /* Conventional stackframe.           */
+	unsigned long args[1];    /* Only one, the signo. At 88(r11).   */
+	unsigned char tramp[16];  /* How we return from signal.         */
+	i370_interrupt_state_t istate; /* Saved interrupt state         */
 	// struct sigcontext scc; /* todo */
 };
 
 /*
  * Set up the return.
- *    LA   r1,__NR_sigreturn(0,0)
- *    SVC  0
+ *    LA      r1,__NR_sigreturn(0,0)
+ *    BASR    r3,0
+ *    .using  .,r3
+ *    L       r5,=A(regs)
+ *    SVC     0
+ *    .ltorg
  */
 static void inline
-setup_trampoline(unsigned char *code)
+setup_trampoline(unsigned char *code, unsigned long istate)
 {
-	*((unsigned long *) code) = 0x41100000 + __NR_sigreturn; /* LA */
+	*((unsigned long *) code) = 0x41100000 + __NR_sigreturn; /* LA r1,syscall */
 	code += 4;
-	*((unsigned short *) code) = 0x0a00; /* SVC */
+	*((unsigned short *) code) = 0x0d30;     /* BASR r3,0 */
+	code += 2;
+	*((unsigned long *) code) = 0x58503006;  /* LR r5,=A(regs) */
+	code += 4;
+	*((unsigned short *) code) = 0x0a00;     /* SVC */
+	code += 2;
+	*((unsigned long *) code) = istate;      /* .ltorg */
+	code += 4;
 }
 
 /*
@@ -107,12 +128,14 @@ setup_frame(unsigned long signo, struct k_sigaction *ka, struct pt_regs *regs)
 	unsigned long uhand_addr;
 	unsigned long frbottom;
 	unsigned long frtop;
+	unsigned long istate;
 	struct sigframe sf, *sfp;
 
 	uhand_addr = (unsigned long) ka->sa.sa_handler;
 	uhand_addr |= 0x80000000;
 
-	printk("Setup signal frame. signr=%ld handler=%lx\n", signo, uhand_addr);
+	printk("i370_do_signal %s/%d signr=%ld handler=%lx\n",
+	       current->comm, current->pid, signo, uhand_addr);
 
 	/* First check if we can even do this. */
 	frbottom = regs->irregs.r11;
@@ -124,7 +147,7 @@ setup_frame(unsigned long signo, struct k_sigaction *ka, struct pt_regs *regs)
 	/* Now set it up. */
 	memset(&sf, 0, sizeof(struct sigframe));
 
-	/* Save our interrupt state; well need it later. */
+	/* Save entire interrupt state; we'll need most of this later. */
 	sf.istate = *regs;
 
 	/* Zap our irregs to avoid future confusion */
@@ -136,7 +159,7 @@ setup_frame(unsigned long signo, struct k_sigaction *ka, struct pt_regs *regs)
 	// regs->caller_sp = ???
 
 	/* Place the signr where user can find it. Should be 88(r11) */
-	sf.args = signo;
+	sf.args[0] = signo;
 
 	/* EXCEPTION_EPILOG will return to PSW */
 	regs->psw.addr = uhand_addr;
@@ -147,9 +170,12 @@ setup_frame(unsigned long signo, struct k_sigaction *ka, struct pt_regs *regs)
 
 	/* Set up the return from the users handler. User will
 	 * BASR r1,r14 so r14 better point at somethng good. */
-	setup_trampoline(&sf.tramp[0]);
 	regs->irregs.r14 = frbottom +
 		(unsigned long) &sf.tramp - (unsigned long) &sf;
+
+	istate = frbottom +
+		(unsigned long) &sf.istate - (unsigned long) &sf;
+	setup_trampoline(&sf.tramp[0], istate);
 
 	/* Copy the hot mess to the users stack. */
 	if (__copy_to_user(sfp, &sf, sizeof(struct sigframe)))
@@ -219,9 +245,6 @@ i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 
 	if (!oldset)
 		oldset = &current->blocked;
-
-	printk("i370_do_signal %s/%d oldset=%p\n",
-	       current->comm, current->pid, oldset);
 
 	while (1) {
 		unsigned long signr;

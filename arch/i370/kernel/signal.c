@@ -77,8 +77,10 @@ int i370_sys_sigaltstack (const stack_t *uss, stack_t *uoss)
  */
 struct sigframe {
 	i370_elf_stack_t elf_abi_frame;
-	i370_interrupt_state_t pstate; /* same as struct pt_regs */
+	unsigned long args; /* only one, the signo. At 88(r11) */
 	unsigned char  tramp[8];
+
+	i370_interrupt_state_t istate;
 	// struct sigcontext scc; /* todo */
 };
 
@@ -90,82 +92,106 @@ struct sigframe {
 static void inline
 setup_trampoline(unsigned char *code)
 {
-	put_user_data(0x41100000 + __NR_sigreturn, code    , 4); /* LA */
-	put_user_data(0x0a00,                      code + 4, 2); /* SVC */
+	*((unsigned long *) code) = 0x41100000 + __NR_sigreturn; /* LA */
+	code += 4;
+	*((unsigned short *) code) = 0x0a00; /* SVC */
 }
 
 /*
- * Set up a signal frame.
+ * Set up a signal frame on the user's stack.
+ * Return to the user's handler.
  */
-static void
-setup_frame(struct pt_regs *regs, struct sigframe* frame,
-            unsigned long newsp)
+static unsigned long
+setup_frame(unsigned long signo, struct k_sigaction *ka, struct pt_regs *regs)
 {
-	struct sigcontext_struct *sc = (struct sigcontext_struct *) newsp;
-	if (verify_area(VERIFY_WRITE, frame, sizeof(*frame)))
+	unsigned long uhand_addr;
+	unsigned long frbottom;
+	unsigned long frtop;
+	struct sigframe sf, *sfp;
+
+	uhand_addr = (unsigned long) ka->sa.sa_handler;
+	uhand_addr |= 0x80000000;
+
+	printk("Setup signal frame. signr=%ld handler=%lx\n", signo, uhand_addr);
+
+	/* First check if we can even do this. */
+	frbottom = regs->irregs.r11;
+	frtop = frbottom + sizeof(struct sigframe);
+	sfp = (struct sigframe *) frbottom;
+	if (verify_area(VERIFY_WRITE, sfp, sizeof(struct sigframe)))
 		goto badframe;
 
-	printk("Trying to setup signal context frame. Probably did it wrong\n");
+	/* Now set it up. */
+	memset(&sf, 0, sizeof(struct sigframe));
 
-	if (__copy_to_user(&frame->pstate, regs, sizeof(struct pt_regs)))
+	/* Save our interrupt state; well need it later. */
+	sf.istate = *regs;
+
+	/* Zap our irregs to avoid future confusion */
+	memset(&regs->irregs, 0, sizeof(irregs_t));
+
+	/* Increment the users stack pointer by the size of our frame. */
+	regs->irregs.r11 = frtop;
+
+	// regs->caller_sp = ???
+
+	/* Place the signr where user can find it. Should be 88(r11) */
+	sf.args = signo;
+
+	/* EXCEPTION_EPILOG will return to PSW */
+	regs->psw.addr = uhand_addr;
+
+	/* Pretend the handler was invoked as BASR 14,15 */
+	/* Except this won't work, because SVC EPILOG doesn't do it. */
+	regs->irregs.r15 = uhand_addr;
+
+	/* Set up the return from the users handler. User will
+	 * BASR r1,r14 so r14 better point at somethng good. */
+	setup_trampoline(&sf.tramp[0]);
+	regs->irregs.r14 = frbottom +
+		(unsigned long) &sf.tramp - (unsigned long) &sf;
+
+	/* Copy the hot mess to the users stack. */
+	if (__copy_to_user(sfp, &sf, sizeof(struct sigframe)))
 		goto badframe;
-	/* XXX TODO copy fpregs, too */
 
-	setup_trampoline(&frame->tramp[0]);
-
-	newsp += sizeof(struct sigframe);
-
-	/* XXX FIXME this is probably insane */
-	if (put_user(regs->irregs.r11, (unsigned long*) newsp))
-		goto badframe;
-	if (get_user(regs->irregs.r15, &sc->handler))
-		goto badframe;
-	/* XXX also get_user of &sc->signal to somewhere on stack. */
-
-	printk("Setting up signal context frame. frame=%p sp=0x%lx\n",
-	       frame, newsp);
-
-	/* XXX FIXME. Wild guess. I probably did this wrong. */
-	regs->irregs.r13 = newsp;
-	regs->irregs.r11 = (unsigned long) sc;
-	regs->irregs.r15 = (unsigned long) frame->tramp;
-
-	return;
+	return uhand_addr;
 
 badframe:
-	printk("badframe in setup_frame, regs=%p frame=%p newsp=%lx\n",
-	       regs, frame, newsp);
+	printk("badframe in setup_frame\n");
+	show_regs(regs);
 
 	lock_kernel();
 	do_exit(SIGSEGV);
 }
 
-static void
-setup_rt_frame(struct pt_regs *regs, struct sigframe* frame,
-               unsigned long newsp, siginfo_t *info)
+static unsigned long
+setup_rt_frame(unsigned long signo, struct k_sigaction *ka,
+               siginfo_t *info, struct pt_regs *regs)
 {
 	printk("setup_rt_frame: not yet implemented\n");
 	show_regs (current->tss.regs);
 	print_backtrace (current->tss.regs->irregs.r13);
 	i370_halt();
+	return 0;
 }
 
 /*
  * OK, we're invoking a handler
  */
-static void
+static unsigned long
 handle_signal(unsigned long sig, struct k_sigaction *ka,
-              siginfo_t *info, sigset_t *oldset, struct pt_regs * regs,
-              unsigned long newsp, unsigned long frame)
+              siginfo_t *info, sigset_t *oldset, struct pt_regs * regs)
 {
+	unsigned long rc;
 	/* XXX TODO if system call, and not ka->sa.sa_flags & SA_RESTART
 	 * then irregs->r15 = -EINTR;
 	 */
 
 	if (ka->sa.sa_flags & SA_SIGINFO)
-		setup_rt_frame(regs, (struct sigframe *) frame, newsp, info);
+		rc = setup_rt_frame(sig, ka, info, regs);
 	else
-		setup_frame(regs, (struct sigframe *) frame, newsp);
+		rc = setup_frame(sig, ka, regs);
 
 	if (ka->sa.sa_flags & SA_ONESHOT)
 		ka->sa.sa_handler = SIG_DFL;
@@ -176,6 +202,8 @@ handle_signal(unsigned long sig, struct k_sigaction *ka,
 		recalc_sigpending(current);
 		spin_unlock_irq(&current->sigmask_lock);
 	}
+
+	return rc;
 }
 
 /*
@@ -183,21 +211,17 @@ handle_signal(unsigned long sig, struct k_sigaction *ka,
  * want to handle. Thus you cannot kill init even with a SIGKILL even by
  * mistake.
  */
-int
+unsigned long
 i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 {
 	siginfo_t info;
 	struct k_sigaction *ka;
-	unsigned long frame, newsp;
 
 	if (!oldset)
 		oldset = &current->blocked;
 
-	frame = regs->irregs.r13;
-	newsp = regs->irregs.r11;
-
-	printk("i370_do_signal %s/%d oldset=%p sp=%lx fr=%lx\n",
-	       current->comm, current->pid, oldset, newsp, frame);
+	printk("i370_do_signal %s/%d oldset=%p\n",
+	       current->comm, current->pid, oldset);
 
 	while (1) {
 		unsigned long signr;
@@ -246,8 +270,7 @@ i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 			if (signr != SIGCHLD)
 				continue;
 			/* Check for SIGCHLD: it's special.  */
-			while (sys_wait4(-1, NULL, WNOHANG, NULL) > 0)
-				/* nothing */;
+			while (sys_wait4(-1, NULL, WNOHANG, NULL) > 0) {}
 			continue;
 		}
 		if (ka->sa.sa_handler == SIG_DFL) {
@@ -302,8 +325,7 @@ i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 #endif
 
 		/* Whee!  Actually deliver the signal.  */
-		handle_signal(signr, ka, &info, oldset, regs, newsp, frame);
-		return 1;
+		return handle_signal(signr, ka, &info, oldset, regs);
 	}
 
 	/* TODO check for ERESTARTNOHAND ERESTARTSYS ERESTARTNOINTR

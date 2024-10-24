@@ -308,15 +308,17 @@ SupervisorCall:
 	STM	r5,r10,ARGP(r11)	/* Args on stack.             */
 	LA	r1,ARGP(,r13)		/* Pointer to returned value. */
 	BASR	lr,r15			/* Jump to C routine.         */
-	.using	.,lr			/* Use r14 for remainder of the show */
+	.using	.,lr			/* Establish PC addressing    */
 	STNSM	INTERRUPT_BASE-16(0),0xfc /* Disable interrupts.      */
-#if 0
-	/* Return from syscall. Handy for rescheduling, debugging.    */
+
 	LR	r5,r15			/* Cache for later.           */
-	L	r15,=A(ret_from_syscall)
+	L	r15,=A(ret_from_syscall)/* Reschedule; signals        */
 	BASR	lr,r15			/* Do bottom halves.          */
+	.using	.,lr			/* Establish PC addressing    */
+	LTR	r15,r15                 /* Pending signals?           */
+	BNZ	5f                      /* Yes. Return to sighandler. */
 	LR	r15,r5			/* Restore r15 from syscall.  */
-#endif
+5:
 	EXCEPTION_UNCHAIN (INTERRUPT_BASE) /* Unstack pointer chain.  */
 	/* Get old PSW, restore registers, return from interrupt.     */
 	/* r15 is not restored, but is returned 'as-is' from syscall. */

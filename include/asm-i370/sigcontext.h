@@ -12,6 +12,6 @@ struct sigcontext_struct {
 	struct pt_regs 	*regs;
 };
 
-int i370_do_signal(sigset_t *oldset, struct pt_regs *regs);
+unsigned long i370_do_signal(sigset_t *oldset, struct pt_regs *regs);
 
 #endif

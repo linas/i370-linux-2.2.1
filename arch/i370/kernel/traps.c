@@ -473,7 +473,6 @@ reschedule (void)
 			/* If we are here, we were just scheduled.
 			 * So deliver any pending signals before returning. */
 			if (current->sigpending) {
-				i370_do_signal (NULL, current->tss.regs);
 				do_it_again = 0;
 				continue;
 			}
@@ -508,9 +507,13 @@ StackOverflow(struct pt_regs *regs)
 }
 
 /* Reschedule. */
-void ret_from_syscall (void)
+int ret_from_syscall (void)
 {
 	reschedule();
+	if (current->sigpending)
+		return i370_do_signal (NULL, current->tss.regs);
+
+	return 0;
 }
 
 /* ================================================================ */

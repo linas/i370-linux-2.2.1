@@ -1,6 +1,15 @@
+/*
+   Signal handling.
+   Delivery of basic signals works. Anythig fancier dosn't.
 
-/* Signal handling. Stubbed in. Details are probably wrong. */
-
+   TODO:
+   -- Honor the SA_RESTART flag of sigaction()
+   -- Do assorted sigcontext stuff
+   -- Implement sigsuspend
+   -- Implement sigaction
+   -- Implement sigalstack
+   -- Implement _rt_ variants
+ */
 #include <linux/kernel.h>
 #include <linux/sched.h>
 #include <linux/smp_lock.h>
@@ -102,6 +111,10 @@ struct sigframe {
  *    L       r5,=A(regs)
  *    SVC     0
  *    .ltorg
+ *
+ * This requires an "executable stack", which is conventionally
+ * forbidden, for security reasons. But until there's a better plan,
+ * this will have to do.
  */
 static void inline
 setup_trampoline(unsigned char *code, unsigned long istate)
@@ -181,12 +194,16 @@ setup_frame(unsigned long signo, struct k_sigaction *ka, struct pt_regs *regs)
 	if (__copy_to_user(sfp, &sf, sizeof(struct sigframe)))
 		goto badframe;
 
+	/* The very first thing the user's signal handler will do is
+	 * .using .,r15  and so we have to provide a valid r15.
+	 * If it were any other reg, then setting regs->irregs.rNN
+	 * would have worked. But the SVC EPILOG returns r15 directly.
+	 * So we work with that. Or we could change head.S to fish it
+	 * out of regs->irregs.r15. Either way works. Both are turbid.
+	 */
 	return uhand_addr;
 
 badframe:
-	printk("badframe in setup_frame\n");
-	show_regs(regs);
-
 	lock_kernel();
 	do_exit(SIGSEGV);
 }
@@ -203,7 +220,7 @@ setup_rt_frame(unsigned long signo, struct k_sigaction *ka,
 }
 
 /*
- * OK, we're invoking a handler
+ * OK, we're invoking a handler.
  */
 static unsigned long
 handle_signal(unsigned long sig, struct k_sigaction *ka,
@@ -342,6 +359,7 @@ i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 #if 0
 		/* Something something. If ERESTARTNOHAND ERESTARTSYS
 		 * ERESTARTNOINTR change it to EINTR and do it again.
+		 * back up to last insn which should be SVC and restart.
 		 * See arch/alpha/kernel/signal.c for example. */
 		if (regs->r15)
 			syscall_restart(regs, ka);
@@ -350,11 +368,6 @@ i370_do_signal(sigset_t *oldset, struct pt_regs *regs)
 		/* Whee!  Actually deliver the signal.  */
 		return handle_signal(signr, ka, &info, oldset, regs);
 	}
-
-	/* TODO check for ERESTARTNOHAND ERESTARTSYS ERESTARTNOINTR
-	 * back up to last insn which should be SVC and restart.
-	 * See arch/alpha/kernel/signal.c for example.
-	 */
 
 	return 0;      /* no signals delivered */
 }

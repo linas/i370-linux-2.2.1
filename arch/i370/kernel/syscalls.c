@@ -53,12 +53,16 @@ asmlinkage int i370_sys_execve(unsigned long fname, unsigned long argv,
 		return error;
 
 	/* We perform a special strange hack for pid 1. It comes up "init",
-	   instead of what was given on the cmd_line. Bug somewhere, I guess.  */
+	   instead of what was given on the cmd_line. Bug somewhere, I guess.
+	   Oh, hah. I think I know. This happens when perms on the init
+	   file are 0000 instead of 0755 or at least 0500. So this is a
+	   work-around hack for bringup.
+	 */
 	if (1 == current->pid)
 		((char **) argv)[0] = filename;
 
 	regs = current->tss.regs;
-	error = do_execve(filename, (char **) argv, (char **) envp, regs);
+	error = do_execve(fname, (char **) argv, (char **) envp, regs);
 	putname(filename);
 	unlock_kernel();
 	return error;

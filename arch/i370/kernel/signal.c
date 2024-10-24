@@ -93,14 +93,16 @@ int i370_sys_sigaltstack (const stack_t *uss, stack_t *uoss)
 
 /*
  * Signals are delivered on stack. For ease of use, the stack
- * layout is defined by struct sigframe below.
+ * layout is defined by struct sigframe below. Note that the
+ * callee frame must be at the end, and the args immediately
+ * beyond that. This is how ELF/MVS calling works.
  */
 struct sigframe {
-	i370_elf_stack_t frame;   /* Conventional stackframe.           */
-	unsigned long args[1];    /* Only one, the signo. At 88(r11).   */
-	unsigned char tramp[16];  /* How we return from signal.         */
 	i370_interrupt_state_t istate; /* Saved interrupt state         */
+	unsigned char tramp[16];  /* How we return from signal.         */
 	// struct sigcontext scc; /* todo */
+	i370_elf_stack_t callee;  /* Signal handler's stackframe.       */
+	unsigned long args[1];    /* Only one, the signo. At 88(r11).   */
 };
 
 /*
@@ -152,7 +154,9 @@ setup_frame(unsigned long signo, struct k_sigaction *ka, struct pt_regs *regs)
 
 	/* First check if we can even do this. */
 	frbottom = regs->irregs.r11;
-	frtop = frbottom + sizeof(struct sigframe);
+	frtop = (unsigned long) &sf.callee;
+	frtop -= (unsigned long) &sf;
+	frtop += frbottom;
 	sfp = (struct sigframe *) frbottom;
 	if (verify_area(VERIFY_WRITE, sfp, sizeof(struct sigframe)))
 		goto badframe;

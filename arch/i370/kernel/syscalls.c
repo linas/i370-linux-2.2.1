@@ -36,10 +36,8 @@
 #include <asm/current.h>
 #include <asm/uaccess.h>
 
-void
-check_bugs(void)
-{
-}
+/* Called by init/main.c */
+void check_bugs(void) {}
 
 asmlinkage int i370_sys_execve(unsigned long fname, unsigned long argv,
                                unsigned long envp)
@@ -48,25 +46,21 @@ asmlinkage int i370_sys_execve(unsigned long fname, unsigned long argv,
 	char * filename;
 	struct pt_regs *regs;
 
-	printk("i370_sys_execve: name = %s\n", (char *) fname);
 	lock_kernel();
-	regs = current->tss.regs;
-	// regs->caller_sp = 0;
-	// regs->oldregs = 0;  // ???
 	filename = getname((char *) fname);
 	error = PTR_ERR(filename);
-	if (IS_ERR(filename)) {
-		printk("EXECVE Error: name = %s\n", (char *) fname);
-	} else {
-		/* Strange hack for pid 1, it comes up "init" instead of what
-		   was given on the cmd_line. Bug somewhere I guess.  */
-		if (1 == current->pid)
-			((char **) argv)[0] = filename;
-		error = do_execve(filename, (char **) argv, (char **) envp, regs);
-		putname(filename);
-	}
+	if (IS_ERR(filename))
+		return error;
+
+	/* We perform a special strange hack for pid 1. It comes up "init",
+	   instead of what was given on the cmd_line. Bug somewhere, I guess.  */
+	if (1 == current->pid)
+		((char **) argv)[0] = filename;
+
+	regs = current->tss.regs;
+	error = do_execve(filename, (char **) argv, (char **) envp, regs);
+	putname(filename);
 	unlock_kernel();
-	printk("i370_sys_execve: return err=%d\n", error);
 	return error;
 }
 

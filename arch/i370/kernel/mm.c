@@ -423,7 +423,8 @@ int
 __copy_from_user (void * to, const void * from, unsigned long len)
 {
 	/* kernel page tables require no translation */
-	if (current->mm->pgd == swapper_pg_dir) {
+	/* Also we will trust the screwball KERNEL_DS stuff to be correct. */
+	if (__kernel_ok || current->mm->pgd == swapper_pg_dir) {
 		memcpy (to,from,len);
 		return 0;
 	} else {

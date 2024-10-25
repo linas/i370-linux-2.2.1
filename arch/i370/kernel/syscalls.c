@@ -62,7 +62,7 @@ asmlinkage int i370_sys_execve(unsigned long fname, unsigned long argv,
 		((char **) argv)[0] = filename;
 
 	regs = current->tss.regs;
-	error = do_execve(fname, (char **) argv, (char **) envp, regs);
+	error = do_execve(filename, (char **) argv, (char **) envp, regs);
 	putname(filename);
 	unlock_kernel();
 	return error;

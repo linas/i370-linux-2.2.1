@@ -28,6 +28,9 @@ extern char __init_data_begin[], __init_data_end[];
 extern char _text[], _etext[];
 extern unsigned char *CPUID;
 
+/* Kernel page tables require no translation. */
+/* Also we will trust the screwball KERNEL_DS stuff to be correct. */
+#define IN_KERNEL_COPY (__kernel_ok || current->mm->pgd == swapper_pg_dir)
 
 /* mem_init() will put the kernel text pages into a different
  * storage key than the data pages, effectively rendering them read-only.
@@ -367,17 +370,18 @@ __initfunc(unsigned long paging_init(unsigned long start_mem,
 
 /* ========================================================== */
 /* copy in/out routines of various sorts */
-/* XXX probably would get a performance boost by
+/* XXX FIXME probably would get a performance boost by
  * using the 'LRA' instruction. (assuming cr1 is valid).
  */
-/* XXX all wrong for page boundary crossings .... */
+/* XXX FIXME: might be wrong for page boundary crossings ???
+   I dunno, looks reasonable to me .... remove this comment? */
 
 
 int
 __copy_to_user (void * to, const void * from, unsigned long len)
 {
 	/* kernel page tables require no translation */
-	if (current->mm->pgd == swapper_pg_dir) {
+	if (IN_KERNEL_COPY) {
 		memcpy (to,from,len);
 		return 0;
 	} else {
@@ -423,8 +427,7 @@ int
 __copy_from_user (void * to, const void * from, unsigned long len)
 {
 	/* kernel page tables require no translation */
-	/* Also we will trust the screwball KERNEL_DS stuff to be correct. */
-	if (__kernel_ok || current->mm->pgd == swapper_pg_dir) {
+	if (IN_KERNEL_COPY) {
 		memcpy (to,from,len);
 		return 0;
 	} else {
@@ -469,7 +472,7 @@ __copy_from_user (void * to, const void * from, unsigned long len)
 int __strncpy_from_user(char *dst, const char *src, long count)
 {
 	/* kernel page tables require no translation */
-	if (current->mm->pgd == swapper_pg_dir) {
+	if (IN_KERNEL_COPY) {
 		long  lcl_count;
 		lcl_count = strlen(src);
 		if (count < lcl_count) lcl_count = count;
@@ -539,6 +542,8 @@ __clear_user(void *addr, unsigned long len)
 
 	/* if we are using the kernel page tables,
 	 * there is no translation to be done */
+	/* I think this is never taken. put_user_data *always* goes out. */
+	/* Thus, do NOT check __kernel_ds like the others. */
 	if (current->mm->pgd == swapper_pg_dir) {
 		memset (addr, 0, len);
 		return len;
@@ -584,6 +589,8 @@ strlen_user(const char *str)
 
 	/* if we are using the kernel page tables,
 	 * there is no translation to be done */
+	/* I think this is never taken. put_user_data *always* goes out. */
+	/* Thus, do NOT check __kernel_ds like the others. */
 	if (current->mm->pgd == swapper_pg_dir) {
 		return (strlen(str) + 1);
 	}
@@ -629,6 +636,8 @@ put_user_data(long data, void *addr, long len)
 	unsigned long va, ra, off;
 
 	/* kernel page tables require no translation */
+	/* I think this is never taken. put_user_data *always* goes out. */
+	/* Thus, do NOT check __kernel_ds like the others. */
 	if (current->mm->pgd == swapper_pg_dir) {
 		if (1 == len) {
 			*((char *) addr) = (char) data;

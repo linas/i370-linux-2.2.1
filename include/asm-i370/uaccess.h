@@ -18,6 +18,11 @@
  * get_fs() == KERNEL_DS, checking is bypassed.
  *
  * For historical reasons, these macros are grossly misnamed.
+ *
+ * In practice, this is just a flag to indicate if the process is
+ * a user process, or a kernel process, with some occasional monkey
+ * business here and there to trick the copy_to/from functions to
+ * do what is wanted by the caller. Alas. Stinks of big hack to me.
  */
 
 #define KERNEL_DS	((mm_segment_t) { 0 })
@@ -26,9 +31,10 @@
 #define get_ds()	(KERNEL_DS)
 #define get_fs()	(current->tss.fs)
 #define set_fs(val)	(current->tss.fs = (val))
-
 #define segment_eq(a,b)	((a).seg == (b).seg)
+#define __kernel_ok               segment_eq(get_fs(), KERNEL_DS)
 
+/* --------------------------------------------------- */
 /* Basically, access is considered OK & area verified if all addresses
  * are under the 2 gig boundary.  The finer details of copy_to_user,
  * etc. will catch any problems on a smaller scale.
@@ -36,7 +42,6 @@
 #define __low_2gb(addr,size) ( (!((size) & 0x80000000)) && \
                                (!((((unsigned long)addr)+size) & 0x80000000)))
 
-#define __kernel_ok               segment_eq(get_fs(), KERNEL_DS)
 #define __user_ok(addr,size)      __low_2gb(addr,size)
 #define __access_ok(addr,size)    __low_2gb((addr),(size))
 #define access_ok(type,addr,size) __access_ok((unsigned long)(addr),(size))

@@ -501,9 +501,13 @@ int copy_user_stack(struct task_struct * tsk)
 	if (!page)
 		return -ENOMEM;
 
-	set_fs(USER_DS);
+	if (!segment_eq(USER_DS, get_fs())) {
+		printk("Unexpected memmap state for copy_thread\n");
+		show_regs(tsk->tss.regs);
+		print_backtrace(_get_SP());
+		i370_halt();
+	}
 	rc = do_copy_user_stack(tsk, page);
-	set_fs(KERNEL_DS);
 	current->mm = save;
 	free_page((unsigned long)page);
 	return rc;

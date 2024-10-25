@@ -477,7 +477,7 @@ sys_call_table:
 	.long sys_chmod		/* 15 */
 	.long sys_lchown
 	.long sys_ni_syscall			/* old break syscall holder */
-	.long sys_stat
+	.long sys_newstat
 	.long sys_lseek
 	.long sys_getpid	/* 20 */
 	.long sys_mount
@@ -487,7 +487,7 @@ sys_call_table:
 	.long sys_stime		/* 25 */
 	.long i370_sys_ptrace
 	.long sys_alarm
-	.long sys_fstat
+	.long sys_fstat				/* old fstat call */
 	.long i370_sys_pause
 	.long sys_utime		/* 30 */
 	.long sys_ni_syscall			/* old stty syscall holder */
@@ -543,13 +543,13 @@ sys_call_table:
 	.long sys_setgroups
 	.long sys_select
 	.long sys_symlink
-	.long sys_lstat
+	.long sys_newlstat
 	.long sys_readlink	/* 85 */
 	.long sys_uselib
 	.long sys_swapon
 	.long sys_reboot
 	.long old_readdir
-	.long i370_sys_mmap		/* 90 */
+	.long i370_sys_mmap	/* 90 */
 	.long sys_munmap
 	.long sys_truncate
 	.long sys_ftruncate
@@ -568,8 +568,8 @@ sys_call_table:
 	.long sys_newstat
 	.long sys_newlstat
 	.long sys_newfstat
-	.long i370_sys_uname
-	.long i370_sys_iopl		/* 110 */
+	.long i370_sys_uname			/* old uname */
+	.long i370_sys_iopl	/* 110 */
 	.long sys_vhangup
 	.long i370_sys_idle
 	.long i370_sys_vm86
@@ -579,7 +579,7 @@ sys_call_table:
 	.long i370_sys_ipc
 	.long sys_fsync
 	.long i370_sys_sigreturn
-	.long i370_sys_clone		/* 120 */
+	.long i370_sys_clone	/* 120 */
 	.long sys_setdomainname
 	.long sys_newuname
 	.long i370_sys_modify_ldt
@@ -589,7 +589,7 @@ sys_call_table:
 	.long sys_create_module
 	.long sys_init_module
 	.long sys_delete_module
-	.long sys_get_kernel_syms	/* 130 */
+	.long sys_get_kernel_syms /* 130 */
 	.long sys_quotactl
 	.long sys_getpgid
 	.long sys_fchdir

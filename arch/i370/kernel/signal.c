@@ -3,9 +3,10 @@
    Delivery of basic signals works. Anythig fancier dosn't.
 
    TODO:
+   -- Implement sigsuspend. Just copy from arch/alpha/kernel/signal.c
+   -- Loop in sigreturn, and deliver more signals if there are any.
    -- Honor the SA_RESTART flag of sigaction()
    -- Do assorted sigcontext stuff
-   -- Implement sigsuspend
    -- Implement sigaction
    -- Implement sigalstack
    -- Implement _rt_ variants
@@ -53,6 +54,9 @@ int i370_sys_rt_sigsuspend (sigset_t *unewset, size_t sigsetsize,
 	return 1;
 }
 
+/* XXX TODO: there might be more signals to deliver, so we should
+ * loop and send them, till the queue is gone.
+ */
 int i370_sys_sigreturn (i370_interrupt_state_t *istate)
 {
 	printk("i370_sys_sigreturn: regs=%p\n", istate);

@@ -234,16 +234,15 @@ bad_area:
           i370_halt();
        }
 
+#ifdef DEBUG
        printk("do_page_fault: send SEGV to %s/%d: bad access 0x%lx pic=%x\n",
                current->comm, current->pid, address, pic_code);
        show_regs(regs);
        print_backtrace (regs->irregs.r13);
+#endif
 
-       info.si_signo = SIGSEGV;
-       info.si_code  = SEGV_MAPERR;
-       info.si_addr  = (void *) address;
-       force_sig_info(SIGSEGV, &info, current);
-       return 1;
+       /* Goodbye, cruel world! */
+       do_exit(SIGSEGV);
   }
 
 no_context:

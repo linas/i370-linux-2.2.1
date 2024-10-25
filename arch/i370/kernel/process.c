@@ -244,7 +244,7 @@ i370_start_thread(struct pt_regs *regs, unsigned long nip, unsigned long sp)
 {
 	cr0_t cr0;
 
-	printk ("i370_start_thread(): setup for user-space thread\n");
+	/* printk ("i370_start_thread(): setup for user-space thread\n"); */
 	set_fs(USER_DS);
 
 	/* The i370 ELF ABI stack grows up. Thus, the first frame is at

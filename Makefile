@@ -20,7 +20,7 @@ HOSTCC  	=gcc
 HOSTCFLAGS	=-Wall -Wstrict-prototypes -O2
 
 CROSS_COMPILE 	= i370-ibm-linux-
-# CROSS_COMPILE 	= i370-ibm-elf-
+INSTALL_HEADERS_PATH = /usr/local/i370-linux-uclibc/usr/include
 
 INSTALL = /usr/bin/install
 
@@ -359,10 +359,10 @@ modules modules_install: dummy
 endif
 
 headers_install: dummy
-	$(INSTALL) -d /usr/local/i370-linux/include/asm
-	$(INSTALL) -d /usr/local/i370-linux/include/linux
-	$(INSTALL) include/asm/*.h -D /usr/local/i370-linux/include/asm
-	$(INSTALL) include/linux/*.h -D /usr/local/i370-linux/include/linux
+	$(INSTALL) -d $(INSTALL_HEADERS_PATH)/asm
+	$(INSTALL) -d $(INSTALL_HEADERS_PATH)/linux
+	$(INSTALL) include/asm/*.h -D $(INSTALL_HEADERS_PATH)/asm
+	$(INSTALL) include/linux/*.h -D $(INSTALL_HEADERS_PATH)/linux
 
 clean:	archclean
 	rm -f kernel/ksyms.lst include/linux/compile.h

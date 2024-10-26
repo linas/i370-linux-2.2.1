@@ -100,7 +100,7 @@ static pc_handler pc_table[] = {
 	{PIC_PROTECTION,       do_page_fault},
 	{PIC_ADDRESSING,       pc_addressing},
 	{PIC_SPECIFICATION,    pc_operation},
-	{PIC_DATA,             pc_unsupported},
+	{PIC_DATA,             pc_math},
 	{PIC_FIXED_OVERFLOW,   pc_math}, /* 0x8 */
 	{PIC_FIXED_DIVIDE,     pc_math},
 	{PIC_DECIMAL_OVERFLOW, pc_math},

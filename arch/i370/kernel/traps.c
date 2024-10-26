@@ -240,21 +240,17 @@ static int pc_addressing(i370_interrupt_state_t *saved_regs,
  * is invalid, if a double-word operand uses an odd register, if a
  * float poing insn uses registers incorrectly.
  *
- * Fatal if in the kernel, should be converted to SIGBUS or something
- * for userland. (User tries to exeute something that isn't code.)
+ * Fatal if in the kernel, convert to SIGILL for userland.
+ * (User probably tried to exeute something that isn't code.
+ * User can catch this and try again, I suppose.)
  */
 static int pc_operation(i370_interrupt_state_t *saved_regs,
                         unsigned long  trans,
                         unsigned short code)
 {
 	if (user_mode(current->tss.regs)) {
-		printk ("User-space Operation exception code=%x trans=0x%lx\n",
-		         code, trans);
-		printk("TODO: implement me by sending a signal to the user.\n");
-		show_regs (saved_regs);
-		print_backtrace (saved_regs->irregs.r13);
-		i370_halt();
-		return(1);
+		send_sig(SIGILL, current, 0);
+		return 1;
 	}
 
 	/* Fatal in the kernel! */
@@ -278,8 +274,13 @@ static int pc_math(i370_interrupt_state_t *saved_regs,
                    unsigned long  trans,
                    unsigned short code)
 {
+	if (user_mode(current->tss.regs)) {
+		send_sig(SIGFPE, current, 0);
+		return 1;
+	}
+
 	printk ("Math (floating point) exception trans=0x%lx\n", trans);
-	printk("Not implemented\n");
+	printk ("Not supposed to get these.\n");
 	show_regs (saved_regs);
 	print_backtrace (saved_regs->irregs.r13);
 	i370_halt();

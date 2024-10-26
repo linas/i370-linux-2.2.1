@@ -122,6 +122,8 @@ static struct dentry * proc_follow_link(struct dentry *dentry,
 				result = file->f_dentry;
 				goto out_dget;
 			}
+			else
+				goto out_unlock;
 	}
 out_dget:
 	result = dget(result);

@@ -195,7 +195,10 @@ __initfunc(void free_initmem(void))
 }
 
 void si_meminfo(struct sysinfo *val)
-{ }
+{
+	memset(val, 0, sizeof(*val));
+	printk ("meminfo not implemented\n");
+}
 
 void show_mem(void)
 { printk (" show mem not implemented\n"); }

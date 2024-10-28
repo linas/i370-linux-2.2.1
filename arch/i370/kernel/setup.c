@@ -210,6 +210,10 @@ __initfunc(void i370_initrd(char *str, int *ints))
 
 	initrd_start = ints[1];
 	initrd_end = initrd_start + 1024 * ints[2];
+
+	/* Allow large ramdisks. We need 256MB to do reasonable  stuff. */
+	extern int rd_size;  /* from drivers/block/rd.c */
+	rd_size = 262144;
 }
 
 void

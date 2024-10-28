@@ -1,7 +1,6 @@
 
 /*
- * XXX under construction ... what's in this file works for now,
- * but some of what's in this file is very wrong ...
+ *  Much of the stuff in here works fine. Some might be badly broken.
  */
 
 #include <linux/blk.h>

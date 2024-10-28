@@ -439,7 +439,7 @@ __initfunc(static void rd_load_image(kdev_t device,int offset))
 	int nblocks, i;
 	char *buf;
 	unsigned short rotate = 0;
-	unsigned short devblocks = 0;
+	unsigned int devblocks = 0;
 	char rotator[4] = { '|' , '/' , '-' , '\\' };
 
 	ram_device = MKDEV(MAJOR_NR, 0);

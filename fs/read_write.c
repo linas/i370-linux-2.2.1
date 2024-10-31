@@ -96,7 +96,12 @@ asmlinkage int sys_llseek(unsigned int fd, unsigned long offset_high,
 	if (origin > 2)
 		goto out_putf;
 
-	offset = llseek(file, ((loff_t) offset_high << 32) | offset_low,
+	/* i370: Caution building the 64-bit signed offset.
+	 * Cast high bits to signed first, then cast to 64-bit.
+	 * Otherwise the compiler just zero-extended. Which is
+	 * not what is wanted for negative offsets.
+	 */
+	offset = llseek(file, (((loff_t) (long) offset_high) << 32) | offset_low,
 			origin);
 
 	retval = (int)offset;

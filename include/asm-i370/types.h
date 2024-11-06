@@ -3,7 +3,9 @@
 
 /* Avoid namespace pollution for C libraries */
 #ifndef __KERNEL__
+#ifndef __KERNEL_STRICT_NAMES
 #define __KERNEL_STRICT_NAMES 1
+#endif
 #endif
 
 /*

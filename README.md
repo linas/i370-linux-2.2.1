@@ -74,8 +74,8 @@ important:
   implement a network driver, so that one can telnet/ssh in (and get
   a pty that way.) These two choices are discussed below.
 
-#### Network driver:
-* The the way to get networking on Hercules is to implement the CTCA
+#### Network driver
+* The way to get networking on Hercules is to implement the CTCA
   (Device 3088) Channel To Channel Adapter. Hercules can then route
   data on this channel to an actual tcp/ip network, via the tun/tap
   device. See the Hercules documentation.
@@ -86,18 +86,18 @@ important:
 * With a network driver, the root filesystem issue is solved: the root
   file system can live on an NBD network block device.
 
-#### 3217 and 3270 TODO:
+#### 3217 and 3270
 * 3215 handling seems to work fine.
 * Boot console to 3270 not implemented, see `io/con3270.c`
 * Generic 3270 support for non-console use needs to be implemented,
   similar to what's in `arch/i370/io/raw3215.c`.
 * Paul Edwards has a modified copy of Hercules that supports a
-  character-mode version of the 3215. If a correspoding character-mode
+  character-mode version of the 3215. If a corresponding character-mode
   tty driver was written for this kernel, then a normal unix-style
-  pty command line would be available for this kernel.  This would
-  simplify further boostrapping efforts.
+  console and pty command line would be available for this kernel.
+  This would simplify further bootstrapping efforts.
 
-#### Devices TODO, see directory `arch/i370/io`:
+#### Devices TODO, see directory `arch/i370/io`
 * All devices are stubs and not implemented. This includes
   CKD, ECKD, CTCA, FBA, TAPE.
 * Out of these, a usable storage device that could be formatted
@@ -107,13 +107,13 @@ important:
 * Adding filesystem drivers for traditional MVS filesystems would be ...
   weird and interesting.
 
-#### Signals TODO, see `arch/i370/kernel/signal.c`:
+#### Signals TODO, see `arch/i370/kernel/signal.c`
 * Basic signal handling works; signals are delivered on the user stack.
   (this requires an executable stack).
 * Advanced signal features (off-stack delivery, etc.) are not implemented.
 * Handling of `-EINTR` for restartable system calls not handled.
 
-#### SMP:
+#### SMP
 * This kernel runs only in uniprocessor mode. SMP support is absent.
   Adding it should be easy. Debugging it should be fun.
 

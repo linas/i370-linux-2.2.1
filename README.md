@@ -33,7 +33,7 @@ excitement evaporated, replaced by anger at being snubbed and disinvited.
 
 Due to popular demand (pressure from Paul Edwards), the original CVS
 sources are being published here, together with some cleanup to see if
-they still work. They should work, right?
+they still work. They should work, right? Yes, they do.
 
 ### Quickstart
 You will need both binutils and gcc, compiled for the i370 target.
@@ -42,10 +42,8 @@ git clone https://github.com/linas/i370-binutils
 git clone https://github.com/linas/i370-gcc
 ```
 Follow the instructions there, concluding with `make install`. This will
-create the `i370-ibm-elf-gcc` binary in `/usr/local/bin`; this will be
-used to complie this kernel.  If you are using `i370-ibm-linux-gcc`, then
-change `CROSS_COMPILE` in the `Makefile`. (At this time, both compilers
-are identical; two names for historical reasons.) Then
+create the `i370-ibm-linux-gcc` binary in `/usr/local/bin`; this will be
+used to complie this kernel.  Then
 ```
 make oldconfig
 make
@@ -55,15 +53,15 @@ To boot the resulting kernel, take a look at `elf-stripper` and
 `ins-maker` in the `boot` directory. They explain how to boot and
 how to create a ramdisk holding the initial file system.
 
-Demos of a basic userland (without any C library) can be found in the
-[Bigfoot docker container](https://github.com/linas/i370-bigfoot) set up
-for this project. This includes a demo of the userland
-[_start](https://github.com/linas/i370-bigfoot/blob/master/docker/i370-bigfoot/scripts/init-demo/crtspin.S)
-function, needed to get a stack, `argc`, `argv` and `envp` so that `main()`
-can be called. The demo works.
+Demos of a basic userland (with and without any C library, with and
+without BusyBox, with and without a root-disk) can be found in the
+[Bigfoot docker container](https://github.com/linas/i370-bigfoot)
+that was set up to demo this project.
 
-### TODO
+### Status
+Version 1.0.0 -- October 2024 --
 This kernel boots and it runs, and it context switches into userland.
+The userland with uClibc and BusyBox is stable and functional: it works.
 Many parts remain undone. In rough order from most important to least
 important:
 
@@ -89,20 +87,25 @@ Network driver:
   live on an NBD network block device.
 
 Signals TODO, see `arch/i370/kernel/signal.c`:
-* A handful of signal handling system calls are not implemented.
-* Delivery of signals is untested, and si almost surely buggy.
+* Basic signal handling works; signals are delivered on the user stack.
+  (this requires an executable stack).
+* Advanced signal features (off-stack delivery, etc.) are not implemented.
 * Handling of `-EINTR` for restartable system calls not handled.
 
 3217 and 3270 TODO:
-* 3215 handling is minimal and barely acceptable, needs to be
-  cleaned up. See `arch/i370/io/raw3215.c`
+* 3215 handling seems to work fine.
 * Boot console to 3270 not implemented, see `io/con3270.c`
 * Generic 3270 support for non-console use needs to be implemented,
   similar to what's in `arch/i370/io/raw3215.c`.
+* Paul Edwards has a modified copy of Hercules that supports a
+  character-mode version of the 3215. If a correspoding character-mode
+  tty driver was written for this kernel, then a normal unix-style
+  pty command line would be available for this kernel.  This would
+  simplify further boostrapping efforts.
 
 Devices TODO, see directory `arch/i370/io`:
 * All devices are stubs and not implemented. This includes
-  CKD, ECKD, FBA, TAPE.
+  CKD, ECKD, CTCA, FBA, TAPE.
 * Out of these, a usable storage device that could be formatted
   with an ext2 file system would be the most important. Otherwise,
   you are stuck without a hard drive. Unless you use either NBD

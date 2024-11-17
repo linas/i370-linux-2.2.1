@@ -65,34 +65,28 @@ The userland with uClibc and BusyBox is stable and functional: it works.
 Many parts remain undone. In rough order from most important to least
 important:
 
-Network driver:
+#### Character-oriented TTY
 * The mainframe 3215/3270 are line oriented; all unix tools, such
   as editors and shell prompts, are character-oriented tty devices.
   There is no way (never say never??) to layer a tty device onto
-  a 3215/3270. So, to get a usable Linux command line, one MUST
-  be able to telnet in, ssh in and use a regular pseudo-terminal.
-  But this is impossible without a network driver. This means the
-  system is barely usable, until a network driver is available.
-  Or until someone very clever figures out how to layer a tty device
-  onto a 3215/3270 or something weird like that. Beats me.
-* The solution to this, on Hercules, is to implement CTCA (Device 3088)
-  Channel To Channel Adapter. Hercules can then route this to an
-  actual tcp/ip network, via the tun/tap device. See the Hercules
-  documentation.
+  a 3215/3270. So, to get a usable Linux command line, one has two
+  choices: Implement a character-oriented variant of a 3215, or
+  implement a network driver, so that one can telnet/ssh in (and get
+  a pty that way.) These two choices are discussed below.
+
+#### Network driver:
+* The the way to get networking on Hercules is to implement the CTCA
+  (Device 3088) Channel To Channel Adapter. Hercules can then route
+  data on this channel to an actual tcp/ip network, via the tun/tap
+  device. See the Hercules documentation.
 * Implement `csum_partial_copy()` in `archi370/lib/csum_partial_copy.c`
   This does a combined checksumming while also copying between real
   and virtual memory. All the other arches do this in assembly.
   This is needed for ipv4 packet checksumming.
-* This solves the root filesystem issue: the root file system can
-  live on an NBD network block device.
+* With a network driver, the root filesystem issue is solved: the root
+  file system can live on an NBD network block device.
 
-Signals TODO, see `arch/i370/kernel/signal.c`:
-* Basic signal handling works; signals are delivered on the user stack.
-  (this requires an executable stack).
-* Advanced signal features (off-stack delivery, etc.) are not implemented.
-* Handling of `-EINTR` for restartable system calls not handled.
-
-3217 and 3270 TODO:
+#### 3217 and 3270 TODO:
 * 3215 handling seems to work fine.
 * Boot console to 3270 not implemented, see `io/con3270.c`
 * Generic 3270 support for non-console use needs to be implemented,
@@ -103,7 +97,7 @@ Signals TODO, see `arch/i370/kernel/signal.c`:
   pty command line would be available for this kernel.  This would
   simplify further boostrapping efforts.
 
-Devices TODO, see directory `arch/i370/io`:
+#### Devices TODO, see directory `arch/i370/io`:
 * All devices are stubs and not implemented. This includes
   CKD, ECKD, CTCA, FBA, TAPE.
 * Out of these, a usable storage device that could be formatted
@@ -113,7 +107,13 @@ Devices TODO, see directory `arch/i370/io`:
 * Adding filesystem drivers for traditional MVS filesystems would be ...
   weird and interesting.
 
-SMP:
+#### Signals TODO, see `arch/i370/kernel/signal.c`:
+* Basic signal handling works; signals are delivered on the user stack.
+  (this requires an executable stack).
+* Advanced signal features (off-stack delivery, etc.) are not implemented.
+* Handling of `-EINTR` for restartable system calls not handled.
+
+#### SMP:
 * This kernel runs only in uniprocessor mode. SMP support is absent.
   Adding it should be easy. Debugging it should be fun.
 
